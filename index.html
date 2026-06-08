@@ -192,92 +192,58 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
     <!-- PLANNING -->
     <div class="section" id="sec-planning">
       <div class="topbar">
-        <div><div class="ptitle">Planning</div><div class="psub">Gestion des shifts — 6 Matin / 6 Nuit</div></div>
+        <div><div class="ptitle">Planning</div><div class="psub">Kliquez sur une case pour assigner le shift</div></div>
         <div class="btns">
-          <div class="btn btn-success" onclick="openGenModal()"><i class="ti ti-wand"></i> Générer planning</div>
-          <div class="btn btn-primary" onclick="openMissionModal()"><i class="ti ti-plus"></i> Ajouter manuellement</div>
+          <div class="btn btn-sm" onclick="prevWeek()"><i class="ti ti-chevron-left"></i></div>
+          <span id="weekLabel" style="font-size:13px;color:var(--t2);padding:0 8px;line-height:36px;"></span>
+          <div class="btn btn-sm" onclick="nextWeek()"><i class="ti ti-chevron-right"></i></div>
         </div>
       </div>
       <div class="alert" id="planAlert"></div>
 
-      <!-- Planning hebdomadaire visuel -->
-      <div class="card" id="weekPlanCard">
-        <div class="card-title">
-          <span><i class="ti ti-calendar-week" style="margin-right:6px"></i>Planning de la semaine</span>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <div class="btn btn-sm" onclick="prevWeek()"><i class="ti ti-chevron-left"></i></div>
-            <span id="weekLabel" style="font-size:12px;color:var(--t2);min-width:180px;text-align:center;"></span>
-            <div class="btn btn-sm" onclick="nextWeek()"><i class="ti ti-chevron-right"></i></div>
-          </div>
-        </div>
-        <div style="overflow-x:auto;">
-          <table class="tbl" id="weekTable">
-            <thead>
-              <tr>
-                <th>Agent</th>
-                <th>Lundi</th>
-                <th>Mardi</th>
-                <th>Mercredi</th>
-                <th>Jeudi</th>
-                <th>Vendredi</th>
-                <th>Samedi</th>
-                <th>Dimanche</th>
-              </tr>
-            </thead>
-            <tbody id="weekBody"></tbody>
-          </table>
-        </div>
+      <!-- Légende -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t3);">
+          <span style="background:#0d3020;border:1px solid #4ade80;border-radius:4px;padding:2px 8px;font-size:11px;color:#4ade80;">☀️ Matin</span> 10:00→17:00
+        </span>
+        <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t3);">
+          <span style="background:#160d2a;border:1px solid #a78bfa;border-radius:4px;padding:2px 8px;font-size:11px;color:#a78bfa;">🌙 Nuit</span> 18:30→02:30
+        </span>
+        <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t3);">
+          <span style="background:#200d0d;border:1px solid #f87171;border-radius:4px;padding:2px 8px;font-size:11px;color:#f87171;">🔴 OFF</span> Repos
+        </span>
+        <span style="font-size:11px;color:var(--t4);margin-left:auto;">Cliquez sur une case pour changer</span>
       </div>
 
-      <!-- Liste missions -->
-      <div class="card">
-        <div class="card-title">
-          <span><i class="ti ti-list" style="margin-right:6px"></i>Toutes les missions</span>
-          <div style="display:flex;gap:8px;">
-            <select id="pfAgent" class="btn btn-sm" onchange="renderMissions()"><option value="">Tous les agents</option></select>
-            <select id="pfStatus" class="btn btn-sm" onchange="renderMissions()">
-              <option value="">Tous</option>
-              <option value="planifié">Planifié</option>
-              <option value="en cours">En cours</option>
-              <option value="terminé">Terminé</option>
-            </select>
-          </div>
-        </div>
-        <table class="tbl"><thead><tr><th>Agent</th><th>Shift</th><th>Date</th><th>Horaire</th><th>Statut</th><th>Action</th></tr></thead>
-        <tbody id="planBody"></tbody></table>
+      <!-- Grille planning interactive -->
+      <div class="card" style="padding:0;overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;" id="weekTable">
+          <thead>
+            <tr style="background:var(--bg2);">
+              <th style="padding:12px 16px;text-align:left;font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;border-bottom:.5px solid var(--border);min-width:160px;">Agent</th>
+              <th id="th0" style="padding:12px 8px;text-align:center;font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;border-bottom:.5px solid var(--border);min-width:80px;">Lun</th>
+              <th id="th1" style="padding:12px 8px;text-align:center;font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;border-bottom:.5px solid var(--border);min-width:80px;">Mar</th>
+              <th id="th2" style="padding:12px 8px;text-align:center;font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;border-bottom:.5px solid var(--border);min-width:80px;">Mer</th>
+              <th id="th3" style="padding:12px 8px;text-align:center;font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;border-bottom:.5px solid var(--border);min-width:80px;">Jeu</th>
+              <th id="th4" style="padding:12px 8px;text-align:center;font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;border-bottom:.5px solid var(--border);min-width:80px;">Ven</th>
+              <th id="th5" style="padding:12px 8px;text-align:center;font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;border-bottom:.5px solid var(--border);min-width:80px;">Sam</th>
+              <th id="th6" style="padding:12px 8px;text-align:center;font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;border-bottom:.5px solid var(--border);min-width:80px;">Dim</th>
+            </tr>
+          </thead>
+          <tbody id="weekBody"></tbody>
+        </table>
       </div>
-    </div>
 
-    <!-- MODAL GENERATEUR -->
-    <div class="modal-ov" id="genModal">
-      <div class="modal">
-        <div class="modal-title"><i class="ti ti-wand"></i> Générer le planning automatique</div>
-        <i class="ti ti-x modal-x" onclick="closeGenModal()"></i>
-        <div class="mfield">
-          <label>Semaine du (Lundi)</label>
-          <input type="date" id="genDate"/>
-        </div>
-        <div style="background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;">
-          <div style="font-size:12px;color:var(--t3);margin-bottom:10px;">Répartition automatique:</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div style="background:var(--accbg);border:.5px solid var(--acc);border-radius:var(--r);padding:10px;">
-              <div style="font-size:11px;color:var(--acc2);margin-bottom:6px;">☀️ SHIFT MATIN (6 agents)</div>
-              <div style="font-size:11px;color:var(--t3);">10:00 → 17:00</div>
-              <div id="matinList" style="margin-top:6px;font-size:11px;color:var(--t2);"></div>
-            </div>
-            <div style="background:var(--pbg);border:.5px solid var(--purple);border-radius:var(--r);padding:10px;">
-              <div style="font-size:11px;color:var(--purple);margin-bottom:6px;">🌙 SHIFT NUIT (6 agents)</div>
-              <div style="font-size:11px;color:var(--t3);">18:30 → 02:30</div>
-              <div id="nuitList" style="margin-top:6px;font-size:11px;color:var(--t2);"></div>
-            </div>
-          </div>
-          <div style="margin-top:10px;font-size:11px;color:var(--amber);">⚠️ Chaque agent travaille 6 jours/semaine — 1 jour OFF par roulement</div>
-        </div>
-        <div class="modal-acts">
-          <div class="btn" onclick="closeGenModal()">Annuler</div>
-          <div class="btn btn-primary" onclick="generatePlanning()"><i class="ti ti-check"></i> Générer</div>
-        </div>
+      <!-- Mini modal shift picker -->
+      <div id="shiftPicker" style="display:none;position:fixed;z-index:9999;background:var(--bg3);border:.5px solid var(--border-2);border-radius:var(--rl);padding:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:160px;">
+        <div style="font-size:11px;color:var(--t4);margin-bottom:8px;letter-spacing:1px;">CHOISIR SHIFT</div>
+        <div onclick="assignShift('matin')" style="padding:8px 12px;border-radius:6px;cursor:pointer;margin-bottom:4px;background:#0d3020;border:.5px solid #4ade80;color:#4ade80;font-size:13px;">☀️ Matin (10h→17h)</div>
+        <div onclick="assignShift('nuit')" style="padding:8px 12px;border-radius:6px;cursor:pointer;margin-bottom:4px;background:#160d2a;border:.5px solid #a78bfa;color:#a78bfa;font-size:13px;">🌙 Nuit (18h30→02h30)</div>
+        <div onclick="assignShift('off')" style="padding:8px 12px;border-radius:6px;cursor:pointer;margin-bottom:4px;background:#200d0d;border:.5px solid #f87171;color:#f87171;font-size:13px;">🔴 OFF (Repos)</div>
+        <div onclick="assignShift('delete')" style="padding:8px 12px;border-radius:6px;cursor:pointer;background:var(--bg2);border:.5px solid var(--border);color:var(--t3);font-size:13px;">🗑️ Effacer</div>
       </div>
+      <div id="pickerOverlay" style="display:none;position:fixed;inset:0;z-index:9998;" onclick="closePicker()"></div>
+
     </div>
 
     <!-- AGENTS -->
@@ -733,10 +699,83 @@ function formatDate(d){return d.toLocaleDateString("fr-FR",{day:"2-digit",month:
 function formatDateISO(d){return d.toISOString().split("T")[0];}
 window.prevWeek=()=>{currentWeekStart=addDays(currentWeekStart,-7);renderWeekPlan();};
 window.nextWeek=()=>{currentWeekStart=addDays(currentWeekStart,7);renderWeekPlan();};
-function renderWeekPlan(){const start=currentWeekStart;const end=addDays(start,6);document.getElementById("weekLabel").textContent=formatDate(start)+" → "+formatDate(end);const tbody=document.getElementById("weekBody");tbody.innerHTML="";const allAgents=[...MATIN,...NUIT];allAgents.forEach((agentName,idx)=>{const isNuit=idx>=6;const offDay=idx%7;const tr=document.createElement("tr");const ini=AGENTS.find(a=>a.name===agentName)?.ini||"??";let cells=`<td><div class="ag-row"><div class="avatar">${ini}</div><span style="font-size:12px;color:var(--t1)">${agentName}</span></div></td>`;for(let d=0;d<7;d++){const dayDate=addDays(start,d);const dateISO=formatDateISO(dayDate);if(d===offDay){cells+=`<td style="text-align:center"><span class="badge badge-red">OFF</span></td>`;}else{const mission=allMissions.find(m=>m.agent===agentName&&m.date===dateISO);if(mission){const color=isNuit?"badge-purple":"badge-blue";cells+=`<td style="text-align:center"><span class="badge ${color}">${isNuit?"🌙 Nuit":"☀️ Matin"}</span></td>`;}else{cells+=`<td style="text-align:center;color:var(--t4);font-size:11px;">—</td>`;}}}tr.innerHTML=cells;tbody.appendChild(tr);});}
-window.openGenModal=()=>{const nextMon=getMonday(new Date());document.getElementById("genDate").value=formatDateISO(nextMon);document.getElementById("matinList").innerHTML=MATIN.map(n=>"• "+n).join("<br>");document.getElementById("nuitList").innerHTML=NUIT.map(n=>"• "+n).join("<br>");document.getElementById("genModal").classList.add("open");};
-window.closeGenModal=()=>document.getElementById("genModal").classList.remove("open");
-window.generatePlanning=async()=>{const dateStr=document.getElementById("genDate").value;if(!dateStr){showAlert("planAlert","Choisis une date.","error");return;}const monday=new Date(dateStr);const allAgents=[...MATIN,...NUIT];let count=0;for(let idx=0;idx<allAgents.length;idx++){const agentName=allAgents[idx];const isNuit=idx>=6;const offDay=idx%7;for(let d=0;d<7;d++){if(d===offDay)continue;const dayDate=addDays(monday,d);const dateISO=formatDateISO(dayDate);const exists=allMissions.find(m=>m.agent===agentName&&m.date===dateISO);if(exists)continue;await addDoc(collection(db,"missions"),{agent:agentName,titre:isNuit?"Shift Nuit":"Shift Matin",date:dateISO,statut:"planifié",heureDebut:isNuit?"18:30":"10:00",heureFin:isNuit?"02:30":"17:00",notes:"",createdAt:serverTimestamp()});count++;}}closeGenModal();showAlert("planAlert","✅ "+count+" missions créées!","success");await loadAll();renderWeekPlan();};
+// Planning interactif
+let pickerAgent=null, pickerDate=null, pickerMissionId=null;
+
+function cellStyle(type){
+  if(type==="matin") return "background:#0d3020;border:.5px solid #4ade80;border-radius:6px;padding:4px 6px;font-size:11px;color:#4ade80;cursor:pointer;display:inline-block;";
+  if(type==="nuit")  return "background:#160d2a;border:.5px solid #a78bfa;border-radius:6px;padding:4px 6px;font-size:11px;color:#a78bfa;cursor:pointer;display:inline-block;";
+  if(type==="off")   return "background:#200d0d;border:.5px solid #f87171;border-radius:6px;padding:4px 6px;font-size:11px;color:#f87171;cursor:pointer;display:inline-block;";
+  return "background:var(--bg2);border:.5px solid var(--border);border-radius:6px;padding:4px 6px;font-size:11px;color:var(--t4);cursor:pointer;display:inline-block;";
+}
+
+function renderWeekPlan(){
+  const start=currentWeekStart;
+  document.getElementById("weekLabel").textContent=formatDate(start)+" → "+formatDate(addDays(start,6));
+  // Update header dates
+  const jours=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+  for(let d=0;d<7;d++){
+    const th=document.getElementById("th"+d);
+    if(th){const dd=addDays(start,d);th.innerHTML=jours[d]+"<br><span style='font-size:10px;color:var(--t4);font-weight:normal;'>"+dd.getDate()+"/"+(dd.getMonth()+1)+"</span>";}
+  }
+  const tbody=document.getElementById("weekBody");
+  tbody.innerHTML="";
+  AGENTS.forEach(ag=>{
+    const tr=document.createElement("tr");
+    let cells=`<td style="padding:8px 16px;border-bottom:.5px solid var(--border);"><div class="ag-row"><div class="avatar">${ag.ini}</div><span style="font-size:12px;color:var(--t1)">${ag.name}</span></div></td>`;
+    for(let d=0;d<7;d++){
+      const dateISO=formatDateISO(addDays(start,d));
+      const m=allMissions.find(x=>x.agent===ag.name&&x.date===dateISO);
+      let content="";
+      if(m){
+        if(m.titre==="Shift Matin"||m.heureDebut==="10:00") content=`<span style="${cellStyle('matin')}" onclick="openPicker('${ag.name}','${dateISO}','${m.id}',event)">☀️ Matin</span>`;
+        else if(m.titre==="Shift Nuit"||m.heureDebut==="18:30") content=`<span style="${cellStyle('nuit')}" onclick="openPicker('${ag.name}','${dateISO}','${m.id}',event)">🌙 Nuit</span>`;
+        else if(m.titre==="OFF") content=`<span style="${cellStyle('off')}" onclick="openPicker('${ag.name}','${dateISO}','${m.id}',event)">🔴 OFF</span>`;
+        else content=`<span style="${cellStyle('other')}" onclick="openPicker('${ag.name}','${dateISO}','${m.id}',event)">📋 ${m.titre.slice(0,6)}</span>`;
+      } else {
+        content=`<span style="${cellStyle('')}" onclick="openPicker('${ag.name}','${dateISO}',null,event)">+</span>`;
+      }
+      cells+=`<td style="padding:8px;text-align:center;border-bottom:.5px solid var(--border);">${content}</td>`;
+    }
+    tr.innerHTML=cells;
+    tbody.appendChild(tr);
+  });
+}
+
+window.openPicker=(agent,date,missionId,evt)=>{
+  evt.stopPropagation();
+  pickerAgent=agent; pickerDate=date; pickerMissionId=missionId;
+  const p=document.getElementById("shiftPicker");
+  const rect=evt.target.getBoundingClientRect();
+  p.style.top=(rect.bottom+8)+"px";
+  p.style.left=Math.min(rect.left,window.innerWidth-180)+"px";
+  p.style.display="block";
+  document.getElementById("pickerOverlay").style.display="block";
+};
+
+window.closePicker=()=>{
+  document.getElementById("shiftPicker").style.display="none";
+  document.getElementById("pickerOverlay").style.display="none";
+};
+
+window.assignShift=async(type)=>{
+  closePicker();
+  if(type==="delete"){
+    if(pickerMissionId){ await deleteDoc(doc(db,"missions",pickerMissionId)); showAlert("planAlert","Supprimé.","success"); }
+  } else {
+    const data={
+      agent:pickerAgent, date:pickerDate, statut:"planifié",
+      titre:  type==="matin"?"Shift Matin":type==="nuit"?"Shift Nuit":"OFF",
+      heureDebut: type==="matin"?"10:00":type==="nuit"?"18:30":"",
+      heureFin:   type==="matin"?"17:00":type==="nuit"?"02:30":"",
+      notes:"",
+    };
+    if(pickerMissionId){ await updateDoc(doc(db,"missions",pickerMissionId),data); }
+    else { data.createdAt=serverTimestamp(); await addDoc(collection(db,"missions"),data); }
+    showAlert("planAlert","✅ Shift enregistré!","success");
+  }
+  await loadAll(); renderWeekPlan();
+};
 
 // ── Helpers ───────────────────────────────────────
 function showAlert(id,msg,type){
