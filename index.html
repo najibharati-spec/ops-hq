@@ -9,100 +9,90 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f0f2f5;color:#1a1a2e;font-size:14px}
 
-/* TOP NAV */
-.topnav{background:#fff;border-bottom:1px solid #e0e4ee;padding:0 24px;display:flex;align-items:center;gap:12px;height:52px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.nav-btn{padding:6px 14px;border-radius:6px;border:1px solid #d0d5e8;background:#fff;color:#444;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s}
-.nav-btn:hover{background:#f5f7ff;border-color:#7c8cf8}
-.nav-week{font-size:14px;font-weight:600;color:#1a1a2e;padding:0 8px}
-.nav-right{margin-left:auto;display:flex;gap:10px}
-.btn-gen{background:#f97316;border:none;color:#fff;padding:7px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:500}
-.btn-gen:hover{background:#ea6c0a}
-.btn-pdf{background:#6366f1;border:none;color:#fff;padding:7px 14px;border-radius:6px;font-size:13px;cursor:pointer}
-.btn-pdf:hover{background:#4f46e5}
+.topnav{background:#fff;border-bottom:1px solid #e0e4ee;padding:0 20px;display:flex;align-items:center;gap:10px;height:50px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.nav-btn{padding:6px 14px;border-radius:6px;border:1px solid #d0d5e8;background:#fff;color:#444;font-size:13px;cursor:pointer;font-weight:600}
+.nav-btn:hover{background:#f5f7ff}
+.nav-title{font-size:14px;font-weight:700;color:#1a1a2e;padding:0 10px}
+.nav-right{margin-left:auto;display:flex;gap:8px}
+.btn-orange{background:#f97316;border:none;color:#fff;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
+.btn-green{background:#10b981;border:none;color:#fff;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
+.btn-blue{background:#6366f1;border:none;color:#fff;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
 
-/* MAIN */
-.main{padding:20px 24px}
+.main{padding:16px 20px}
 
 /* TABLE */
-.plan-table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07)}
-.plan-table th{background:#f8f9fc;padding:10px 12px;font-size:11px;font-weight:600;color:#6b7280;letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid #e8ecf5;text-align:center}
-.plan-table th:first-child{text-align:left;padding-left:20px;min-width:160px}
-.plan-table th.today-col{background:#eef2ff;color:#6366f1}
-.plan-table td{padding:8px 10px;border-bottom:1px solid #f0f3fa;text-align:center;vertical-align:middle}
-.plan-table td:first-child{text-align:left;padding-left:20px}
+.plan-wrap{overflow-x:auto;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.plan-table{width:100%;border-collapse:collapse;background:#fff}
+.plan-table th{background:#f8f9fc;padding:9px 8px;font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.6px;text-transform:uppercase;border-bottom:2px solid #e8ecf5;text-align:center;white-space:nowrap}
+.plan-table th.col-agent{text-align:left;padding-left:16px;min-width:150px}
+.plan-table th.today{background:#eef2ff;color:#6366f1}
+.plan-table td{padding:6px 8px;border-bottom:1px solid #f0f3fa;text-align:center;vertical-align:middle}
+.plan-table td.col-agent{text-align:left;padding-left:16px}
 .plan-table tbody tr:hover td{background:#fafbff}
 .plan-table tbody tr:last-child td{border-bottom:none}
 
-/* AGENT NAME */
-.agent-name{font-size:13px;font-weight:600;color:#1a1a2e}
-.agent-city{font-size:11px;color:#9ca3af;margin-top:1px}
+.agent-name{font-size:13px;font-weight:700;color:#1a1a2e}
 
-/* SHIFT CELL */
-.shift-cell{
-  display:inline-flex;flex-direction:column;align-items:center;
-  border-radius:8px;padding:5px 10px;cursor:pointer;min-width:90px;
-  transition:all .12s;border:1px solid transparent;
+/* SHIFT DISPLAY */
+.shift-box{
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+  border-radius:7px;padding:5px 8px;min-width:88px;cursor:pointer;
+  transition:transform .1s,box-shadow .1s;
 }
-.shift-cell:hover{transform:scale(1.03);box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.shift-time{font-size:12px;font-weight:600;color:#fff;letter-spacing:.3px}
-.shift-label{font-size:10px;color:rgba(255,255,255,.8);margin-top:1px}
+.shift-box:hover{transform:scale(1.04);box-shadow:0 3px 10px rgba(0,0,0,.15)}
+.shift-time{font-size:12px;font-weight:700;color:#fff}
+.shift-sub{font-size:10px;color:rgba(255,255,255,.85);margin-top:1px}
+.shift-work{background:linear-gradient(135deg,#10b981,#059669)}
+.shift-off{background:#f3f4f6;border:1.5px solid #d1d5db}
+.shift-off .shift-time{color:#9ca3af;font-weight:600}
+.shift-off .shift-sub{color:#d1d5db}
+.shift-absent{background:linear-gradient(135deg,#ef4444,#dc2626)}
+.shift-conge{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.shift-maladie{background:linear-gradient(135deg,#8b5cf6,#7c3aed)}
+.shift-empty{background:#f9fafb;border:1.5px dashed #d1d5db;cursor:pointer}
+.shift-empty .shift-time{color:#d1d5db;font-size:20px;font-weight:300;line-height:1}
 
-.shift-matin  {background:linear-gradient(135deg,#10b981,#059669)}
-.shift-nuit   {background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
-.shift-custom {background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
-.shift-off    {background:#f3f4f6;border:1px solid #d1d5db !important}
-.shift-off .shift-time{color:#9ca3af;font-weight:500}
-.shift-off .shift-label{color:#c4c9d4}
-.shift-empty  {background:#f9fafb;border:1px dashed #d1d5db}
-.shift-empty .shift-time{color:#d1d5db;font-size:18px;font-weight:300}
+.total-cell{background:#ecfdf5;color:#059669;font-weight:700;font-size:13px;border-radius:6px;padding:4px 8px;display:inline-block}
 
-.total-badge{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;color:#059669}
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:24px;width:320px;box-shadow:0 12px 40px rgba(0,0,0,.15)}
+.modal-title{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:4px}
+.modal-sub{font-size:12px;color:#9ca3af;margin-bottom:18px}
+.modal-label{font-size:11px;font-weight:600;color:#6b7280;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
+.modal-select{width:100%;border:1.5px solid #e0e4ee;border-radius:8px;padding:10px 12px;font-size:14px;color:#1a1a2e;outline:none;cursor:pointer;background:#fff;appearance:auto}
+.modal-select:focus{border-color:#6366f1}
+.modal-actions{display:flex;gap:8px;margin-top:18px}
+.m-btn{flex:1;padding:10px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer}
+.m-cancel{background:#f3f4f6;color:#6b7280}
+.m-save{background:#10b981;color:#fff}
+.m-save:hover{background:#059669}
 
-/* PICKER */
-.picker-overlay{display:none;position:fixed;inset:0;z-index:998}
-.picker-overlay.open{display:block}
-.picker{display:none;position:fixed;z-index:999;background:#fff;border:1px solid #e0e4ee;border-radius:12px;padding:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);min-width:240px}
-.picker.open{display:block}
-.picker-title{font-size:11px;color:#9ca3af;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
-.picker-agent{font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:12px}
-.time-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.time-label{font-size:11px;color:#6b7280;margin-bottom:4px}
-.time-input{width:100%;border:1px solid #e0e4ee;border-radius:6px;padding:7px 10px;font-size:13px;color:#1a1a2e;outline:none}
-.time-input:focus{border-color:#6366f1}
-.picker-presets{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
-.preset-btn{padding:7px;border-radius:6px;border:1px solid #e0e4ee;background:#f9fafb;font-size:11px;font-weight:600;cursor:pointer;transition:all .1s;text-align:center}
-.preset-btn:hover{background:#eef2ff;border-color:#6366f1;color:#6366f1}
-.preset-matin{border-color:#a7f3d0;background:#ecfdf5;color:#059669}
-.preset-nuit {border-color:#ddd6fe;background:#f5f3ff;color:#6d28d9}
-.picker-actions{display:flex;gap:8px;margin-top:4px}
-.p-btn{flex:1;padding:8px;border-radius:6px;border:none;font-size:13px;font-weight:500;cursor:pointer}
-.p-btn-off{background:#fef2f2;color:#ef4444;border:1px solid #fca5a5}
-.p-btn-save{background:#6366f1;color:#fff}
-.p-btn-save:hover{background:#4f46e5}
-.p-btn-del{background:#f3f4f6;color:#6b7280}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;display:none;z-index:9999}
 
-/* Alert */
-.alert-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;display:none;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+@media print{.topnav{display:none}.main{padding:0}}
 </style>
 </head>
 <body>
 
 <div class="topnav">
-  <button class="nav-btn" onclick="prevWeek()"><i class="ti ti-chevron-left"></i> Préc.</button>
-  <span class="nav-week" id="weekLabel"></span>
-  <button class="nav-btn" onclick="nextWeek()">Suiv. <i class="ti ti-chevron-right"></i></button>
+  <button class="nav-btn" onclick="prevWeek()">◀ Préc.</button>
+  <span class="nav-title">Planning</span>
+  <button class="nav-btn" onclick="nextWeek()">Suiv. ▶</button>
+  <span id="weekLabel" style="font-size:13px;color:#6b7280;padding-left:6px;"></span>
   <div class="nav-right">
-    <button class="btn-gen" onclick="window.print()"><i class="ti ti-printer"></i> Imprimer</button>
-    <button class="btn-pdf" onclick="goBack()"><i class="ti ti-arrow-left"></i> Retour</button>
+    <button class="btn-orange" onclick="window.print()">🖨️ Imprimer</button>
+    <button class="btn-blue" onclick="goBack()">← Retour</button>
   </div>
 </div>
 
 <div class="main">
-  <div style="overflow-x:auto;">
+  <div class="plan-wrap">
     <table class="plan-table" id="planTable">
       <thead>
         <tr>
-          <th>AGENT</th>
+          <th class="col-agent">AGENT</th>
           <th id="th0"></th><th id="th1"></th><th id="th2"></th>
           <th id="th3"></th><th id="th4"></th><th id="th5"></th><th id="th6"></th>
           <th>TOTAL</th>
@@ -113,40 +103,46 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   </div>
 </div>
 
-<!-- Picker -->
-<div class="picker-overlay" id="pickerOverlay" onclick="closePicker()"></div>
-<div class="picker" id="picker">
-  <div class="picker-title">ASSIGNER SHIFT</div>
-  <div class="picker-agent" id="pickerAgentName"></div>
-  <div class="picker-presets">
-    <div class="preset-btn preset-matin" onclick="applyPreset('10:00','17:00')">☀️ Matin<br><span style="font-size:10px;font-weight:400">10:00 → 17:00</span></div>
-    <div class="preset-btn preset-nuit"  onclick="applyPreset('18:30','02:30')">🌙 Nuit<br><span style="font-size:10px;font-weight:400">18:30 → 02:30</span></div>
-    <div class="preset-btn" onclick="applyPreset('09:00','16:00')">🌤️ Matin 2<br><span style="font-size:10px;font-weight:400">09:00 → 16:00</span></div>
-    <div class="preset-btn" onclick="applyPreset('17:00','00:00')">🌆 Soir<br><span style="font-size:10px;font-weight:400">17:00 → 00:00</span></div>
-  </div>
-  <div class="time-row">
-    <div>
-      <div class="time-label">Début</div>
-      <input type="time" class="time-input" id="tDebut"/>
+<!-- Modal -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Modifier shift</div>
+    <div class="modal-sub" id="modalSub"></div>
+    <div class="modal-label">HORAIRE</div>
+    <select class="modal-select" id="shiftSelect">
+      <option value="">— Choisir —</option>
+      <option value="OFF">OFF</option>
+      <option value="ABSENT">ABSENT</option>
+      <option value="CONGE">CONGÉ</option>
+      <option value="MALADIE">MALADIE</option>
+      <option disabled>──────────</option>
+      <option value="09:00-16:00">09:00 - 16:00</option>
+      <option value="09:00-17:00">09:00 - 17:00</option>
+      <option value="10:00-17:00">10:00 - 17:00</option>
+      <option value="10:00-18:00">10:00 - 18:00</option>
+      <option value="11:00-18:00">11:00 - 18:00</option>
+      <option value="11:00-19:00">11:00 - 19:00</option>
+      <option value="15:00-23:00">15:00 - 23:00</option>
+      <option value="16:00-23:00">16:00 - 23:00</option>
+      <option value="17:00-00:00">17:00 - 00:00</option>
+      <option value="17:00-01:00">17:00 - 01:00</option>
+      <option value="18:00-01:00">18:00 - 01:00</option>
+      <option value="18:30-02:30">18:30 - 02:30</option>
+      <option value="19:30-02:30">19:30 - 02:30</option>
+    </select>
+    <div class="modal-actions">
+      <button class="m-btn m-cancel" onclick="closeModal()">Annuler</button>
+      <button class="m-btn m-save" onclick="saveShift()">✓ Enregistrer</button>
     </div>
-    <div>
-      <div class="time-label">Fin</div>
-      <input type="time" class="time-input" id="tFin"/>
-    </div>
-  </div>
-  <div class="picker-actions">
-    <button class="p-btn p-btn-off" onclick="saveShift('off')">OFF</button>
-    <button class="p-btn p-btn-del" onclick="deleteShift()">🗑️</button>
-    <button class="p-btn p-btn-save" onclick="saveShift('work')">✓ Enregistrer</button>
   </div>
 </div>
 
-<div class="alert-toast" id="toast"></div>
+<div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp }
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const FC={apiKey:"AIzaSyDdXwRWBvTJ9RffnY16W_r0dHE1WOJj1Rs",authDomain:"ops-hq-cc38c.firebaseapp.com",projectId:"ops-hq-cc38c",storageBucket:"ops-hq-cc38c.firebasestorage.app",messagingSenderId:"909070102010",appId:"1:909070102010:web:5abb7857fe2a557ed68843"};
@@ -155,142 +151,121 @@ const auth=getAuth(app);
 const db=getFirestore(app);
 
 const AGENTS=[
-  {name:"Achraf Akhlij",ini:"AA"},{name:"Youssef Derkaoui",ini:"YD"},
-  {name:"Aymane Chlifane",ini:"AC"},{name:"Ayoub Abssi",ini:"AB"},
-  {name:"Mourad Cherradi",ini:"MC"},{name:"Yahya Rhallab",ini:"YR"},
-  {name:"Hassan Azgoune",ini:"HA"},{name:"Ayoub Ben Malek",ini:"AB2"},
-  {name:"Charaf Loummihi",ini:"CL"},{name:"Zakariae Benali",ini:"ZB"},
-  {name:"Islam Elmardi",ini:"IE"},{name:"Oussama El Atrach",ini:"OE"}
+  "Achraf Akhlij","Youssef Derkaoui","Aymane Chlifane","Ayoub Abssi",
+  "Mourad Cherradi","Yahya Rhallab","Hassan Azgoune","Ayoub Ben Malek",
+  "Charaf Loummihi","Zakariae Benali","Islam Elmardi","Oussama El Atrach"
 ];
-
-const JOURS_FR=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
-const TODAY = new Date().toISOString().split("T")[0];
+const JOURS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+const TODAY=new Date().toISOString().split("T")[0];
 
 let weekStart=getMonday(new Date());
 let allShifts=[];
-let pickerAgent=null, pickerDate=null, pickerShiftId=null;
+let curAgent=null,curDate=null,curId=null;
 
-onAuthStateChanged(auth, u=>{ if(!u) window.location.href="index.html"; });
+onAuthStateChanged(auth,u=>{if(!u)window.location.href="index.html";});
 
-function getMonday(d){const c=new Date(d);const day=c.getDay();const diff=c.getDate()-day+(day===0?-6:1);c.setDate(diff);c.setHours(0,0,0,0);return c;}
+function getMonday(d){const c=new Date(d);const day=c.getDay();c.setDate(c.getDate()-day+(day===0?-6:1));c.setHours(0,0,0,0);return c;}
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
-function fmt(d){return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});}
 function iso(d){return d.toISOString().split("T")[0];}
-function calcHours(debut,fin){
-  if(!debut||!fin||fin==="")return 0;
-  let [dh,dm]=debut.split(":").map(Number);
+function fmt(d){return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});}
+
+function calcH(val){
+  if(!val||["OFF","ABSENT","CONGE","MALADIE",""].includes(val))return 0;
+  const [deb,fin]=val.split("-");
+  let [dh,dm]=deb.split(":").map(Number);
   let [fh,fm]=fin.split(":").map(Number);
   if(fh<dh||(fh===dh&&fm<dm))fh+=24;
   return Math.round(((fh*60+fm)-(dh*60+dm))/60*10)/10;
 }
 
-async function loadShifts(){
-  const s=addDays(weekStart,0); const e=addDays(weekStart,6);
-  const q=await getDocs(collection(db,"planning"));
-  allShifts=q.docs.map(d=>({id:d.id,...d.data()}));
-  renderTable();
+async function load(){
+  const snap=await getDocs(collection(db,"planning2"));
+  allShifts=snap.docs.map(d=>({id:d.id,...d.data()}));
+  render();
 }
 
-function renderTable(){
-  // Header dates
-  const todayISO=TODAY;
+function render(){
+  // Headers
   for(let d=0;d<7;d++){
     const date=addDays(weekStart,d);
     const dateISO=iso(date);
-    const th=document.getElementById("th"+d);
-    const isToday=dateISO===todayISO;
-    th.textContent="";
-    th.innerHTML=`<span style="display:block;font-size:11px;">${JOURS_FR[d].slice(0,3).toUpperCase()}</span><span style="font-size:12px;font-weight:700;color:${isToday?"#6366f1":"#374151"}">${fmt(date)}</span>`;
-    th.className=isToday?"today-col":"";
+    const isToday=dateISO===TODAY;
+    document.getElementById("th"+d).innerHTML=`<span style="display:block">${JOURS[d].slice(0,3).toUpperCase()}</span><span style="font-size:12px;font-weight:700;color:${isToday?"#6366f1":"#374151"}">${fmt(date)}</span>`;
+    document.getElementById("th"+d).className=isToday?"today":"";
   }
-  document.getElementById("weekLabel").textContent=`Planning — ${fmt(weekStart)} au ${fmt(addDays(weekStart,6))}`;
+  document.getElementById("weekLabel").textContent=`${fmt(weekStart)} → ${fmt(addDays(weekStart,6))}`;
 
   const tbody=document.getElementById("planBody");
   tbody.innerHTML="";
 
-  AGENTS.forEach(ag=>{
+  AGENTS.forEach(name=>{
     const tr=document.createElement("tr");
     let totalH=0;
-    let cells=`<td><div class="agent-name">${ag.name}</div></td>`;
+    let cells=`<td class="col-agent"><div class="agent-name">${name}</div></td>`;
 
     for(let d=0;d<7;d++){
       const dateISO=iso(addDays(weekStart,d));
-      const shift=allShifts.find(s=>s.agent===ag.name&&s.date===dateISO);
-      let cell="";
-      if(shift){
-        if(shift.type==="off"){
-          cell=`<span class="shift-cell shift-off" onclick="openPicker('${ag.name}','${dateISO}','${shift.id}',event)"><span class="shift-time">OFF</span><span class="shift-label">Repos</span></span>`;
-        } else {
-          const h=calcHours(shift.debut,shift.fin);
-          totalH+=h;
-          let cls="shift-custom";
-          if(shift.debut==="10:00"&&shift.fin==="17:00")cls="shift-matin";
-          else if(shift.debut==="18:30"&&shift.fin==="02:30")cls="shift-nuit";
-          else if(shift.debut==="09:00")cls="shift-matin";
-          else if(parseInt(shift.debut)>=17)cls="shift-nuit";
-          cell=`<span class="shift-cell ${cls}" onclick="openPicker('${ag.name}','${dateISO}','${shift.id}',event)"><span class="shift-time">${shift.debut}→${shift.fin}</span><span class="shift-label">${h}h</span></span>`;
-        }
+      const shift=allShifts.find(s=>s.agent===name&&s.date===dateISO);
+      const val=shift?.val||"";
+      let box="";
+
+      if(!val){
+        box=`<span class="shift-box shift-empty" onclick="openModal('${name}','${dateISO}',null,'')"><span class="shift-time">+</span></span>`;
+      } else if(val==="OFF"){
+        box=`<span class="shift-box shift-off" onclick="openModal('${name}','${dateISO}','${shift.id}','${val}')"><span class="shift-time">OFF</span><span class="shift-sub">Repos</span></span>`;
+      } else if(val==="ABSENT"){
+        box=`<span class="shift-box shift-absent" onclick="openModal('${name}','${dateISO}','${shift.id}','${val}')"><span class="shift-time">ABS</span><span class="shift-sub">Absent</span></span>`;
+      } else if(val==="CONGE"){
+        box=`<span class="shift-box shift-conge" onclick="openModal('${name}','${dateISO}','${shift.id}','${val}')"><span class="shift-time">CON</span><span class="shift-sub">Congé</span></span>`;
+      } else if(val==="MALADIE"){
+        box=`<span class="shift-box shift-maladie" onclick="openModal('${name}','${dateISO}','${shift.id}','${val}')"><span class="shift-time">MAL</span><span class="shift-sub">Maladie</span></span>`;
       } else {
-        cell=`<span class="shift-cell shift-empty" onclick="openPicker('${ag.name}','${dateISO}',null,event)"><span class="shift-time">+</span></span>`;
+        const h=calcH(val);
+        totalH+=h;
+        box=`<span class="shift-box shift-work" onclick="openModal('${name}','${dateISO}','${shift.id}','${val}')"><span class="shift-time">${val.replace("-"," → ")}</span><span class="shift-sub">${h}h</span></span>`;
       }
-      cells+=`<td>${cell}</td>`;
+      cells+=`<td>${box}</td>`;
     }
-    cells+=`<td><span class="total-badge">${totalH}h</span></td>`;
+    cells+=`<td><span class="total-cell">${totalH}h</span></td>`;
     tr.innerHTML=cells;
     tbody.appendChild(tr);
   });
 }
 
-window.prevWeek=()=>{weekStart=addDays(weekStart,-7);loadShifts();}
-window.nextWeek=()=>{weekStart=addDays(weekStart,7);loadShifts();}
+window.prevWeek=()=>{weekStart=addDays(weekStart,-7);load();}
+window.nextWeek=()=>{weekStart=addDays(weekStart,7);load();}
 window.goBack=()=>{window.location.href="index.html";}
 
-window.openPicker=(agent,date,shiftId,evt)=>{
-  evt.stopPropagation();
-  pickerAgent=agent; pickerDate=date; pickerShiftId=shiftId;
-  document.getElementById("pickerAgentName").textContent=agent+" — "+date;
-  const shift=allShifts.find(s=>s.id===shiftId);
-  document.getElementById("tDebut").value=shift?.debut||"";
-  document.getElementById("tFin").value=shift?.fin||"";
-  const p=document.getElementById("picker");
-  const rect=evt.target.getBoundingClientRect();
-  p.style.top=Math.min(rect.bottom+8,window.innerHeight-280)+"px";
-  p.style.left=Math.min(rect.left,window.innerWidth-260)+"px";
-  p.classList.add("open");
-  document.getElementById("pickerOverlay").classList.add("open");
+window.openModal=(agent,date,id,val)=>{
+  curAgent=agent; curDate=date; curId=id;
+  document.getElementById("modalTitle").textContent="Shift — "+agent;
+  document.getElementById("modalSub").textContent=new Date(date).toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"long"});
+  document.getElementById("shiftSelect").value=val||"";
+  document.getElementById("modalBg").classList.add("open");
 };
 
-window.closePicker=()=>{
-  document.getElementById("picker").classList.remove("open");
-  document.getElementById("pickerOverlay").classList.remove("open");
+window.closeModal=()=>document.getElementById("modalBg").classList.remove("open");
+
+window.saveShift=async()=>{
+  const val=document.getElementById("shiftSelect").value;
+  if(!val){closeModal();return;}
+  const data={agent:curAgent,date:curDate,val};
+  if(curId){await updateDoc(doc(db,"planning2",curId),data);}
+  else{data.createdAt=serverTimestamp();await addDoc(collection(db,"planning2"),data);}
+  closeModal();
+  showToast("✅ Enregistré!");
+  await load();
 };
 
-window.applyPreset=(debut,fin)=>{
-  document.getElementById("tDebut").value=debut;
-  document.getElementById("tFin").value=fin;
-};
-
-window.saveShift=async(type)=>{
-  const debut=document.getElementById("tDebut").value;
-  const fin=document.getElementById("tFin").value;
-  const data={agent:pickerAgent,date:pickerDate,type,debut:type==="off"?"":debut,fin:type==="off"?"":fin};
-  if(pickerShiftId){await updateDoc(doc(db,"planning",pickerShiftId),data);}
-  else{data.createdAt=serverTimestamp();await addDoc(collection(db,"planning"),data);}
-  closePicker(); toast("✅ Shift enregistré!"); await loadShifts();
-};
-
-window.deleteShift=async()=>{
-  if(pickerShiftId){await deleteDoc(doc(db,"planning",pickerShiftId));}
-  closePicker(); toast("🗑️ Supprimé"); await loadShifts();
-};
-
-function toast(msg){
+function showToast(msg){
   const el=document.getElementById("toast");
-  el.textContent=msg; el.style.display="block";
+  el.textContent=msg;el.style.display="block";
   setTimeout(()=>el.style.display="none",2500);
 }
 
-loadShifts();
+document.getElementById("modalBg").addEventListener("click",e=>{if(e.target===document.getElementById("modalBg"))closeModal();});
+
+load();
 </script>
 </body>
 </html>
