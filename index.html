@@ -3,269 +3,820 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>OPS HQ — Planning</title>
+<title>OPS HQ — Connexion</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
 <style>
+:root{--bg:#060b18;--bg2:#0a0f1e;--bg3:#0d1525;--border:#1e2d4a;--t1:#e2e8f0;--t2:#94b4d4;--t3:#4a6080;--t4:#2e4060;--acc:#3b82f6;--acc2:#60a5fa;--accbg:#0d2040;--green:#4ade80;--gbg:#0d2516;--amber:#fbbf24;--abg:#1a1000;--red:#f87171;--rbg:#200d0d;--purple:#a78bfa;--pbg:#160d2a;--r:8px;--rl:12px}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f0f2f5;color:#1a1a2e;font-size:14px}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg2);color:var(--t1);font-size:14px}
+.page{display:none;min-height:100vh}
+.page.active{display:flex}
 
-.topnav{background:#fff;border-bottom:1px solid #e0e4ee;padding:0 20px;display:flex;align-items:center;gap:10px;height:50px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.nav-btn{padding:6px 14px;border-radius:6px;border:1px solid #d0d5e8;background:#fff;color:#444;font-size:13px;cursor:pointer;font-weight:600}
-.nav-btn:hover{background:#f5f7ff}
-.nav-title{font-size:14px;font-weight:700;color:#1a1a2e;padding:0 10px}
-.nav-right{margin-left:auto;display:flex;gap:8px}
-.btn-orange{background:#f97316;border:none;color:#fff;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
-.btn-green{background:#10b981;border:none;color:#fff;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
-.btn-blue{background:#6366f1;border:none;color:#fff;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
+/* LOGIN */
+.login-page{align-items:center;justify-content:center;background:var(--bg)}
+.login-card{background:var(--bg3);border:.5px solid var(--border);border-radius:var(--rl);padding:36px 32px;width:100%;max-width:400px}
+.logo-text{display:block;font-size:26px;font-weight:600;color:var(--acc2);letter-spacing:6px;text-align:center}
+.logo-sub{display:block;font-size:11px;color:var(--t4);letter-spacing:2px;text-align:center;margin-top:4px;margin-bottom:32px;text-transform:uppercase}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.inp-wrap{position:relative;display:flex;align-items:center}
+.inp-wrap i:first-child{position:absolute;left:12px;color:var(--t3);font-size:16px;pointer-events:none}
+.inp-wrap input{width:100%;background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r);padding:10px 40px 10px 38px;color:var(--t1);font-size:14px;outline:none}
+.inp-wrap input:focus{border-color:var(--acc)}
+.eye{position:absolute;right:12px;color:var(--t3);font-size:16px;cursor:pointer}
+.err{background:var(--rbg);border:.5px solid var(--red);color:var(--red);border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:14px;display:none}
+.btn-login{width:100%;background:var(--accbg);border:.5px solid var(--acc);color:var(--acc2);border-radius:var(--r);padding:12px;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+.btn-login:hover{background:#112850}
+.login-foot{text-align:center;margin-top:24px;font-size:11px;color:var(--t4)}
 
-.main{padding:16px 20px}
-
-/* TABLE */
-.plan-wrap{overflow-x:auto;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
-.plan-table{width:100%;border-collapse:collapse;background:#fff}
-.plan-table th{background:#f8f9fc;padding:9px 8px;font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.6px;text-transform:uppercase;border-bottom:2px solid #e8ecf5;text-align:center;white-space:nowrap}
-.plan-table th.col-agent{text-align:left;padding-left:16px;min-width:150px}
-.plan-table th.today{background:#eef2ff;color:#6366f1}
-.plan-table td{padding:6px 8px;border-bottom:1px solid #f0f3fa;text-align:center;vertical-align:middle}
-.plan-table td.col-agent{text-align:left;padding-left:16px}
-.plan-table tbody tr:hover td{background:#fafbff}
-.plan-table tbody tr:last-child td{border-bottom:none}
-
-.agent-name{font-size:13px;font-weight:700;color:#1a1a2e}
-
-/* SHIFT DISPLAY */
-.shift-box{
-  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
-  border-radius:7px;padding:5px 8px;min-width:88px;cursor:pointer;
-  transition:transform .1s,box-shadow .1s;
-}
-.shift-box:hover{transform:scale(1.04);box-shadow:0 3px 10px rgba(0,0,0,.15)}
-.shift-time{font-size:12px;font-weight:700;color:#fff}
-.shift-sub{font-size:10px;color:rgba(255,255,255,.85);margin-top:1px}
-.shift-work{background:linear-gradient(135deg,#10b981,#059669)}
-.shift-off{background:#f3f4f6;border:1.5px solid #d1d5db}
-.shift-off .shift-time{color:#9ca3af;font-weight:600}
-.shift-off .shift-sub{color:#d1d5db}
-.shift-absent{background:linear-gradient(135deg,#ef4444,#dc2626)}
-.shift-conge{background:linear-gradient(135deg,#f59e0b,#d97706)}
-.shift-maladie{background:linear-gradient(135deg,#8b5cf6,#7c3aed)}
-.shift-empty{background:#f9fafb;border:1.5px dashed #d1d5db;cursor:pointer}
-.shift-empty .shift-time{color:#d1d5db;font-size:20px;font-weight:300;line-height:1}
-
-.total-cell{background:#ecfdf5;color:#059669;font-weight:700;font-size:13px;border-radius:6px;padding:4px 8px;display:inline-block}
-
-/* MODAL */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;align-items:center;justify-content:center}
-.modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:14px;padding:24px;width:320px;box-shadow:0 12px 40px rgba(0,0,0,.15)}
-.modal-title{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:4px}
-.modal-sub{font-size:12px;color:#9ca3af;margin-bottom:18px}
-.modal-label{font-size:11px;font-weight:600;color:#6b7280;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
-.modal-select{width:100%;border:1.5px solid #e0e4ee;border-radius:8px;padding:10px 12px;font-size:14px;color:#1a1a2e;outline:none;cursor:pointer;background:#fff;appearance:auto}
-.modal-select:focus{border-color:#6366f1}
-.modal-actions{display:flex;gap:8px;margin-top:18px}
-.m-btn{flex:1;padding:10px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer}
-.m-cancel{background:#f3f4f6;color:#6b7280}
-.m-save{background:#10b981;color:#fff}
-.m-save:hover{background:#059669}
-
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;display:none;z-index:9999}
-
-@media print{.topnav{display:none}.main{padding:0}}
+/* APP */
+.app-page{flex-direction:row}
+.sidebar{width:230px;background:var(--bg);border-right:.5px solid var(--border);display:flex;flex-direction:column;min-height:100vh;flex-shrink:0}
+.sb-logo{padding:22px 20px 18px;border-bottom:.5px solid var(--border)}
+.sb-logo .logo-text{font-size:18px;letter-spacing:4px;text-align:left;margin-bottom:0}
+.sb-logo .logo-sub{text-align:left;margin-bottom:0}
+.nav-sec{padding:16px 20px 5px;font-size:10px;color:var(--t4);letter-spacing:2px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;font-size:13px;color:var(--t3);cursor:pointer;border-left:2px solid transparent;text-decoration:none;transition:all .15s}
+.nav-item i{font-size:17px}
+.nav-item:hover{color:var(--t2);background:var(--bg3)}
+.nav-item.active{color:var(--acc2);background:#0d1a30;border-left-color:var(--acc)}
+.sb-user{margin-top:auto;padding:16px 20px;border-top:.5px solid var(--border)}
+.sb-user .uname{font-size:13px;color:var(--t2);font-weight:500}
+.sb-user .urole{font-size:11px;color:var(--t4);margin-top:2px}
+.badge{display:inline-block;padding:2px 9px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-top:6px}
+.badge-blue{background:var(--accbg);color:var(--acc2)}
+.badge-green{background:var(--gbg);color:var(--green)}
+.badge-amber{background:var(--abg);color:var(--amber)}
+.badge-red{background:var(--rbg);color:var(--red)}
+.badge-purple{background:var(--pbg);color:var(--purple)}
+.main{flex:1;padding:28px 32px;overflow-y:auto}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px}
+.ptitle{font-size:22px;font-weight:500;color:var(--t2)}
+.psub{font-size:12px;color:var(--t4);margin-top:3px}
+.btns{display:flex;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r);font-size:13px;cursor:pointer;border:.5px solid var(--border);background:var(--bg3);color:var(--t2);text-decoration:none;transition:background .15s}
+.btn:hover{background:#111e35}
+.btn-primary{background:var(--accbg);border-color:var(--acc);color:var(--acc2)}
+.btn-primary:hover{background:#112850}
+.btn-danger{background:var(--rbg);border-color:var(--red);color:var(--red)}
+.btn-success{background:var(--gbg);border-color:var(--green);color:var(--green)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat-card{background:var(--bg3);border:.5px solid var(--border);border-radius:var(--rl);padding:16px 18px}
+.slabel{font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.sval{font-size:28px;font-weight:500}
+.ssub{font-size:11px;color:var(--t3);margin-top:5px}
+.card{background:var(--bg3);border:.5px solid var(--border);border-radius:var(--rl);padding:20px 22px;margin-bottom:20px}
+.card-title{font-size:11px;color:var(--t4);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;padding:10px 14px;font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;border-bottom:.5px solid var(--border)}
+.tbl td{padding:12px 14px;font-size:13px;color:var(--t2);border-bottom:.5px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover td{background:#111e35}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--accbg);border:.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--acc2);flex-shrink:0}
+.ag-row{display:flex;align-items:center;gap:10px}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
+.dot-g{background:var(--green)}.dot-a{background:var(--amber)}.dot-r{background:var(--red)}
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center}
+.modal-ov.open{display:flex}
+.modal{background:var(--bg3);border:.5px solid var(--border);border-radius:var(--rl);padding:28px 30px;width:100%;max-width:480px;position:relative}
+.modal-title{font-size:16px;font-weight:500;color:var(--t2);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.modal-x{position:absolute;top:16px;right:16px;color:var(--t3);cursor:pointer;font-size:20px}
+.modal-x:hover{color:var(--t1)}
+.mfield{margin-bottom:16px}
+.mfield label{display:block;font-size:11px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.mfield input,.mfield select,.mfield textarea{width:100%;background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none;font-family:inherit}
+.mfield input:focus,.mfield select:focus,.mfield textarea:focus{border-color:var(--acc)}
+.mfield textarea{resize:vertical;min-height:90px}
+.mfield select option{background:var(--bg3)}
+.modal-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.alert{padding:12px 16px;border-radius:var(--r);font-size:13px;margin-bottom:16px;display:none}
+.alert-success{background:var(--gbg);border:.5px solid var(--green);color:var(--green)}
+.alert-error{background:var(--rbg);border:.5px solid var(--red);color:var(--red)}
+.alert-info{background:var(--accbg);border:.5px solid var(--acc);color:var(--acc2)}
+.empty{text-align:center;padding:48px 20px;color:var(--t4)}
+.empty i{font-size:40px;margin-bottom:12px;display:block}
+.sep{height:.5px;background:var(--border);margin:20px 0}
+.rpt-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:.5px solid var(--border)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.section{display:none}.section.active{display:block}
 </style>
 </head>
 <body>
 
-<div class="topnav">
-  <button class="nav-btn" onclick="prevWeek()">◀ Préc.</button>
-  <span class="nav-title">Planning</span>
-  <button class="nav-btn" onclick="nextWeek()">Suiv. ▶</button>
-  <span id="weekLabel" style="font-size:13px;color:#6b7280;padding-left:6px;"></span>
-  <div class="nav-right">
-    <button class="btn-orange" onclick="window.print()">🖨️ Imprimer</button>
-    <button class="btn-blue" onclick="goBack()">← Retour</button>
+<!-- ═══════════════ LOGIN PAGE ═══════════════ -->
+<div class="page login-page active" id="loginPage">
+  <div class="login-card">
+    <span class="logo-text">OPS HQ</span>
+    <span class="logo-sub">Field Management System</span>
+    <div class="field">
+      <label>Identifiant</label>
+      <div class="inp-wrap">
+        <i class="ti ti-user"></i>
+        <input type="text" id="loginEmail" placeholder="votre.email@opshq.ma"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <div class="inp-wrap">
+        <i class="ti ti-lock"></i>
+        <input type="password" id="loginPassword" placeholder="••••••••"/>
+        <i class="ti ti-eye eye" id="eyeBtn"></i>
+      </div>
+    </div>
+    <div class="err" id="loginErr"></div>
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">
+      <span id="loginTxt">Se connecter</span>
+      <i class="ti ti-arrow-right"></i>
+    </button>
+    <div class="login-foot">Système réservé aux membres autorisés</div>
   </div>
 </div>
 
-<div class="main">
-  <div class="plan-wrap">
-    <table class="plan-table" id="planTable">
-      <thead>
-        <tr>
-          <th class="col-agent">AGENT</th>
-          <th id="th0"></th><th id="th1"></th><th id="th2"></th>
-          <th id="th3"></th><th id="th4"></th><th id="th5"></th><th id="th6"></th>
-          <th>TOTAL</th>
-        </tr>
-      </thead>
-      <tbody id="planBody"></tbody>
-    </table>
-  </div>
+<!-- ═══════════════ APP PAGE ═══════════════ -->
+<div class="page app-page" id="appPage">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <span class="logo-text">OPS HQ</span>
+      <span class="logo-sub">Field Management</span>
+    </div>
+    <span class="nav-sec">Principal</span>
+    <div class="nav-item active" onclick="showSection('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+    <a class="nav-item" href="planning2.html"><i class="ti ti-calendar"></i> Planning</a>
+    <div class="nav-item" onclick="showSection('agents',this)"><i class="ti ti-users"></i> Agents</div>
+    <span class="nav-sec">Gestion</span>
+    <div class="nav-item" onclick="showSection('rapports',this)"><i class="ti ti-file-text"></i> Rapports</div>
+    <div class="nav-item" onclick="showSection('abonnements',this)"><i class="ti ti-credit-card"></i> Abonnements</div>
+    <div class="sb-user">
+      <div class="uname" id="sbName">Najib Harati</div>
+      <div class="urole" id="sbRole">Lead On-Field Agent</div>
+      <span class="badge badge-blue" id="sbBadge">ADMIN</span><br/><br/>
+      <div class="btn btn-sm" onclick="doLogout()" style="cursor:pointer;display:inline-flex;">
+        <i class="ti ti-logout"></i> Déconnexion
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="sec-dashboard">
+      <div class="topbar">
+        <div><div class="ptitle">Dashboard</div><div class="psub" id="dateStr"></div></div>
+        <div class="btns">
+          <div class="btn btn-primary" onclick="showSection('planning',document.querySelector('.nav-item:nth-child(5))'))"><i class="ti ti-plus"></i> Nouvelle mission</div>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="slabel">Agents actifs</div><div class="sval" style="color:var(--green)">12</div><div class="ssub">Équipe complète</div></div>
+        <div class="stat-card"><div class="slabel">Missions</div><div class="sval" style="color:var(--acc2)" id="dMissions">0</div><div class="ssub">Total créées</div></div>
+        <div class="stat-card"><div class="slabel">Rapports reçus</div><div class="sval" style="color:var(--amber)" id="dRapports">0</div><div class="ssub" id="dRapportsSub">—</div></div>
+        <div class="stat-card"><div class="slabel">Abonnements</div><div class="sval" style="color:var(--purple)" id="dAbos">0</div><div class="ssub">Actifs</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Agents sur le terrain</span></div>
+        <table class="tbl"><thead><tr><th>Agent</th><th>Abonnement</th><th>Action</th></tr></thead>
+        <tbody id="dashAgents"></tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-file-text" style="margin-right:6px"></i>Derniers rapports</span>
+          <div class="btn btn-sm" onclick="showSection('rapports',null)">Voir tout</div>
+        </div>
+        <div id="dashRapports"><div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div></div>
+      </div>
+    </div>
+
+    <!-- PLANNING -->
+    <div class="section" id="sec-planning">
+      <div class="topbar">
+        <div><div class="ptitle">Planning</div><div class="psub" id="weekLabel2"></div></div>
+        <div class="btns">
+          <div class="btn btn-sm" onclick="prevWeek()"><i class="ti ti-chevron-left"></i></div>
+          <span id="weekLabel" style="font-size:13px;color:var(--t2);padding:0 8px;line-height:36px;"></span>
+          <div class="btn btn-sm" onclick="nextWeek()"><i class="ti ti-chevron-right"></i></div>
+          <div class="btn" onclick="window.print()" style="margin-left:8px;"><i class="ti ti-printer"></i></div>
+        </div>
+      </div>
+      <div class="alert" id="planAlert"></div>
+
+      <div class="card" style="padding:0;overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;background:#0d1525;" id="weekTable">
+          <thead>
+            <tr style="background:var(--bg2);">
+              <th style="padding:12px 16px;text-align:left;font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;border-bottom:.5px solid var(--border);min-width:160px;">AGENT</th>
+              <th id="th0" style="padding:10px 8px;text-align:center;font-size:11px;color:var(--t4);border-bottom:.5px solid var(--border);min-width:100px;"></th>
+              <th id="th1" style="padding:10px 8px;text-align:center;font-size:11px;color:var(--t4);border-bottom:.5px solid var(--border);min-width:100px;"></th>
+              <th id="th2" style="padding:10px 8px;text-align:center;font-size:11px;color:var(--t4);border-bottom:.5px solid var(--border);min-width:100px;"></th>
+              <th id="th3" style="padding:10px 8px;text-align:center;font-size:11px;color:var(--t4);border-bottom:.5px solid var(--border);min-width:100px;"></th>
+              <th id="th4" style="padding:10px 8px;text-align:center;font-size:11px;color:var(--t4);border-bottom:.5px solid var(--border);min-width:100px;"></th>
+              <th id="th5" style="padding:10px 8px;text-align:center;font-size:11px;color:var(--t4);border-bottom:.5px solid var(--border);min-width:100px;"></th>
+              <th id="th6" style="padding:10px 8px;text-align:center;font-size:11px;color:var(--t4);border-bottom:.5px solid var(--border);min-width:100px;"></th>
+              <th style="padding:10px 8px;text-align:center;font-size:11px;color:var(--t4);border-bottom:.5px solid var(--border);min-width:70px;">TOTAL</th>
+            </tr>
+          </thead>
+          <tbody id="weekBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Modal planning -->
+      <div class="modal-ov" id="planModal">
+        <div class="modal" style="max-width:320px;">
+          <div class="modal-title"><i class="ti ti-calendar"></i> <span id="pmTitle"></span></div>
+          <i class="ti ti-x modal-x" onclick="closePlanModal()"></i>
+          <div style="font-size:12px;color:var(--t4);margin-bottom:16px;" id="pmSub"></div>
+          <div class="mfield">
+            <label>Horaire</label>
+            <select id="pmSelect" style="width:100%;background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r);padding:10px 12px;color:var(--t1);font-size:14px;outline:none;">
+              <option value="">— Choisir —</option>
+              <option value="OFF">OFF</option>
+              <option value="ABSENT">ABSENT</option>
+              <option value="CONGE">CONGÉ</option>
+              <option value="MALADIE">MALADIE</option>
+              <option disabled style="color:var(--t4)">──────────</option>
+              <option value="09:00-16:00">09:00 → 16:00</option>
+              <option value="09:00-17:00">09:00 → 17:00</option>
+              <option value="10:00-17:00">10:00 → 17:00</option>
+              <option value="10:00-18:00">10:00 → 18:00</option>
+              <option value="11:00-18:00">11:00 → 18:00</option>
+              <option value="11:00-19:00">11:00 → 19:00</option>
+              <option value="15:00-23:00">15:00 → 23:00</option>
+              <option value="16:00-23:00">16:00 → 23:00</option>
+              <option value="17:00-00:00">17:00 → 00:00</option>
+              <option value="17:00-01:00">17:00 → 01:00</option>
+              <option value="18:00-01:00">18:00 → 01:00</option>
+              <option value="18:30-02:30">18:30 → 02:30</option>
+              <option value="19:30-02:30">19:30 → 02:30</option>
+            </select>
+          </div>
+          <div class="modal-acts">
+            <div class="btn" onclick="closePlanModal()">Annuler</div>
+            <div class="btn btn-danger btn-sm" onclick="deletePlanShift()" id="pmDelBtn" style="display:none;"><i class="ti ti-trash"></i></div>
+            <div class="btn btn-primary" onclick="savePlanShift()"><i class="ti ti-check"></i> Enregistrer</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- AGENTS -->
+    <div class="section" id="sec-agents">
+      <div class="topbar"><div><div class="ptitle">Agents</div><div class="psub">Équipe On-Field — 12 agents</div></div></div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Liste des agents</span></div>
+        <table class="tbl"><thead><tr><th>Agent</th><th>Missions</th><th>Rapports</th><th>Abonnement</th></tr></thead>
+        <tbody id="agentsBody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- RAPPORTS -->
+    <div class="section" id="sec-rapports">
+      <div class="topbar">
+        <div><div class="ptitle">Rapports</div><div class="psub">Rapports soumis par les agents</div></div>
+        <div class="btns">
+          <select id="rfAgent" class="btn" onchange="renderRapports()"><option value="">Tous les agents</option></select>
+          <select id="rfStatus" class="btn" onchange="renderRapports()"><option value="">Tous</option><option value="new">Nouveaux</option><option value="lu">Lus</option></select>
+        </div>
+      </div>
+      <div class="alert" id="rapAlert"></div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-inbox" style="margin-right:6px"></i>Tous les rapports</span><span id="rCount" style="color:var(--t4);font-size:12px;"></span></div>
+        <div id="rapList"><div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div></div>
+      </div>
+    </div>
+
+    <!-- ABONNEMENTS -->
+    <div class="section" id="sec-abonnements">
+      <div class="topbar">
+        <div><div class="ptitle">Abonnements</div><div class="psub">Gestion des accès agents</div></div>
+        <div class="btns"><div class="btn btn-primary" onclick="openAboModal()"><i class="ti ti-plus"></i> Ajouter</div></div>
+      </div>
+      <div class="alert" id="aboAlert"></div>
+      <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card"><div class="slabel">Total</div><div class="sval" style="color:var(--acc2)" id="aTotal">0</div></div>
+        <div class="stat-card"><div class="slabel">Actifs</div><div class="sval" style="color:var(--green)" id="aActifs">0</div></div>
+        <div class="stat-card"><div class="slabel">Inactifs</div><div class="sval" style="color:var(--red)" id="aInactifs">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-credit-card" style="margin-right:6px"></i>Liste</span></div>
+        <table class="tbl"><thead><tr><th>Agent</th><th>Plan</th><th>Début</th><th>Expiration</th><th>Statut</th><th>Action</th></tr></thead>
+        <tbody id="aboBody"></tbody></table>
+      </div>
+    </div>
+
+  </main>
 </div>
 
-<!-- Modal -->
-<div class="modal-bg" id="modalBg">
+<!-- MODAL MISSION -->
+<div class="modal-ov" id="missionModal">
   <div class="modal">
-    <div class="modal-title" id="modalTitle">Modifier shift</div>
-    <div class="modal-sub" id="modalSub"></div>
-    <div class="modal-label">HORAIRE</div>
-    <select class="modal-select" id="shiftSelect">
-      <option value="">— Choisir —</option>
-      <option value="OFF">OFF</option>
-      <option value="ABSENT">ABSENT</option>
-      <option value="CONGE">CONGÉ</option>
-      <option value="MALADIE">MALADIE</option>
-      <option disabled>──────────</option>
-      <option value="09:00-16:00">09:00 - 16:00</option>
-      <option value="09:00-17:00">09:00 - 17:00</option>
-      <option value="10:00-17:00">10:00 - 17:00</option>
-      <option value="10:00-18:00">10:00 - 18:00</option>
-      <option value="11:00-18:00">11:00 - 18:00</option>
-      <option value="11:00-19:00">11:00 - 19:00</option>
-      <option value="15:00-23:00">15:00 - 23:00</option>
-      <option value="16:00-23:00">16:00 - 23:00</option>
-      <option value="17:00-00:00">17:00 - 00:00</option>
-      <option value="17:00-01:00">17:00 - 01:00</option>
-      <option value="18:00-01:00">18:00 - 01:00</option>
-      <option value="18:30-02:30">18:30 - 02:30</option>
-      <option value="19:30-02:30">19:30 - 02:30</option>
-    </select>
-    <div class="modal-actions">
-      <button class="m-btn m-cancel" onclick="closeModal()">Annuler</button>
-      <button class="m-btn m-save" onclick="saveShift()">✓ Enregistrer</button>
+    <div class="modal-title"><i class="ti ti-calendar-plus"></i><span id="mModalTitle">Nouvelle mission</span></div>
+    <i class="ti ti-x modal-x" onclick="closeMissionModal()"></i>
+    <input type="hidden" id="mEditId"/>
+    <div class="mfield"><label>Agent</label><select id="mAgent"></select></div>
+    <div class="mfield"><label>Titre</label><input type="text" id="mTitre" placeholder="Ex: Patrouille secteur Nord"/></div>
+    <div class="grid2">
+      <div class="mfield"><label>Date</label><input type="date" id="mDate"/></div>
+      <div class="mfield"><label>Statut</label><select id="mStatut"><option value="planifié">Planifié</option><option value="en cours">En cours</option><option value="terminé">Terminé</option></select></div>
+    </div>
+    <div class="grid2">
+      <div class="mfield"><label>Heure début</label><input type="time" id="mDebut"/></div>
+      <div class="mfield"><label>Heure fin</label><input type="time" id="mFin"/></div>
+    </div>
+    <div class="mfield"><label>Notes</label><textarea id="mNotes" placeholder="Instructions..."></textarea></div>
+    <div class="modal-acts">
+      <div class="btn" onclick="closeMissionModal()">Annuler</div>
+      <div class="btn btn-primary" onclick="saveMission()"><i class="ti ti-device-floppy"></i> Enregistrer</div>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- MODAL RAPPORT DETAIL -->
+<div class="modal-ov" id="rapModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title"><i class="ti ti-file-text"></i><span id="rmTitre"></span></div>
+    <i class="ti ti-x modal-x" onclick="closeRapModal()"></i>
+    <div style="font-size:12px;color:var(--t4);margin-bottom:14px"><span id="rmAgent"></span> — <span id="rmDate"></span></div>
+    <div style="background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--t2);line-height:1.7;white-space:pre-wrap" id="rmContenu"></div>
+    <div class="modal-acts">
+      <div class="btn" onclick="closeRapModal()">Fermer</div>
+      <div class="btn btn-success" id="btnMarquerLu"><i class="ti ti-check"></i> Marquer lu</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ABONNEMENT -->
+<div class="modal-ov" id="aboModal">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-credit-card"></i><span id="aModalTitle">Nouvel abonnement</span></div>
+    <i class="ti ti-x modal-x" onclick="closeAboModal()"></i>
+    <input type="hidden" id="aEditId"/>
+    <div class="mfield"><label>Agent</label><select id="aAgent"></select></div>
+    <div class="mfield"><label>Plan</label><select id="aPlan"><option>Mensuel</option><option>Trimestriel</option><option>Annuel</option><option>Accès total</option></select></div>
+    <div class="grid2">
+      <div class="mfield"><label>Date début</label><input type="date" id="aDebut"/></div>
+      <div class="mfield"><label>Expiration</label><input type="date" id="aExpire"/></div>
+    </div>
+    <div class="mfield"><label>Statut</label><select id="aStatut"><option value="actif">Actif</option><option value="suspendu">Suspendu</option><option value="expiré">Expiré</option></select></div>
+    <div class="modal-acts">
+      <div class="btn" onclick="closeAboModal()">Annuler</div>
+      <div class="btn btn-primary" onclick="saveAbo()"><i class="ti ti-device-floppy"></i> Enregistrer</div>
+    </div>
+  </div>
+</div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp }
+import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc,
+  doc, getDoc, query, orderBy, where, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const FC={apiKey:"AIzaSyDdXwRWBvTJ9RffnY16W_r0dHE1WOJj1Rs",authDomain:"ops-hq-cc38c.firebaseapp.com",projectId:"ops-hq-cc38c",storageBucket:"ops-hq-cc38c.firebasestorage.app",messagingSenderId:"909070102010",appId:"1:909070102010:web:5abb7857fe2a557ed68843"};
-const app=initializeApp(FC);
-const auth=getAuth(app);
-const db=getFirestore(app);
+const FC = {
+  apiKey:"AIzaSyDdXwRWBvTJ9RffnY16W_r0dHE1WOJj1Rs",
+  authDomain:"ops-hq-cc38c.firebaseapp.com",
+  projectId:"ops-hq-cc38c",
+  storageBucket:"ops-hq-cc38c.firebasestorage.app",
+  messagingSenderId:"909070102010",
+  appId:"1:909070102010:web:5abb7857fe2a557ed68843"
+};
 
 const AGENTS=[
-  "Achraf Akhlij","Youssef Derkaoui","Aymane Chlifane","Ayoub Abssi",
-  "Mourad Cherradi","Yahya Rhallab","Hassan Azgoune","Ayoub Ben Malek",
-  "Charaf Loummihi","Zakariae Benali","Islam Elmardi","Oussama El Atrach"
+  {name:"Achraf Akhlij",ini:"AA"},{name:"Youssef Derkaoui",ini:"YD"},
+  {name:"Aymane Chlifane",ini:"AC"},{name:"Ayoub Abssi",ini:"AB"},
+  {name:"Mourad Cherradi",ini:"MC"},{name:"Yahya Rhallab",ini:"YR"},
+  {name:"Hassan Azgoune",ini:"HA"},{name:"Ayoub Ben Malek",ini:"AB"},
+  {name:"Charaf Loummihi",ini:"CL"},{name:"Zakariae Benali",ini:"ZB"},
+  {name:"Islam Elmardi",ini:"IE"},{name:"Oussama El Atrach",ini:"OE"}
 ];
-const JOURS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
-const TODAY=new Date().toISOString().split("T")[0];
 
-let weekStart=getMonday(new Date());
-let allShifts=[];
-let curAgent=null,curDate=null,curId=null;
+const app  = initializeApp(FC);
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-onAuthStateChanged(auth,u=>{if(!u)window.location.href="index.html";});
+let currentUser=null, userRole=null, userDisplayName="";
+let allMissions=[], allRapports=[], allAbos=[], allPlanning=[];
+let currentRapId=null;
 
-function getMonday(d){const c=new Date(d);const day=c.getDay();c.setDate(c.getDate()-day+(day===0?-6:1));c.setHours(0,0,0,0);return c;}
+// ── Auth ──────────────────────────────────────────
+onAuthStateChanged(auth, async u=>{
+  if(u){
+    const snap=await getDoc(doc(db,"users",u.uid));
+    if(snap.exists()){
+      currentUser=u; userRole=snap.data().role;
+      userDisplayName=snap.data().displayName||u.email;
+      showApp();
+    } else { await signOut(auth); }
+  } else { showLogin(); }
+});
+
+window.doLogin=async()=>{
+  const email=document.getElementById("loginEmail").value.trim();
+  const pw=document.getElementById("loginPassword").value;
+  const btn=document.getElementById("loginBtn");
+  const err=document.getElementById("loginErr");
+  const txt=document.getElementById("loginTxt");
+  err.style.display="none"; btn.disabled=true; txt.textContent="Connexion...";
+  try{
+    await signInWithEmailAndPassword(auth,email,pw);
+  }catch(e){
+    err.textContent="Identifiant ou mot de passe incorrect.";
+    err.style.display="block"; btn.disabled=false; txt.textContent="Se connecter";
+  }
+};
+
+window.doLogout=async()=>{ await signOut(auth); };
+
+document.getElementById("eyeBtn").onclick=()=>{
+  const inp=document.getElementById("loginPassword");
+  const ico=document.getElementById("eyeBtn");
+  inp.type=inp.type==="password"?"text":"password";
+  ico.className=inp.type==="password"?"ti ti-eye eye":"ti ti-eye-off eye";
+};
+document.getElementById("loginPassword").addEventListener("keydown",e=>{if(e.key==="Enter")window.doLogin();});
+
+// ── Pages ─────────────────────────────────────────
+function showLogin(){
+  document.getElementById("loginPage").classList.add("active");
+  document.getElementById("appPage").classList.remove("active");
+}
+function showApp(){
+  document.getElementById("loginPage").classList.remove("active");
+  document.getElementById("appPage").classList.add("active");
+  document.getElementById("sbName").textContent=userDisplayName;
+  document.getElementById("dateStr").textContent=new Date().toLocaleDateString("fr-FR",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  populateSelects();
+  loadAll().then(()=>{ renderWeekPlan(); });
+}
+
+// ── Navigation ────────────────────────────────────
+window.showSection=(id,el)=>{
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  document.getElementById("sec-"+id).classList.add("active");
+  if(el) el.classList.add("active");
+};
+
+// ── Populate selects ──────────────────────────────
+function populateSelects(){
+  ["mAgent","pfAgent","rfAgent","aAgent"].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel) return;
+    const hasAll=id==="pfAgent"||id==="rfAgent";
+    sel.innerHTML=hasAll?'<option value="">Tous les agents</option>':"";
+    AGENTS.forEach(a=>{
+      const o=document.createElement("option");
+      o.value=a.name; o.textContent=a.name; sel.appendChild(o);
+    });
+  });
+}
+
+// ── Load all data ─────────────────────────────────
+async function loadAllPlanning(){
+  try{
+    const snap=await getDocs(collection(db,"planning2"));
+    allPlanning=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){console.error(e);}
+}
+
+async function loadAll(){
+  try{
+    const [ms,rs,as]=await Promise.all([
+      getDocs(query(collection(db,"missions"),orderBy("date","desc"))),
+      getDocs(query(collection(db,"rapports"),orderBy("createdAt","desc"))),
+      getDocs(collection(db,"abonnements"))
+    ]);
+    allMissions=ms.docs.map(d=>({id:d.id,...d.data()}));
+    allRapports=rs.docs.map(d=>({id:d.id,...d.data()}));
+    allAbos=as.docs.map(d=>({id:d.id,...d.data()}));
+    await loadAllPlanning();
+    renderDashboard(); renderMissions(); renderAgents(); renderRapports(); renderAbos();
+  }catch(e){console.error(e);}
+}
+
+// ── DASHBOARD ─────────────────────────────────────
+function renderDashboard(){
+  document.getElementById("dMissions").textContent=allMissions.length;
+  document.getElementById("dRapports").textContent=allRapports.length;
+  const nonLus=allRapports.filter(r=>!r.lu).length;
+  document.getElementById("dRapportsSub").textContent=nonLus>0?`${nonLus} non lu(s)`:"Tous lus";
+  document.getElementById("dAbos").textContent=allAbos.filter(a=>a.statut==="actif").length;
+
+  // Agents table
+  const tb=document.getElementById("dashAgents");
+  tb.innerHTML="";
+  AGENTS.forEach(ag=>{
+    const abo=allAbos.find(a=>a.agent===ag.name);
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td><div class="ag-row"><div class="avatar">${ag.ini}</div><span style="font-size:13px;color:var(--t1);font-weight:500">${ag.name}</span></div></td>
+      <td>${abo?`<span class="badge badge-green">${abo.plan}</span>`:'<span class="badge badge-red">Aucun</span>'}</td>
+      <td><div class="btn btn-sm" onclick="showSection('rapports',null)"><i class="ti ti-file-text"></i> Rapports</div></td>`;
+    tb.appendChild(tr);
+  });
+
+  // Recent rapports
+  const rc=document.getElementById("dashRapports");
+  if(allRapports.length===0){rc.innerHTML='<div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div>';return;}
+  rc.innerHTML="";
+  allRapports.slice(0,5).forEach(r=>{
+    const d=document.createElement("div");
+    d.className="rpt-row";
+    const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
+    d.innerHTML=`<div><div style="font-size:13px;color:var(--t1);font-weight:500">${r.titre||"Rapport"}</div><div style="font-size:11px;color:var(--t4);margin-top:2px">${r.agentName||"—"} · ${dt}</div></div>
+      <span class="badge ${r.lu?"badge-green":"badge-blue"}">${r.lu?"Lu":"Nouveau"}</span>`;
+    rc.appendChild(d);
+  });
+}
+
+// ── PLANNING ──────────────────────────────────────
+function statusBadge(s){
+  if(s==="planifié")return`<span class="badge badge-blue">Planifié</span>`;
+  if(s==="en cours")return`<span class="badge badge-amber">En cours</span>`;
+  if(s==="terminé")return`<span class="badge badge-green">Terminé</span>`;
+  return`<span class="badge">${s}</span>`;
+}
+
+window.renderMissions=()=>{
+  let list=[...allMissions];
+  const ag=document.getElementById("pfAgent").value;
+  const st=document.getElementById("pfStatus").value;
+  if(ag) list=list.filter(m=>m.agent===ag);
+  if(st) list=list.filter(m=>m.statut===st);
+  document.getElementById("mCount").textContent=`${list.length} mission(s)`;
+  const tb=document.getElementById("planBody");
+  if(list.length===0){tb.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--t4);padding:32px">Aucune mission.</td></tr>`;return;}
+  tb.innerHTML="";
+  list.forEach(m=>{
+    const ini=AGENTS.find(a=>a.name===m.agent)?.ini||"??";
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td><div class="ag-row"><div class="avatar">${ini}</div><span style="font-size:13px;color:var(--t1);font-weight:500">${m.agent}</span></div></td>
+      <td style="color:var(--t1);font-weight:500">${m.titre}</td>
+      <td style="color:var(--t2)">${m.date||"—"}</td>
+      <td style="color:var(--t3)">${m.heureDebut||""} ${m.heureFin?"→ "+m.heureFin:""}</td>
+      <td>${statusBadge(m.statut)}</td>
+      <td style="display:flex;gap:6px">
+        <div class="btn btn-sm" onclick="editMission('${m.id}')"><i class="ti ti-edit"></i></div>
+        <div class="btn btn-sm btn-danger" onclick="deleteMission('${m.id}')"><i class="ti ti-trash"></i></div>
+      </td>`;
+    tb.appendChild(tr);
+  });
+};
+
+window.openMissionModal=(data=null)=>{
+  document.getElementById("mEditId").value=data?.id||"";
+  document.getElementById("mModalTitle").textContent=data?"Modifier la mission":"Nouvelle mission";
+  document.getElementById("mAgent").value=data?.agent||AGENTS[0].name;
+  document.getElementById("mTitre").value=data?.titre||"";
+  document.getElementById("mDate").value=data?.date||"";
+  document.getElementById("mStatut").value=data?.statut||"planifié";
+  document.getElementById("mDebut").value=data?.heureDebut||"";
+  document.getElementById("mFin").value=data?.heureFin||"";
+  document.getElementById("mNotes").value=data?.notes||"";
+  document.getElementById("missionModal").classList.add("open");
+};
+window.closeMissionModal=()=>document.getElementById("missionModal").classList.remove("open");
+
+window.saveMission=async()=>{
+  const id=document.getElementById("mEditId").value;
+  const data={agent:document.getElementById("mAgent").value,titre:document.getElementById("mTitre").value.trim(),
+    date:document.getElementById("mDate").value,statut:document.getElementById("mStatut").value,
+    heureDebut:document.getElementById("mDebut").value,heureFin:document.getElementById("mFin").value,
+    notes:document.getElementById("mNotes").value.trim()};
+  if(!data.titre||!data.date){showAlert("planAlert","Titre et date obligatoires.","error");return;}
+  if(id){await updateDoc(doc(db,"missions",id),data);showAlert("planAlert","Mission mise à jour.","success");}
+  else{data.createdAt=serverTimestamp();await addDoc(collection(db,"missions"),data);showAlert("planAlert","Mission créée.","success");}
+  closeMissionModal(); await loadAll();
+};
+
+window.editMission=id=>{const m=allMissions.find(x=>x.id===id);if(m)openMissionModal(m);};
+window.deleteMission=async id=>{
+  if(!confirm("Supprimer cette mission ?"))return;
+  await deleteDoc(doc(db,"missions",id));
+  showAlert("planAlert","Mission supprimée.","success"); await loadAll();
+};
+
+// ── AGENTS ───────────────────────────────────────
+function renderAgents(){
+  const tb=document.getElementById("agentsBody");
+  tb.innerHTML="";
+  AGENTS.forEach(ag=>{
+    const mc=allMissions.filter(m=>m.agent===ag.name).length;
+    const rc=allRapports.filter(r=>r.agentName===ag.name).length;
+    const abo=allAbos.find(a=>a.agent===ag.name);
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td><div class="ag-row"><div class="avatar">${ag.ini}</div><span style="font-size:13px;color:var(--t1);font-weight:500">${ag.name}</span></div></td>
+      <td style="color:var(--t2)">${mc}</td><td style="color:var(--t2)">${rc}</td>
+      <td>${abo?`<span class="badge badge-green">${abo.plan}</span>`:'<span class="badge badge-red">Aucun</span>'}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+// ── RAPPORTS ─────────────────────────────────────
+window.renderRapports=()=>{
+  let list=[...allRapports];
+  const ag=document.getElementById("rfAgent").value;
+  const st=document.getElementById("rfStatus").value;
+  if(ag) list=list.filter(r=>r.agentName===ag);
+  if(st==="new") list=list.filter(r=>!r.lu);
+  if(st==="lu")  list=list.filter(r=>r.lu);
+  document.getElementById("rCount").textContent=`${list.length} rapport(s)`;
+  const cont=document.getElementById("rapList");
+  if(list.length===0){cont.innerHTML='<div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div>';return;}
+  cont.innerHTML="";
+  list.forEach(r=>{
+    const ini=AGENTS.find(a=>a.name===r.agentName)?.ini||"??";
+    const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
+    const d=document.createElement("div");
+    d.style.cssText="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:.5px solid var(--border);cursor:pointer";
+    d.innerHTML=`<div class="avatar">${ini}</div>
+      <div style="flex:1"><div style="font-size:13px;color:var(--t1);font-weight:500">${r.titre||"Rapport"}</div>
+      <div style="font-size:11px;color:var(--t4);margin-top:2px">${r.agentName||"—"} · ${dt}</div></div>
+      <span class="badge ${r.lu?"badge-green":"badge-blue"}">${r.lu?"Lu":"Nouveau"}</span>
+      <i class="ti ti-chevron-right" style="color:var(--t4)"></i>`;
+    d.onclick=()=>openRapport(r);
+    cont.appendChild(d);
+  });
+};
+
+window.openRapport=r=>{
+  currentRapId=r.id;
+  document.getElementById("rmTitre").textContent=r.titre||"Rapport";
+  document.getElementById("rmAgent").textContent=r.agentName||"—";
+  const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"}):"—";
+  document.getElementById("rmDate").textContent=dt;
+  document.getElementById("rmContenu").textContent=r.contenu||"Aucun contenu.";
+  document.getElementById("btnMarquerLu").style.display=r.lu?"none":"inline-flex";
+  document.getElementById("rapModal").classList.add("open");
+};
+window.closeRapModal=()=>document.getElementById("rapModal").classList.remove("open");
+
+document.getElementById("btnMarquerLu").onclick=async()=>{
+  if(!currentRapId)return;
+  await updateDoc(doc(db,"rapports",currentRapId),{lu:true});
+  closeRapModal(); showAlert("rapAlert","Rapport marqué comme lu.","success"); await loadAll();
+};
+
+// ── ABONNEMENTS ──────────────────────────────────
+function renderAbos(){
+  document.getElementById("aTotal").textContent=allAbos.length;
+  document.getElementById("aActifs").textContent=allAbos.filter(a=>a.statut==="actif").length;
+  document.getElementById("aInactifs").textContent=allAbos.filter(a=>a.statut!=="actif").length;
+  const tb=document.getElementById("aboBody");
+  if(allAbos.length===0){tb.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--t4);padding:32px">Aucun abonnement.</td></tr>`;return;}
+  tb.innerHTML="";
+  allAbos.forEach(a=>{
+    const ini=AGENTS.find(ag=>ag.name===a.agent)?.ini||"??";
+    const stBadge=a.statut==="actif"?'badge-green':a.statut==="suspendu"?'badge-amber':'badge-red';
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td><div class="ag-row"><div class="avatar">${ini}</div><span style="font-size:13px;color:var(--t1);font-weight:500">${a.agent}</span></div></td>
+      <td><span class="badge badge-purple">${a.plan}</span></td>
+      <td style="color:var(--t3)">${a.debut||"—"}</td><td style="color:var(--t3)">${a.expire||"—"}</td>
+      <td><span class="badge ${stBadge}">${a.statut}</span></td>
+      <td style="display:flex;gap:6px">
+        <div class="btn btn-sm" onclick="editAbo('${a.id}')"><i class="ti ti-edit"></i></div>
+        <div class="btn btn-sm btn-danger" onclick="deleteAbo('${a.id}')"><i class="ti ti-trash"></i></div>
+      </td>`;
+    tb.appendChild(tr);
+  });
+}
+
+window.openAboModal=(data=null)=>{
+  document.getElementById("aEditId").value=data?.id||"";
+  document.getElementById("aModalTitle").textContent=data?"Modifier":"Nouvel abonnement";
+  document.getElementById("aAgent").value=data?.agent||AGENTS[0].name;
+  document.getElementById("aPlan").value=data?.plan||"Mensuel";
+  document.getElementById("aDebut").value=data?.debut||"";
+  document.getElementById("aExpire").value=data?.expire||"";
+  document.getElementById("aStatut").value=data?.statut||"actif";
+  document.getElementById("aboModal").classList.add("open");
+};
+window.closeAboModal=()=>document.getElementById("aboModal").classList.remove("open");
+
+window.saveAbo=async()=>{
+  const id=document.getElementById("aEditId").value;
+  const data={agent:document.getElementById("aAgent").value,plan:document.getElementById("aPlan").value,
+    debut:document.getElementById("aDebut").value,expire:document.getElementById("aExpire").value,
+    statut:document.getElementById("aStatut").value};
+  if(id){await updateDoc(doc(db,"abonnements",id),data);showAlert("aboAlert","Mis à jour.","success");}
+  else{data.createdAt=serverTimestamp();await addDoc(collection(db,"abonnements"),data);showAlert("aboAlert","Abonnement créé.","success");}
+  closeAboModal(); await loadAll();
+};
+window.editAbo=id=>{const a=allAbos.find(x=>x.id===id);if(a)openAboModal(a);};
+window.deleteAbo=async id=>{
+  if(!confirm("Supprimer?"))return;
+  await deleteDoc(doc(db,"abonnements",id));
+  showAlert("aboAlert","Supprimé.","success"); await loadAll();
+};
+
+
+// ── PLANNING GENERATOR ───────────────────────────
+const MATIN = ["Achraf Akhlij","Youssef Derkaoui","Aymane Chlifane","Ayoub Abssi","Mourad Cherradi","Yahya Rhallab"];
+const NUIT  = ["Hassan Azgoune","Ayoub Ben Malek","Charaf Loummihi","Zakariae Benali","Islam Elmardi","Oussama El Atrach"];
+let currentWeekStart = getMonday(new Date());
+function getMonday(d){const day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1);return new Date(new Date(d).setDate(diff));}
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
-function iso(d){return d.toISOString().split("T")[0];}
-function fmt(d){return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});}
+function formatDate(d){return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"});}
+function formatDateISO(d){return d.toISOString().split("T")[0];}
+window.prevWeek=()=>{currentWeekStart=addDays(currentWeekStart,-7);renderWeekPlan();};
+window.nextWeek=()=>{currentWeekStart=addDays(currentWeekStart,7);renderWeekPlan();};
+
+// Planning avec dropdown modal
+let pmAgent=null, pmDate=null, pmShiftId=null;
 
 function calcH(val){
   if(!val||["OFF","ABSENT","CONGE","MALADIE",""].includes(val))return 0;
-  const [deb,fin]=val.split("-");
-  let [dh,dm]=deb.split(":").map(Number);
-  let [fh,fm]=fin.split(":").map(Number);
+  const parts=val.split("-");if(parts.length<2)return 0;
+  let [dh,dm]=parts[0].split(":").map(Number);
+  let [fh,fm]=parts[1].split(":").map(Number);
   if(fh<dh||(fh===dh&&fm<dm))fh+=24;
   return Math.round(((fh*60+fm)-(dh*60+dm))/60*10)/10;
 }
 
-async function load(){
-  const snap=await getDocs(collection(db,"planning2"));
-  allShifts=snap.docs.map(d=>({id:d.id,...d.data()}));
-  render();
+function shiftStyle(val){
+  if(!val) return "background:var(--bg2);border:.5px dashed var(--border);border-radius:6px;padding:6px 8px;font-size:18px;color:var(--t4);cursor:pointer;display:inline-block;min-width:90px;text-align:center;";
+  if(val==="OFF")     return "background:#1a1a1a;border:.5px solid #6b7280;border-radius:6px;padding:6px 8px;font-size:12px;font-weight:600;color:#9ca3af;cursor:pointer;display:inline-block;min-width:90px;text-align:center;";
+  if(val==="ABSENT")  return "background:#200d0d;border:.5px solid #f87171;border-radius:6px;padding:6px 8px;font-size:12px;font-weight:600;color:#f87171;cursor:pointer;display:inline-block;min-width:90px;text-align:center;";
+  if(val==="CONGE")   return "background:#1a1200;border:.5px solid #fbbf24;border-radius:6px;padding:6px 8px;font-size:12px;font-weight:600;color:#fbbf24;cursor:pointer;display:inline-block;min-width:90px;text-align:center;";
+  if(val==="MALADIE") return "background:#160d2a;border:.5px solid #a78bfa;border-radius:6px;padding:6px 8px;font-size:12px;font-weight:600;color:#a78bfa;cursor:pointer;display:inline-block;min-width:90px;text-align:center;";
+  return "background:#0d2516;border:.5px solid #4ade80;border-radius:6px;padding:6px 8px;font-size:12px;font-weight:600;color:#4ade80;cursor:pointer;display:inline-block;min-width:90px;text-align:center;";
 }
 
-function render(){
-  // Headers
+function shiftLabel(val){
+  if(!val)return "+";
+  if(["OFF","ABSENT","CONGE","MALADIE"].includes(val))return val;
+  const h=calcH(val);
+  return val.replace("-","→")+(h?`<br><span style='font-size:10px;opacity:.8'>${h}h</span>`:"");
+}
+
+function renderWeekPlan(){
+  const start=currentWeekStart;
+  const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+  document.getElementById("weekLabel").textContent=formatDate(start)+" → "+formatDate(addDays(start,6));
   for(let d=0;d<7;d++){
-    const date=addDays(weekStart,d);
-    const dateISO=iso(date);
-    const isToday=dateISO===TODAY;
-    document.getElementById("th"+d).innerHTML=`<span style="display:block">${JOURS[d].slice(0,3).toUpperCase()}</span><span style="font-size:12px;font-weight:700;color:${isToday?"#6366f1":"#374151"}">${fmt(date)}</span>`;
-    document.getElementById("th"+d).className=isToday?"today":"";
+    const th=document.getElementById("th"+d);
+    if(!th)continue;
+    const dd=addDays(start,d);
+    th.innerHTML=`<span style="display:block;font-size:11px;letter-spacing:1px;">${JOURS[d].toUpperCase()}</span><span style="font-size:12px;font-weight:700;color:var(--acc2)">${dd.getDate()}/${dd.getMonth()+1}</span>`;
   }
-  document.getElementById("weekLabel").textContent=`${fmt(weekStart)} → ${fmt(addDays(weekStart,6))}`;
-
-  const tbody=document.getElementById("planBody");
+  const tbody=document.getElementById("weekBody");
   tbody.innerHTML="";
-
-  AGENTS.forEach(name=>{
+  AGENTS.forEach(ag=>{
     const tr=document.createElement("tr");
     let totalH=0;
-    let cells=`<td class="col-agent"><div class="agent-name">${name}</div></td>`;
-
+    let cells=`<td style="padding:10px 16px;border-bottom:.5px solid var(--border);"><div class="ag-row"><div class="avatar">${ag.ini}</div><span style="font-size:13px;color:var(--t1);font-weight:500">${ag.name}</span></div></td>`;
     for(let d=0;d<7;d++){
-      const dateISO=iso(addDays(weekStart,d));
-      const shift=allShifts.find(s=>s.agent===name&&s.date===dateISO);
-      const val=shift?.val||"";
-      let box="";
-
-      if(!val){
-        box=`<span class="shift-box shift-empty" onclick="openModal('${name}','${dateISO}',null,'')"><span class="shift-time">+</span></span>`;
-      } else if(val==="OFF"){
-        box=`<span class="shift-box shift-off" onclick="openModal('${name}','${dateISO}','${shift.id}','${val}')"><span class="shift-time">OFF</span><span class="shift-sub">Repos</span></span>`;
-      } else if(val==="ABSENT"){
-        box=`<span class="shift-box shift-absent" onclick="openModal('${name}','${dateISO}','${shift.id}','${val}')"><span class="shift-time">ABS</span><span class="shift-sub">Absent</span></span>`;
-      } else if(val==="CONGE"){
-        box=`<span class="shift-box shift-conge" onclick="openModal('${name}','${dateISO}','${shift.id}','${val}')"><span class="shift-time">CON</span><span class="shift-sub">Congé</span></span>`;
-      } else if(val==="MALADIE"){
-        box=`<span class="shift-box shift-maladie" onclick="openModal('${name}','${dateISO}','${shift.id}','${val}')"><span class="shift-time">MAL</span><span class="shift-sub">Maladie</span></span>`;
-      } else {
-        const h=calcH(val);
-        totalH+=h;
-        box=`<span class="shift-box shift-work" onclick="openModal('${name}','${dateISO}','${shift.id}','${val}')"><span class="shift-time">${val.replace("-"," → ")}</span><span class="shift-sub">${h}h</span></span>`;
-      }
-      cells+=`<td>${box}</td>`;
+      const dateISO=formatDateISO(addDays(start,d));
+      const shift=allMissions.find(x=>x.agent===ag.name&&x.date===dateISO&&x.collection2);
+      // Use planning2 collection data
+      const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
+      const val=ps?.val||"";
+      totalH+=calcH(val);
+      cells+=`<td style="padding:8px;text-align:center;border-bottom:.5px solid var(--border);"><span style="${shiftStyle(val)}" onclick="openPlanModal('${ag.name}','${dateISO}','${ps?.id||''}','${val}')">${shiftLabel(val)}</span></td>`;
     }
-    cells+=`<td><span class="total-cell">${totalH}h</span></td>`;
+    cells+=`<td style="padding:8px;text-align:center;border-bottom:.5px solid var(--border);"><span style="background:var(--gbg);border:.5px solid var(--green);border-radius:6px;padding:4px 8px;font-size:12px;font-weight:700;color:var(--green)">${totalH}h</span></td>`;
     tr.innerHTML=cells;
     tbody.appendChild(tr);
   });
 }
 
-window.prevWeek=()=>{weekStart=addDays(weekStart,-7);load();}
-window.nextWeek=()=>{weekStart=addDays(weekStart,7);load();}
-window.goBack=()=>{window.location.href="index.html";}
-
-window.openModal=(agent,date,id,val)=>{
-  curAgent=agent; curDate=date; curId=id;
-  document.getElementById("modalTitle").textContent="Shift — "+agent;
-  document.getElementById("modalSub").textContent=new Date(date).toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"long"});
-  document.getElementById("shiftSelect").value=val||"";
-  document.getElementById("modalBg").classList.add("open");
+window.openPlanModal=(agent,date,shiftId,val)=>{
+  pmAgent=agent; pmDate=date; pmShiftId=shiftId||null;
+  document.getElementById("pmTitle").textContent=agent;
+  document.getElementById("pmSub").textContent=new Date(date+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"long"});
+  document.getElementById("pmSelect").value=val||"";
+  document.getElementById("pmDelBtn").style.display=shiftId?"inline-flex":"none";
+  document.getElementById("planModal").classList.add("open");
 };
+window.closePlanModal=()=>document.getElementById("planModal").classList.remove("open");
 
-window.closeModal=()=>document.getElementById("modalBg").classList.remove("open");
-
-window.saveShift=async()=>{
-  const val=document.getElementById("shiftSelect").value;
-  if(!val){closeModal();return;}
-  const data={agent:curAgent,date:curDate,val};
-  if(curId){await updateDoc(doc(db,"planning2",curId),data);}
+window.savePlanShift=async()=>{
+  const val=document.getElementById("pmSelect").value;
+  if(!val){closePlanModal();return;}
+  const data={agent:pmAgent,date:pmDate,val};
+  if(pmShiftId){await updateDoc(doc(db,"planning2",pmShiftId),data);}
   else{data.createdAt=serverTimestamp();await addDoc(collection(db,"planning2"),data);}
-  closeModal();
-  showToast("✅ Enregistré!");
-  await load();
+  closePlanModal();
+  showAlert("planAlert","✅ Enregistré!","success");
+  await loadAllPlanning(); renderWeekPlan();
 };
 
-function showToast(msg){
-  const el=document.getElementById("toast");
-  el.textContent=msg;el.style.display="block";
-  setTimeout(()=>el.style.display="none",2500);
+window.deletePlanShift=async()=>{
+  if(pmShiftId){await deleteDoc(doc(db,"planning2",pmShiftId));}
+  closePlanModal();
+  showAlert("planAlert","Supprimé.","success");
+  await loadAllPlanning(); renderWeekPlan();
+};
+
+// ── Helpers ───────────────────────────────────────
+function showAlert(id,msg,type){
+  const el=document.getElementById(id);
+  el.className=`alert alert-${type}`;
+  el.textContent=msg; el.style.display="block";
+  setTimeout(()=>el.style.display="none",3000);
 }
-
-document.getElementById("modalBg").addEventListener("click",e=>{if(e.target===document.getElementById("modalBg"))closeModal();});
-
-load();
 </script>
 </body>
 </html>
