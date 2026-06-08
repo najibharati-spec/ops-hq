@@ -1,0 +1,163 @@
+# OPS HQ — Guide d'installation
+
+## Structure des fichiers
+
+```
+ops-platform/
+├── index.html              ← Page de connexion
+├── css/
+│   └── style.css           ← Styles globaux
+├── js/
+│   └── firebase-config.js  ← Config Firebase + liste agents
+└── pages/
+    ├── dashboard.html      ← Admin: vue d'ensemble
+    ├── planning.html       ← Admin: missions & shifts
+    ├── agents.html         ← Admin: gestion agents
+    ├── rapports.html       ← Admin: rapports reçus
+    ├── abonnements.html    ← Admin: abonnements
+    └── agent.html          ← Agent: espace personnel
+```
+
+---
+
+## Étape 1 — Créer un projet Firebase
+
+1. Va sur https://console.firebase.google.com
+2. Clique **"Ajouter un projet"** → donne-lui un nom (ex: `ops-hq`)
+3. Désactive Google Analytics (pas nécessaire) → **Créer**
+
+---
+
+## Étape 2 — Activer Authentication
+
+1. Dans le menu Firebase → **Authentication** → **Commencer**
+2. Onglet **Sign-in method** → active **Email/mot de passe**
+
+---
+
+## Étape 3 — Créer la base Firestore
+
+1. Dans le menu Firebase → **Firestore Database** → **Créer une base de données**
+2. Choisis **Mode test** (pour commencer)
+3. Sélectionne une région → **Terminé**
+
+### Collections à créer :
+
+La base créera automatiquement ces collections quand tu utilises l'app :
+- `users` — profils des utilisateurs
+- `missions` — planning
+- `rapports` — rapports des agents
+- `abonnements` — abonnements des agents
+
+---
+
+## Étape 4 — Récupérer la config Firebase
+
+1. Firebase → **Paramètres du projet** (icône engrenage) → **Vos applications**
+2. Clique l'icône **</>** (Web)
+3. Donne un nom → **Enregistrer l'application**
+4. Copie le bloc `firebaseConfig` qui apparaît
+
+---
+
+## Étape 5 — Coller la config dans le projet
+
+Ouvre `js/firebase-config.js` et remplace :
+
+```javascript
+export const firebaseConfig = {
+  apiKey:            "VOTRE_API_KEY",        // ← remplace
+  authDomain:        "VOTRE_PROJECT.firebaseapp.com",
+  projectId:         "VOTRE_PROJECT_ID",
+  storageBucket:     "VOTRE_PROJECT.appspot.com",
+  messagingSenderId: "VOTRE_SENDER_ID",
+  appId:             "VOTRE_APP_ID"
+};
+```
+
+---
+
+## Étape 6 — Créer les comptes utilisateurs
+
+### Compte Admin (Najib Harati)
+
+1. Firebase → **Authentication** → **Ajouter un utilisateur**
+2. Email: `najib@opshq.ma` | Mot de passe: (choisis-en un fort)
+3. Note l'**UID** généré
+
+Ensuite dans Firestore → collection `users` → **Ajouter un document** :
+- ID du document: (l'UID de Najib)
+- Champs :
+  - `role` → `admin`
+  - `displayName` → `Najib Harati`
+
+### Comptes Agents (répète pour chacun)
+
+Pour chaque agent, fais pareil mais avec `role` → `agent`
+
+Exemple pour Achraf :
+- Email: `achraf@opshq.ma`
+- `role`: `agent`
+- `displayName`: `Achraf Akhlij`
+
+---
+
+## Étape 7 — Déployer sur GitHub Pages
+
+1. Crée un repo GitHub (ex: `ops-hq`)
+2. Upload tous les fichiers
+3. Repo → **Settings** → **Pages** → Source: `main` branch → `/root`
+4. Ton site sera disponible sur: `https://tonusername.github.io/ops-hq/`
+
+---
+
+## Règles Firestore (sécurité)
+
+Dans Firebase → Firestore → **Règles**, remplace par :
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users: lecture par soi-même, écriture admin seulement
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId;
+      allow write: if false; // géré manuellement dans la console
+    }
+
+    // Missions: lecture agents, écriture admin
+    match /missions/{doc} {
+      allow read: if request.auth != null;
+      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Rapports: agents créent, admin lit tout
+    match /rapports/{doc} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Abonnements: admin seulement
+    match /abonnements/{doc} {
+      allow read: if request.auth != null;
+      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+  }
+}
+```
+
+---
+
+## Résumé des pages
+
+| Page | Accès | Description |
+|------|-------|-------------|
+| `index.html` | Tout le monde | Connexion |
+| `pages/dashboard.html` | Admin (Najib) | Vue d'ensemble |
+| `pages/planning.html` | Admin | Créer/gérer missions |
+| `pages/agents.html` | Admin | Voir tous les agents |
+| `pages/rapports.html` | Admin | Voir & valider rapports |
+| `pages/abonnements.html` | Admin | Gérer abonnements |
+| `pages/agent.html` | Agents | Missions + soumettre rapports |

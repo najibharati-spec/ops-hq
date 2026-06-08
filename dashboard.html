@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OPS HQ — Rapports</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+</head>
+<body>
+<div class="app-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-text">OPS HQ</span>
+      <span class="logo-sub">Field Management System</span>
+    </div>
+    <span class="nav-section">Principal</span>
+    <a href="dashboard.html" class="nav-item"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+    <a href="planning.html"  class="nav-item"><i class="ti ti-calendar"></i> Planning</a>
+    <a href="agents.html"    class="nav-item"><i class="ti ti-users"></i> Agents</a>
+    <span class="nav-section">Gestion</span>
+    <a href="rapports.html"    class="nav-item active"><i class="ti ti-file-text"></i> Rapports</a>
+    <a href="abonnements.html" class="nav-item"><i class="ti ti-credit-card"></i> Abonnements</a>
+    <div class="sidebar-user">
+      <div class="u-name">Najib Harati</div>
+      <div class="u-role">Lead On-Field Agent</div>
+      <span class="badge badge-blue">ADMIN</span>
+      <br/><br/>
+      <span class="btn btn-sm" id="logoutBtn" style="cursor:pointer;">
+        <i class="ti ti-logout"></i> Déconnexion
+      </span>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Rapports</div>
+        <div class="page-sub">Rapports soumis par les agents</div>
+      </div>
+      <div class="topbar-actions">
+        <select id="filterAgent" class="btn" style="cursor:pointer;">
+          <option value="">Tous les agents</option>
+        </select>
+        <select id="filterStatus" class="btn" style="cursor:pointer;">
+          <option value="">Tous</option>
+          <option value="new">Nouveaux</option>
+          <option value="lu">Lus</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="alertBox" class="alert"></div>
+
+    <div class="card">
+      <div class="card-title">
+        <span><i class="ti ti-inbox" style="margin-right:6px;"></i>Tous les rapports</span>
+        <span id="rapportCount" style="color:var(--text-4);font-size:12px;"></span>
+      </div>
+      <div id="rapportsList">
+        <div class="empty"><i class="ti ti-loader"></i><p>Chargement...</p></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal détail rapport -->
+<div class="modal-overlay" id="modalRapport">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title"><i class="ti ti-file-text"></i> <span id="modalTitre"></span></div>
+    <i class="ti ti-x modal-close" onclick="closeModal()"></i>
+    <div style="font-size:12px;color:var(--text-4);margin-bottom:14px;">
+      <span id="modalAgent"></span> — <span id="modalDate"></span>
+    </div>
+    <div style="background:var(--bg-dark);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:13px;color:var(--text-2);line-height:1.7;white-space:pre-wrap;" id="modalContenu"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Fermer</button>
+      <button class="btn btn-success" id="btnValider"><i class="ti ti-check"></i> Marquer lu</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, query, orderBy }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { firebaseConfig, AGENTS } from "../js/firebase-config.js";
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = "../index.html"; return; }
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (!snap.exists() || snap.data().role !== "admin") {
+      window.location.href = "../index.html";
+    }
+  });
+
+  // Populate agent filter
+  const filterAgent = document.getElementById("filterAgent");
+  AGENTS.forEach(ag => {
+    const opt = document.createElement("option");
+    opt.value = ag.name;
+    opt.textContent = ag.name;
+    filterAgent.appendChild(opt);
+  });
+
+  let allRapports = [];
+
+  async function loadRapports() {
+    const q    = query(collection(db, "rapports"), orderBy("createdAt","desc"));
+    const snap = await getDocs(q);
+    allRapports = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderRapports(allRapports);
+  }
+
+  function renderRapports(list) {
+    const container = document.getElementById("rapportsList");
+    document.getElementById("rapportCount").textContent = `${list.length} rapport(s)`;
+
+    if (list.length === 0) {
+      container.innerHTML = `<div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport trouvé.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = "";
+    list.forEach(r => {
+      const dateStr = r.createdAt?.toDate
+        ? r.createdAt.toDate().toLocaleDateString("fr-FR", { day:"2-digit", month:"short", year:"numeric" })
+        : "—";
+      const initials = AGENTS.find(a => a.name === r.agentName)?.initials || "??";
+
+      const div = document.createElement("div");
+      div.style.cssText = "display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:0.5px solid var(--border);cursor:pointer;";
+      div.innerHTML = `
+        <div class="avatar">${initials}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;color:var(--text-1);font-weight:500;">${r.titre || "Sans titre"}</div>
+          <div style="font-size:11px;color:var(--text-4);margin-top:2px;">${r.agentName || "—"} · ${dateStr}</div>
+        </div>
+        <span class="badge ${r.lu ? 'badge-green' : 'badge-blue'}">${r.lu ? 'Lu' : 'Nouveau'}</span>
+        <i class="ti ti-chevron-right" style="color:var(--text-4);"></i>`;
+      div.onclick = () => openRapport(r);
+      container.appendChild(div);
+    });
+  }
+
+  // Filters
+  function applyFilters() {
+    let filtered = [...allRapports];
+    const agent  = filterAgent.value;
+    const status = document.getElementById("filterStatus").value;
+    if (agent)            filtered = filtered.filter(r => r.agentName === agent);
+    if (status === "new") filtered = filtered.filter(r => !r.lu);
+    if (status === "lu")  filtered = filtered.filter(r => r.lu);
+    renderRapports(filtered);
+  }
+  filterAgent.addEventListener("change", applyFilters);
+  document.getElementById("filterStatus").addEventListener("change", applyFilters);
+
+  // Modal
+  let currentRapportId = null;
+
+  window.openRapport = function(r) {
+    currentRapportId = r.id;
+    document.getElementById("modalTitre").textContent   = r.titre || "Rapport";
+    document.getElementById("modalAgent").textContent   = r.agentName || "—";
+    const dateStr = r.createdAt?.toDate
+      ? r.createdAt.toDate().toLocaleDateString("fr-FR", { day:"2-digit", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" })
+      : "—";
+    document.getElementById("modalDate").textContent    = dateStr;
+    document.getElementById("modalContenu").textContent = r.contenu || "Aucun contenu.";
+    document.getElementById("btnValider").style.display = r.lu ? "none" : "inline-flex";
+    document.getElementById("modalRapport").classList.add("open");
+  };
+
+  window.closeModal = function() {
+    document.getElementById("modalRapport").classList.remove("open");
+  };
+
+  document.getElementById("btnValider").addEventListener("click", async () => {
+    if (!currentRapportId) return;
+    await updateDoc(doc(db, "rapports", currentRapportId), { lu: true });
+    closeModal();
+    showAlert("Rapport marqué comme lu.", "success");
+    loadRapports();
+  });
+
+  function showAlert(msg, type) {
+    const el = document.getElementById("alertBox");
+    el.className = `alert alert-${type}`;
+    el.textContent = msg;
+    el.style.display = "block";
+    setTimeout(() => el.style.display = "none", 3000);
+  }
+
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await signOut(auth);
+    window.location.href = "../index.html";
+  });
+
+  loadRapports();
+</script>
+</body>
+</html>

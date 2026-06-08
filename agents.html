@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OPS HQ — Planning</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+</head>
+<body>
+<div class="app-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-text">OPS HQ</span>
+      <span class="logo-sub">Field Management System</span>
+    </div>
+    <span class="nav-section">Principal</span>
+    <a href="dashboard.html" class="nav-item"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+    <a href="planning.html"  class="nav-item active"><i class="ti ti-calendar"></i> Planning</a>
+    <a href="agents.html"    class="nav-item"><i class="ti ti-users"></i> Agents</a>
+    <span class="nav-section">Gestion</span>
+    <a href="rapports.html"    class="nav-item"><i class="ti ti-file-text"></i> Rapports</a>
+    <a href="abonnements.html" class="nav-item"><i class="ti ti-credit-card"></i> Abonnements</a>
+    <div class="sidebar-user">
+      <div class="u-name">Najib Harati</div>
+      <div class="u-role">Lead On-Field Agent</div>
+      <span class="badge badge-blue">ADMIN</span>
+      <br/><br/>
+      <span class="btn btn-sm" id="logoutBtn" style="cursor:pointer;">
+        <i class="ti ti-logout"></i> Déconnexion
+      </span>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Planning</div>
+        <div class="page-sub">Gestion des missions et shifts</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="openModal()">
+          <i class="ti ti-plus"></i> Nouvelle mission
+        </button>
+      </div>
+    </div>
+
+    <div id="alertBox" class="alert"></div>
+
+    <!-- Filtres -->
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+      <select id="filterAgent" class="btn" style="cursor:pointer;">
+        <option value="">Tous les agents</option>
+      </select>
+      <select id="filterStatus" class="btn" style="cursor:pointer;">
+        <option value="">Tous les statuts</option>
+        <option value="planifié">Planifié</option>
+        <option value="en cours">En cours</option>
+        <option value="terminé">Terminé</option>
+      </select>
+      <input type="date" id="filterDate" class="btn" style="cursor:pointer;" />
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span><i class="ti ti-calendar-event" style="margin-right:6px;"></i>Missions planifiées</span>
+        <span id="missionCount" style="color:var(--text-4);font-size:12px;"></span>
+      </div>
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>Mission</th>
+            <th>Date</th>
+            <th>Horaire</th>
+            <th>Statut</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="planningBody">
+          <tr><td colspan="6" style="text-align:center;color:var(--text-4);padding:32px;">Chargement...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Modal nouvelle mission -->
+<div class="modal-overlay" id="modalMission">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-calendar-plus"></i> <span id="modalMissionTitle">Nouvelle mission</span></div>
+    <i class="ti ti-x modal-close" onclick="closeModal()"></i>
+
+    <input type="hidden" id="editMissionId" />
+
+    <div class="field">
+      <label>Agent</label>
+      <select id="mAgent"></select>
+    </div>
+    <div class="field">
+      <label>Titre de la mission</label>
+      <input type="text" id="mTitre" placeholder="Ex: Patrouille secteur Nord" />
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="mDate" />
+      </div>
+      <div class="field">
+        <label>Statut</label>
+        <select id="mStatut">
+          <option value="planifié">Planifié</option>
+          <option value="en cours">En cours</option>
+          <option value="terminé">Terminé</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field">
+        <label>Heure début</label>
+        <input type="time" id="mHeureDebut" />
+      </div>
+      <div class="field">
+        <label>Heure fin</label>
+        <input type="time" id="mHeureFin" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Notes (optionnel)</label>
+      <textarea id="mNotes" placeholder="Instructions, localisation, consignes..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveMission()"><i class="ti ti-device-floppy"></i> Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, query, orderBy, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { firebaseConfig, AGENTS } from "../js/firebase-config.js";
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = "../index.html"; return; }
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (!snap.exists() || snap.data().role !== "admin") {
+      window.location.href = "../index.html";
+    }
+  });
+
+  // Populate agent selects
+  const mAgent      = document.getElementById("mAgent");
+  const filterAgent = document.getElementById("filterAgent");
+  AGENTS.forEach(ag => {
+    [mAgent, filterAgent].forEach(sel => {
+      const opt = document.createElement("option");
+      opt.value = ag.name; opt.textContent = ag.name;
+      sel.appendChild(opt);
+    });
+  });
+
+  let allMissions = [];
+
+  async function loadMissions() {
+    const q    = query(collection(db, "missions"), orderBy("date","desc"));
+    const snap = await getDocs(q);
+    allMissions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderMissions(allMissions);
+  }
+
+  function statusBadge(s) {
+    if (s === "planifié")  return `<span class="badge badge-blue">Planifié</span>`;
+    if (s === "en cours")  return `<span class="badge badge-amber">En cours</span>`;
+    if (s === "terminé")   return `<span class="badge badge-green">Terminé</span>`;
+    return `<span class="badge">${s}</span>`;
+  }
+
+  function renderMissions(list) {
+    const tbody = document.getElementById("planningBody");
+    document.getElementById("missionCount").textContent = `${list.length} mission(s)`;
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-4);padding:32px;">Aucune mission trouvée.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = "";
+    list.forEach(m => {
+      const initials = AGENTS.find(a => a.name === m.agent)?.initials || "??";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>
+          <div class="agent-row">
+            <div class="avatar">${initials}</div>
+            <span class="agent-name-txt">${m.agent}</span>
+          </div>
+        </td>
+        <td style="color:var(--text-1);font-weight:500;">${m.titre}</td>
+        <td style="color:var(--text-2);">${m.date || "—"}</td>
+        <td style="color:var(--text-3);">${m.heureDebut || ""} ${m.heureFin ? "→ " + m.heureFin : ""}</td>
+        <td>${statusBadge(m.statut)}</td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="editMission('${m.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="deleteMission('${m.id}')"><i class="ti ti-trash"></i></button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Filters
+  function applyFilters() {
+    let list = [...allMissions];
+    const agent  = filterAgent.value;
+    const status = document.getElementById("filterStatus").value;
+    const date   = document.getElementById("filterDate").value;
+    if (agent)  list = list.filter(m => m.agent === agent);
+    if (status) list = list.filter(m => m.statut === status);
+    if (date)   list = list.filter(m => m.date === date);
+    renderMissions(list);
+  }
+  ["filterAgent","filterStatus","filterDate"].forEach(id =>
+    document.getElementById(id).addEventListener("change", applyFilters)
+  );
+
+  // Modal
+  window.openModal = function(data = null) {
+    document.getElementById("editMissionId").value   = data?.id || "";
+    document.getElementById("modalMissionTitle").textContent = data ? "Modifier la mission" : "Nouvelle mission";
+    document.getElementById("mAgent").value          = data?.agent      || AGENTS[0].name;
+    document.getElementById("mTitre").value          = data?.titre      || "";
+    document.getElementById("mDate").value           = data?.date       || "";
+    document.getElementById("mStatut").value         = data?.statut     || "planifié";
+    document.getElementById("mHeureDebut").value     = data?.heureDebut || "";
+    document.getElementById("mHeureFin").value       = data?.heureFin   || "";
+    document.getElementById("mNotes").value          = data?.notes      || "";
+    document.getElementById("modalMission").classList.add("open");
+  };
+
+  window.closeModal = function() {
+    document.getElementById("modalMission").classList.remove("open");
+  };
+
+  window.saveMission = async function() {
+    const id    = document.getElementById("editMissionId").value;
+    const data  = {
+      agent:      document.getElementById("mAgent").value,
+      titre:      document.getElementById("mTitre").value.trim(),
+      date:       document.getElementById("mDate").value,
+      statut:     document.getElementById("mStatut").value,
+      heureDebut: document.getElementById("mHeureDebut").value,
+      heureFin:   document.getElementById("mHeureFin").value,
+      notes:      document.getElementById("mNotes").value.trim(),
+    };
+    if (!data.titre || !data.date) {
+      showAlert("Titre et date sont obligatoires.", "error");
+      return;
+    }
+    if (id) {
+      await updateDoc(doc(db, "missions", id), data);
+      showAlert("Mission mise à jour.", "success");
+    } else {
+      data.createdAt = serverTimestamp();
+      await addDoc(collection(db, "missions"), data);
+      showAlert("Mission créée.", "success");
+    }
+    closeModal();
+    loadMissions();
+  };
+
+  window.editMission = function(id) {
+    const m = allMissions.find(x => x.id === id);
+    if (m) openModal(m);
+  };
+
+  window.deleteMission = async function(id) {
+    if (!confirm("Supprimer cette mission ?")) return;
+    await deleteDoc(doc(db, "missions", id));
+    showAlert("Mission supprimée.", "success");
+    loadMissions();
+  };
+
+  function showAlert(msg, type) {
+    const el = document.getElementById("alertBox");
+    el.className = `alert alert-${type}`;
+    el.textContent = msg;
+    el.style.display = "block";
+    setTimeout(() => el.style.display = "none", 3000);
+  }
+
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await signOut(auth);
+    window.location.href = "../index.html";
+  });
+
+  loadMissions();
+</script>
+</body>
+</html>
