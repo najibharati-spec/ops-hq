@@ -1,305 +1,907 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OPS HQ — Planning</title>
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>OPS HQ</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<style>
+/* ── TOKENS ── */
+:root{
+  --bg:#f0f4f8;--bg2:#ffffff;--bg3:#f8fafc;--border:#e2e8f0;
+  --t1:#0f172a;--t2:#334155;--t3:#64748b;--t4:#94a3b8;
+  --acc:#4f46e5;--acc2:#6366f1;--accbg:#eef2ff;--accbdr:#c7d2fe;
+  --green:#16a34a;--gbg:#f0fdf4;--gbdr:#86efac;
+  --amber:#d97706;--abg:#fffbeb;--abdr:#fcd34d;
+  --red:#dc2626;--rbg:#fef2f2;--rbdr:#fca5a5;
+  --purple:#7c3aed;--pbg:#f5f3ff;--pbdr:#c4b5fd;
+  --slate:#475569;--sbg:#f1f5f9;--sbdr:#cbd5e1;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.08),0 2px 4px -2px rgba(0,0,0,.05);
+  --r:8px;--rl:12px
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--t1);font-size:14px}
+.page{display:none;min-height:100vh}.page.active{display:flex}
+
+/* ── LOGIN ── */
+.login-page{align-items:center;justify-content:center;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%)}
+.login-card{background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(79,70,229,.25)}
+.logo-text{display:block;font-size:28px;font-weight:700;color:var(--acc);letter-spacing:5px;text-align:center}
+.logo-sub{display:block;font-size:11px;color:var(--t4);letter-spacing:2px;text-align:center;margin-top:4px;margin-bottom:32px;text-transform:uppercase}
+.field{margin-bottom:16px}.field label{display:block;font-size:11px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-weight:600}
+.inp-wrap{position:relative;display:flex;align-items:center}
+.inp-wrap i:first-child{position:absolute;left:12px;color:var(--t4);font-size:16px;pointer-events:none}
+.inp-wrap input{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:11px 40px 11px 38px;color:var(--t1);font-size:14px;outline:none;transition:border-color .15s}
+.inp-wrap input:focus{border-color:var(--acc);background:#fff}
+.eye{position:absolute;right:12px;color:var(--t4);font-size:16px;cursor:pointer}
+.err{background:var(--rbg);border:1px solid var(--rbdr);color:var(--red);border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:14px;display:none}
+.btn-login{width:100%;background:var(--acc);border:none;color:#fff;border-radius:var(--r);padding:13px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;transition:background .15s;letter-spacing:.3px}
+.btn-login:hover{background:#4338ca}
+.login-foot{text-align:center;margin-top:24px;font-size:11px;color:var(--t4)}
+
+/* ── APP SHELL ── */
+.app-page{flex-direction:row}
+.sidebar{width:230px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:100vh;flex-shrink:0;position:sticky;top:0;height:100vh;box-shadow:var(--shadow)}
+.sb-logo{padding:22px 20px 18px;border-bottom:1px solid var(--border)}
+.sb-logo .logo-text{font-size:18px;letter-spacing:3px;text-align:left;margin-bottom:2px}
+.sb-logo .logo-sub{text-align:left;margin-bottom:0;font-size:10px}
+.nav-sec{padding:18px 20px 5px;font-size:10px;color:var(--t4);letter-spacing:2px;text-transform:uppercase;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;color:var(--t3);cursor:pointer;border-left:2px solid transparent;text-decoration:none;transition:all .15s;font-weight:500}
+.nav-item i{font-size:17px}
+.nav-item:hover{color:var(--t2);background:var(--bg)}
+.nav-item.active{color:var(--acc);background:var(--accbg);border-left-color:var(--acc)}
+.sb-user{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border)}
+.sb-user .uname{font-size:13px;color:var(--t1);font-weight:600}
+.sb-user .urole{font-size:11px;color:var(--t4);margin-top:2px}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-top:6px}
+.badge-blue{background:var(--accbg);color:var(--acc2)}.badge-green{background:var(--gbg);color:var(--green)}
+.badge-amber{background:var(--abg);color:var(--amber)}.badge-red{background:var(--rbg);color:var(--red)}
+.badge-purple{background:var(--pbg);color:var(--purple)}.badge-slate{background:var(--sbg);color:var(--slate)}
+.main{flex:1;padding:28px 32px;overflow-y:auto;max-height:100vh}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px}
+.ptitle{font-size:22px;font-weight:700;color:var(--t1)}.psub{font-size:12px;color:var(--t4);margin-top:3px}
+.btns{display:flex;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r);font-size:13px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--t2);text-decoration:none;transition:all .15s;font-weight:500;box-shadow:var(--shadow)}
+.btn:hover{background:var(--bg);border-color:var(--t4)}
+.btn-primary{background:var(--acc);border-color:var(--acc);color:#fff;box-shadow:0 2px 8px rgba(79,70,229,.3)}
+.btn-primary:hover{background:#4338ca;border-color:#4338ca}
+.btn-danger{background:var(--rbg);border-color:var(--rbdr);color:var(--red)}
+.btn-danger:hover{background:#fee2e2}
+.btn-success{background:var(--gbg);border-color:var(--gbdr);color:var(--green)}
+.btn-sm{padding:5px 11px;font-size:12px}
+
+/* ── STAT CARDS ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px;box-shadow:var(--shadow)}
+.slabel{font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;font-weight:600}
+.sval{font-size:30px;font-weight:700}.ssub{font-size:11px;color:var(--t3);margin-top:5px}
+
+/* ── CARDS ── */
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:20px 22px;margin-bottom:20px;box-shadow:var(--shadow)}
+.card-title{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;font-weight:600}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;padding:10px 14px;font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:600}
+.tbl td{padding:12px 14px;font-size:13px;color:var(--t2);border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}.tbl tbody tr:hover td{background:var(--bg3)}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--accbg);border:1.5px solid var(--accbdr);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--acc);flex-shrink:0}
+.ag-row{display:flex;align-items:center;gap:10px}
+
+/* ── MODALS ── */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-ov.open{display:flex}
+.modal{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:28px 30px;width:100%;max-width:480px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal-title{font-size:16px;font-weight:700;color:var(--t1);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.modal-x{position:absolute;top:16px;right:16px;color:var(--t4);cursor:pointer;font-size:20px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:all .15s}
+.modal-x:hover{color:var(--t1);background:var(--bg)}
+.mfield{margin-bottom:16px}.mfield label{display:block;font-size:11px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-weight:600}
+.mfield input,.mfield select,.mfield textarea{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none;font-family:inherit;transition:border-color .15s}
+.mfield input:focus,.mfield select:focus,.mfield textarea:focus{border-color:var(--acc);background:#fff}
+.mfield textarea{resize:vertical;min-height:90px}.mfield select option{background:#fff}
+.modal-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.alert{padding:12px 16px;border-radius:var(--r);font-size:13px;margin-bottom:16px;display:none;font-weight:500}
+.alert-success{background:var(--gbg);border:1px solid var(--gbdr);color:var(--green)}
+.alert-error{background:var(--rbg);border:1px solid var(--rbdr);color:var(--red)}
+.empty{text-align:center;padding:48px 20px;color:var(--t4)}
+.empty i{font-size:40px;margin-bottom:12px;display:block}
+.rpt-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--t4)}
+.section{display:none}.section.active{display:block}
+
+/* ── PLANNING TABLE ── */
+.plan-wrap{overflow-x:auto;border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--shadow)}
+.plan-tbl{width:100%;border-collapse:collapse;background:#fff}
+.plan-tbl th{padding:12px 10px;text-align:center;font-size:11px;color:var(--t4);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg3);min-width:110px;font-weight:600}
+.plan-tbl th:first-child{text-align:left;padding-left:18px;min-width:170px;position:sticky;left:0;background:var(--bg3);z-index:2}
+.plan-tbl td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:center;vertical-align:middle}
+.plan-tbl td:first-child{text-align:left;padding-left:18px;position:sticky;left:0;background:#fff;z-index:1}
+.plan-tbl tbody tr:hover td{background:#fafbff}
+.plan-tbl tbody tr:hover td:first-child{background:#fafbff}
+.plan-tbl tbody tr:last-child td{border-bottom:none}
+
+/* ── SHIFT CELLS ── */
+.shift-cell{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;padding:6px 10px;min-width:92px;cursor:pointer;transition:all .15s;gap:2px}
+.shift-cell:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+
+.sh-work{background:var(--gbg);border:1.5px solid var(--gbdr)}
+.sh-off{background:var(--sbg);border:1.5px solid var(--sbdr)}
+.sh-absent{background:var(--rbg);border:1.5px solid var(--rbdr)}
+.sh-conge{background:var(--abg);border:1.5px solid var(--abdr)}
+.sh-maladie{background:var(--pbg);border:1.5px solid var(--pbdr)}
+.sh-empty{background:var(--bg);border:1.5px dashed var(--border)}
+
+.sh-t{font-size:12px;font-weight:700}
+.sh-s{font-size:10px;opacity:.75;margin-top:1px;font-weight:500}
+.sh-work .sh-t{color:var(--green)}.sh-work .sh-s{color:var(--green)}
+.sh-off .sh-t{color:var(--slate)}.sh-off .sh-s{color:var(--slate)}
+.sh-absent .sh-t{color:var(--red)}.sh-absent .sh-s{color:var(--red)}
+.sh-conge .sh-t{color:var(--amber)}.sh-conge .sh-s{color:var(--amber)}
+.sh-maladie .sh-t{color:var(--purple)}.sh-maladie .sh-s{color:var(--purple)}
+.sh-empty .sh-t{color:var(--t4);font-size:18px;font-weight:300}
+
+/* ── TOTAL BADGE ── */
+.total-h{background:var(--gbg);border:1.5px solid var(--gbdr);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;color:var(--green);display:inline-block}
+.total-0{background:var(--sbg);border:1.5px solid var(--sbdr);color:var(--slate)}
+
+/* ── WEEK NAV ── */
+.week-nav{display:flex;align-items:center;gap:8px}
+.week-label{font-size:13px;font-weight:600;color:var(--t2);padding:0 4px;min-width:140px;text-align:center}
+
+/* ── PLANNING QUICK PRESETS ── */
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.preset-btn{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid;transition:all .12s}
+.preset-work{background:var(--gbg);border-color:var(--gbdr);color:var(--green)}
+.preset-work:hover{background:#dcfce7}
+.preset-status{background:var(--sbg);border-color:var(--sbdr);color:var(--slate)}
+.preset-status:hover{background:#e2e8f0}
+
+/* ── PLAN INPUT ── */
+.plan-input-wrap{position:relative}
+.plan-input{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none;font-family:monospace;transition:border-color .15s;letter-spacing:.5px}
+.plan-input:focus{border-color:var(--acc);background:#fff}
+.plan-input-hint{font-size:10px;color:var(--t4);margin-top:5px}
+
+/* ── STATUS PILL ── */
+.status-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.status-pill{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1.5px solid;cursor:pointer;transition:all .12s;opacity:.6}
+.status-pill.sel{opacity:1;transform:scale(1.05)}
+.sp-work{background:var(--gbg);border-color:var(--gbdr);color:var(--green)}
+.sp-off{background:var(--sbg);border-color:var(--sbdr);color:var(--slate)}
+.sp-absent{background:var(--rbg);border-color:var(--rbdr);color:var(--red)}
+.sp-conge{background:var(--abg);border-color:var(--abdr);color:var(--amber)}
+.sp-maladie{background:var(--pbg);border-color:var(--pbdr);color:var(--purple)}
+
+/* ── AGENT STATUS INDICATOR ── */
+.ag-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ag-started{background:var(--green)}
+.ag-notstarted{background:var(--border)}
+</style>
 </head>
 <body>
-<div class="app-layout">
 
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span class="logo-text">OPS HQ</span>
-      <span class="logo-sub">Field Management System</span>
+<!-- ══ LOGIN ══ -->
+<div class="page login-page active" id="loginPage">
+  <div class="login-card">
+    <span class="logo-text">OPS HQ</span>
+    <span class="logo-sub">Field Management System</span>
+    <div class="field"><label>Identifiant</label>
+      <div class="inp-wrap"><i class="ti ti-user"></i><input type="text" id="loginEmail" placeholder="email@opshq.ma"/></div>
     </div>
-    <span class="nav-section">Principal</span>
-    <a href="dashboard.html" class="nav-item"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
-    <a href="planning.html"  class="nav-item active"><i class="ti ti-calendar"></i> Planning</a>
-    <a href="agents.html"    class="nav-item"><i class="ti ti-users"></i> Agents</a>
-    <span class="nav-section">Gestion</span>
-    <a href="rapports.html"    class="nav-item"><i class="ti ti-file-text"></i> Rapports</a>
-    <a href="abonnements.html" class="nav-item"><i class="ti ti-credit-card"></i> Abonnements</a>
-    <div class="sidebar-user">
-      <div class="u-name">Najib Harati</div>
-      <div class="u-role">Lead On-Field Agent</div>
-      <span class="badge badge-blue">ADMIN</span>
-      <br/><br/>
-      <span class="btn btn-sm" id="logoutBtn" style="cursor:pointer;">
-        <i class="ti ti-logout"></i> Déconnexion
-      </span>
+    <div class="field"><label>Mot de passe</label>
+      <div class="inp-wrap"><i class="ti ti-lock"></i><input type="password" id="loginPassword" placeholder="••••••••"/>
+        <i class="ti ti-eye eye" id="eyeBtn"></i></div>
+    </div>
+    <div class="err" id="loginErr"></div>
+    <button class="btn-login" onclick="doLogin()"><span id="loginTxt">Se connecter</span><i class="ti ti-arrow-right"></i></button>
+    <div class="login-foot">Système réservé aux membres autorisés</div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div class="page app-page" id="appPage">
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <span class="logo-text">OPS HQ</span>
+      <span class="logo-sub">Field Management</span>
+    </div>
+    <span class="nav-sec">Principal</span>
+    <div class="nav-item active" onclick="go('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+    <div class="nav-item" onclick="go('planning',this)"><i class="ti ti-calendar"></i> Planning</div>
+    <div class="nav-item" onclick="go('agents',this)"><i class="ti ti-users"></i> Agents</div>
+    <span class="nav-sec">Gestion</span>
+    <div class="nav-item" onclick="go('rapports',this)"><i class="ti ti-file-text"></i> Rapports <span id="navBadgeRap" style="margin-left:auto;display:none" class="badge badge-blue">0</span></div>
+    <div class="nav-item" onclick="go('abonnements',this)"><i class="ti ti-credit-card"></i> Abonnements</div>
+    <div class="sb-user">
+      <div class="uname" id="sbName">—</div>
+      <div class="urole">Lead On-Field Agent</div>
+      <span class="badge badge-blue">ADMIN</span><br/><br/>
+      <div class="btn btn-sm" onclick="doLogout()" style="cursor:pointer;display:inline-flex;"><i class="ti ti-logout"></i> Déconnexion</div>
     </div>
   </aside>
 
-  <main class="main-content">
-    <div class="topbar">
-      <div>
-        <div class="page-title">Planning</div>
-        <div class="page-sub">Gestion des missions et shifts</div>
+  <main class="main">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="section active" id="sec-dashboard">
+      <div class="topbar">
+        <div>
+          <div class="ptitle">Dashboard</div>
+          <div class="psub" id="dateStr"></div>
+        </div>
+        <div class="btns">
+          <div class="btn btn-primary" onclick="go('planning',document.querySelector('.nav-item:nth-child(3)'))"><i class="ti ti-calendar"></i> Voir Planning</div>
+        </div>
       </div>
-      <div class="topbar-actions">
-        <button class="btn btn-primary" onclick="openModal()">
-          <i class="ti ti-plus"></i> Nouvelle mission
-        </button>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="slabel">Agents actifs</div>
+          <div class="sval" style="color:var(--green)">12</div>
+          <div class="ssub">Équipe complète</div>
+        </div>
+        <div class="stat-card">
+          <div class="slabel">Shifts cette semaine</div>
+          <div class="sval" style="color:var(--acc)" id="dShifts">0</div>
+          <div class="ssub">Planning actuel</div>
+        </div>
+        <div class="stat-card">
+          <div class="slabel">Rapports reçus</div>
+          <div class="sval" style="color:var(--amber)" id="dRapports">0</div>
+          <div class="ssub" id="dRapSub">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="slabel">Abonnements actifs</div>
+          <div class="sval" style="color:var(--purple)" id="dAbos">0</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Agents — Statut semaine</span></div>
+        <table class="tbl">
+          <thead><tr><th>Agent</th><th>Statut semaine</th><th>Abonnement</th><th>Rapports</th></tr></thead>
+          <tbody id="dashAgents"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <span><i class="ti ti-file-text" style="margin-right:6px"></i>Derniers rapports</span>
+          <div class="btn btn-sm" onclick="go('rapports',null)">Voir tout</div>
+        </div>
+        <div id="dashRapports"><div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div></div>
       </div>
     </div>
 
-    <div id="alertBox" class="alert"></div>
-
-    <!-- Filtres -->
-    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-      <select id="filterAgent" class="btn" style="cursor:pointer;">
-        <option value="">Tous les agents</option>
-      </select>
-      <select id="filterStatus" class="btn" style="cursor:pointer;">
-        <option value="">Tous les statuts</option>
-        <option value="planifié">Planifié</option>
-        <option value="en cours">En cours</option>
-        <option value="terminé">Terminé</option>
-      </select>
-      <input type="date" id="filterDate" class="btn" style="cursor:pointer;" />
-    </div>
-
-    <div class="card">
-      <div class="card-title">
-        <span><i class="ti ti-calendar-event" style="margin-right:6px;"></i>Missions planifiées</span>
-        <span id="missionCount" style="color:var(--text-4);font-size:12px;"></span>
+    <!-- ── PLANNING ── -->
+    <div class="section" id="sec-planning">
+      <div class="topbar">
+        <div>
+          <div class="ptitle">Planning</div>
+          <div class="psub" id="planWeekLabel">Semaine en cours</div>
+        </div>
+        <div class="btns">
+          <div class="week-nav">
+            <div class="btn btn-sm" onclick="prevWeek()"><i class="ti ti-chevron-left"></i></div>
+            <span class="week-label" id="weekRange">—</span>
+            <div class="btn btn-sm" onclick="nextWeek()"><i class="ti ti-chevron-right"></i></div>
+          </div>
+          <div class="btn" onclick="openShiftTypeModal()"><i class="ti ti-settings"></i> Shifts</div>
+          <div class="btn btn-success" onclick="exportExcel()"><i class="ti ti-table-export"></i> Excel</div>
+          <div class="btn btn-danger" onclick="exportPDF()"><i class="ti ti-file-export"></i> PDF</div>
+        </div>
       </div>
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th>Agent</th>
-            <th>Mission</th>
-            <th>Date</th>
-            <th>Horaire</th>
-            <th>Statut</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="planningBody">
-          <tr><td colspan="6" style="text-align:center;color:var(--text-4);padding:32px;">Chargement...</td></tr>
-        </tbody>
-      </table>
+      <div class="alert" id="planAlert"></div>
+
+      <!-- LEGEND -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+        <span style="font-size:11px;color:var(--t4);font-weight:600;margin-right:4px">LÉGENDE :</span>
+        <span class="badge badge-green">TRAVAIL</span>
+        <span class="badge badge-slate">OFF</span>
+        <span class="badge badge-red">ABSENT</span>
+        <span class="badge badge-amber">CONGÉ</span>
+        <span class="badge badge-purple">MALADIE</span>
+        <span style="margin-left:8px;font-size:11px;color:var(--t4)">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:4px;vertical-align:middle"></span>A commencé
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--border);margin-right:4px;margin-left:8px;vertical-align:middle"></span>Pas encore
+        </span>
+        <span style="margin-left:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--t4);font-weight:600">TYPE :</span>
+          <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:2px 8px;border-radius:10px"><i class="ti ti-sun"></i> FIX JOUR</span>
+          <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#1e1b4b;border:1px solid #4338ca;color:#c7d2fe;padding:2px 8px;border-radius:10px"><i class="ti ti-moon"></i> FIX NUIT</span>
+          <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:var(--pbg);border:1px solid var(--pbdr);color:var(--purple);padding:2px 8px;border-radius:10px"><i class="ti ti-refresh"></i> VARIABLE</span>
+        </span>
+      </div>
+
+      <div class="plan-wrap">
+        <table class="plan-tbl" id="planTable">
+          <thead><tr>
+            <th>AGENT</th>
+            <th id="ph0"></th><th id="ph1"></th><th id="ph2"></th><th id="ph3"></th>
+            <th id="ph4"></th><th id="ph5"></th><th id="ph6"></th>
+            <th>TOTAL</th><th>TYPE</th>
+          </tr></thead>
+          <tbody id="planBody"></tbody>
+        </table>
+      </div>
     </div>
+
+    <!-- ── AGENTS ── -->
+    <div class="section" id="sec-agents">
+      <div class="topbar">
+        <div><div class="ptitle">Agents</div><div class="psub">12 agents On-Field</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Liste des agents</span></div>
+        <table class="tbl">
+          <thead><tr><th>Agent</th><th>Rapports</th><th>Abonnement</th></tr></thead>
+          <tbody id="agentsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── RAPPORTS ── -->
+    <div class="section" id="sec-rapports">
+      <div class="topbar">
+        <div><div class="ptitle">Rapports</div><div class="psub">Soumis par les agents</div></div>
+        <div class="btns">
+          <select id="rfAgent" class="btn" onchange="renderRapports()" style="cursor:pointer"><option value="">Tous les agents</option></select>
+          <select id="rfStatus" class="btn" onchange="renderRapports()" style="cursor:pointer">
+            <option value="">Tous</option><option value="new">Nouveaux</option><option value="lu">Lus</option>
+          </select>
+        </div>
+      </div>
+      <div class="alert" id="rapAlert"></div>
+      <div class="card">
+        <div class="card-title">
+          <span><i class="ti ti-inbox" style="margin-right:6px"></i>Rapports</span>
+          <span id="rCount" style="color:var(--t4);font-size:12px;"></span>
+        </div>
+        <div id="rapList"><div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div></div>
+      </div>
+    </div>
+
+    <!-- ── ABONNEMENTS ── -->
+    <div class="section" id="sec-abonnements">
+      <div class="topbar">
+        <div><div class="ptitle">Abonnements</div><div class="psub">Gestion des accès</div></div>
+        <div class="btns"><div class="btn btn-primary" onclick="openAboModal()"><i class="ti ti-plus"></i> Ajouter</div></div>
+      </div>
+      <div class="alert" id="aboAlert"></div>
+      <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card"><div class="slabel">Total</div><div class="sval" style="color:var(--acc)" id="aTotal">0</div></div>
+        <div class="stat-card"><div class="slabel">Actifs</div><div class="sval" style="color:var(--green)" id="aActifs">0</div></div>
+        <div class="stat-card"><div class="slabel">Inactifs</div><div class="sval" style="color:var(--red)" id="aInactifs">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-credit-card" style="margin-right:6px"></i>Liste des abonnements</span></div>
+        <table class="tbl">
+          <thead><tr><th>Agent</th><th>Plan</th><th>Début</th><th>Expiration</th><th>Statut</th><th>Action</th></tr></thead>
+          <tbody id="aboBody"></tbody>
+        </table>
+      </div>
+    </div>
+
   </main>
 </div>
 
-<!-- Modal nouvelle mission -->
-<div class="modal-overlay" id="modalMission">
-  <div class="modal">
-    <div class="modal-title"><i class="ti ti-calendar-plus"></i> <span id="modalMissionTitle">Nouvelle mission</span></div>
-    <i class="ti ti-x modal-close" onclick="closeModal()"></i>
-
-    <input type="hidden" id="editMissionId" />
-
-    <div class="field">
-      <label>Agent</label>
-      <select id="mAgent"></select>
+<!-- ══ MODAL RAPPORT DETAIL ══ -->
+<div class="modal-ov" id="rapModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title"><i class="ti ti-file-text" style="color:var(--acc)"></i><span id="rmTitre"></span></div>
+    <i class="ti ti-x modal-x" onclick="closeRapModal()"></i>
+    <div style="font-size:12px;color:var(--t4);margin-bottom:14px;display:flex;gap:12px;align-items:center">
+      <span><i class="ti ti-user" style="margin-right:4px"></i><span id="rmAgent"></span></span>
+      <span><i class="ti ti-calendar" style="margin-right:4px"></i><span id="rmDate"></span></span>
     </div>
-    <div class="field">
-      <label>Titre de la mission</label>
-      <input type="text" id="mTitre" placeholder="Ex: Patrouille secteur Nord" />
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <div class="field">
-        <label>Date</label>
-        <input type="date" id="mDate" />
-      </div>
-      <div class="field">
-        <label>Statut</label>
-        <select id="mStatut">
-          <option value="planifié">Planifié</option>
-          <option value="en cours">En cours</option>
-          <option value="terminé">Terminé</option>
-        </select>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <div class="field">
-        <label>Heure début</label>
-        <input type="time" id="mHeureDebut" />
-      </div>
-      <div class="field">
-        <label>Heure fin</label>
-        <input type="time" id="mHeureFin" />
-      </div>
-    </div>
-    <div class="field">
-      <label>Notes (optionnel)</label>
-      <textarea id="mNotes" placeholder="Instructions, localisation, consignes..."></textarea>
-    </div>
-    <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Annuler</button>
-      <button class="btn btn-primary" onclick="saveMission()"><i class="ti ti-device-floppy"></i> Enregistrer</button>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:16px;font-size:13px;color:var(--t2);line-height:1.7;white-space:pre-wrap" id="rmContenu"></div>
+    <div class="modal-acts">
+      <div class="btn" onclick="closeRapModal()">Fermer</div>
+      <div class="btn btn-success" id="btnMarquerLu"><i class="ti ti-check"></i> Marquer lu</div>
     </div>
   </div>
 </div>
 
+<!-- ══ MODAL ABONNEMENT ══ -->
+<div class="modal-ov" id="aboModal">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-credit-card" style="color:var(--acc)"></i><span id="aModalTitle">Nouvel abonnement</span></div>
+    <i class="ti ti-x modal-x" onclick="closeAboModal()"></i>
+    <input type="hidden" id="aEditId"/>
+    <div class="mfield"><label>Agent</label><select id="aAgent"></select></div>
+    <div class="mfield"><label>Plan</label>
+      <select id="aPlan">
+        <option>Mensuel</option><option>Trimestriel</option><option>Annuel</option><option>Accès total</option>
+      </select>
+    </div>
+    <div class="grid2">
+      <div class="mfield"><label>Date début</label><input type="date" id="aDebut"/></div>
+      <div class="mfield"><label>Expiration</label><input type="date" id="aExpire"/></div>
+    </div>
+    <div class="mfield"><label>Statut</label>
+      <select id="aStatut">
+        <option value="actif">Actif</option><option value="suspendu">Suspendu</option><option value="expiré">Expiré</option>
+      </select>
+    </div>
+    <div class="modal-acts">
+      <div class="btn" onclick="closeAboModal()">Annuler</div>
+      <div class="btn btn-primary" onclick="saveAbo()"><i class="ti ti-device-floppy"></i> Enregistrer</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL PLANNING SHIFT ══ -->
+<div class="modal-ov" id="planModal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-title">
+      <i class="ti ti-calendar" style="color:var(--acc)"></i>
+      <div>
+        <div id="pmAgent" style="font-weight:700;color:var(--t1)"></div>
+        <div id="pmDate2" style="font-size:12px;font-weight:400;color:var(--t4);margin-top:2px"></div>
+      </div>
+    </div>
+    <i class="ti ti-x modal-x" onclick="closePlanModal()"></i>
+
+    <!-- STATUS PILLS -->
+    <div class="mfield">
+      <label>Statut</label>
+      <div class="status-row">
+        <span class="status-pill sp-work" onclick="selectStatus('WORK')" id="pill-WORK">✓ Travail</span>
+        <span class="status-pill sp-off"  onclick="selectStatus('OFF')"  id="pill-OFF">OFF</span>
+        <span class="status-pill sp-absent" onclick="selectStatus('ABSENT')" id="pill-ABSENT">ABSENT</span>
+        <span class="status-pill sp-conge"  onclick="selectStatus('CONGE')"  id="pill-CONGE">CONGÉ</span>
+        <span class="status-pill sp-maladie" onclick="selectStatus('MALADIE')" id="pill-MALADIE">MALADIE</span>
+      </div>
+    </div>
+
+    <!-- HORAIRE (shown only when WORK) -->
+    <div id="horaireWrap" class="mfield">
+      <label>Horaire <span style="color:var(--t4);font-weight:400">(format: 17:00-00:00)</span></label>
+      <div class="plan-input-wrap">
+        <input class="plan-input" type="text" id="pmInput" placeholder="ex: 09:00-17:00" maxlength="11"/>
+      </div>
+      <!-- QUICK PRESETS -->
+      <div class="presets">
+        <span class="preset-btn preset-work" onclick="setPreset('09:00-16:00')">9h→16h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('09:00-17:00')">9h→17h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('10:00-17:00')">10h→17h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('10:00-18:00')">10h→18h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('11:00-19:00')">11h→19h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('15:00-23:00')">15h→23h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('17:00-00:00')">17h→00h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('18:00-01:00')">18h→01h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('18:30-02:30')">18h30→02h30</span>
+        <span class="preset-btn preset-work" onclick="setPreset('19:30-02:30')">19h30→02h30</span>
+      </div>
+    </div>
+
+    <div class="modal-acts">
+      <div class="btn btn-danger btn-sm" onclick="deletePlanShift()" id="pmDel" style="display:none"><i class="ti ti-trash"></i></div>
+      <div class="btn" onclick="closePlanModal()">Annuler</div>
+      <div class="btn btn-primary" onclick="savePlanShift()"><i class="ti ti-check"></i> Enregistrer</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FIREBASE + LOGIC ══ -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, query, orderBy, serverTimestamp }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { firebaseConfig, AGENTS } from "../js/firebase-config.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc,
+  doc, getDoc, query, orderBy, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const app  = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db   = getFirestore(app);
+const FC={
+  apiKey:"AIzaSyDdXwRWBvTJ9RffnY16W_r0dHE1WOJj1Rs",
+  authDomain:"ops-hq-cc38c.firebaseapp.com",
+  projectId:"ops-hq-cc38c",
+  storageBucket:"ops-hq-cc38c.firebasestorage.app",
+  messagingSenderId:"909070102010",
+  appId:"1:909070102010:web:5abb7857fe2a557ed68843"
+};
+const app=initializeApp(FC);
+const auth=getAuth(app);
+const db=getFirestore(app);
 
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = "../index.html"; return; }
-    const snap = await getDoc(doc(db, "users", user.uid));
-    if (!snap.exists() || snap.data().role !== "admin") {
-      window.location.href = "../index.html";
-    }
-  });
+const AGENTS=[
+  {name:"Achraf Akhlij",  ini:"AA"},
+  {name:"Youssef Derkaoui",ini:"YD"},
+  {name:"Aymane Chlifane", ini:"AC"},
+  {name:"Ayoub Abssi",    ini:"ABS"},
+  {name:"Mourad Cherradi",ini:"MC"},
+  {name:"Yahya Rhallab",  ini:"YR"},
+  {name:"Hassan Azgoune", ini:"HA"},
+  {name:"Ayoub Ben Malek",ini:"ABM"},
+  {name:"Charaf Loummihi",ini:"CL"},
+  {name:"Zakariae Benali",ini:"ZB"},
+  {name:"Islam Elmardi",  ini:"IE"},
+  {name:"Oussama El Atrach",ini:"OE"}
+];
+const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 
-  // Populate agent selects
-  const mAgent      = document.getElementById("mAgent");
-  const filterAgent = document.getElementById("filterAgent");
-  AGENTS.forEach(ag => {
-    [mAgent, filterAgent].forEach(sel => {
-      const opt = document.createElement("option");
-      opt.value = ag.name; opt.textContent = ag.name;
-      sel.appendChild(opt);
+let currentUser=null, userDisplayName="";
+let allRapports=[], allAbos=[], allPlanning=[], allAgentSettings=[];
+let weekStart=getMonday(new Date());
+let pmAgent2=null, pmDate3=null, pmId=null, curRapId=null;
+let pmStatus="WORK"; // current modal status selection
+
+// ── AUTH ──
+onAuthStateChanged(auth, async u=>{
+  if(u){
+    const snap=await getDoc(doc(db,"users",u.uid));
+    if(snap.exists()){
+      currentUser=u;
+      userDisplayName=snap.data().displayName||u.email;
+      showApp();
+    } else { await signOut(auth); }
+  } else { showLogin(); }
+});
+
+window.doLogin=async()=>{
+  const email=document.getElementById("loginEmail").value.trim();
+  const pw=document.getElementById("loginPassword").value;
+  const err=document.getElementById("loginErr");
+  const txt=document.getElementById("loginTxt");
+  err.style.display="none"; txt.textContent="Connexion...";
+  try{ await signInWithEmailAndPassword(auth,email,pw); }
+  catch(e){
+    err.textContent="Identifiant ou mot de passe incorrect.";
+    err.style.display="block"; txt.textContent="Se connecter";
+  }
+};
+window.doLogout=async()=>{ await signOut(auth); };
+document.getElementById("eyeBtn").onclick=()=>{
+  const inp=document.getElementById("loginPassword");
+  inp.type=inp.type==="password"?"text":"password";
+  document.getElementById("eyeBtn").className=inp.type==="password"?"ti ti-eye eye":"ti ti-eye-off eye";
+};
+document.getElementById("loginPassword").addEventListener("keydown",e=>{if(e.key==="Enter")window.doLogin();});
+
+function showLogin(){
+  document.getElementById("loginPage").classList.add("active");
+  document.getElementById("appPage").classList.remove("active");
+}
+function showApp(){
+  document.getElementById("loginPage").classList.remove("active");
+  document.getElementById("appPage").classList.add("active");
+  document.getElementById("sbName").textContent=userDisplayName;
+  document.getElementById("dateStr").textContent=new Date().toLocaleDateString("fr-FR",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  AGENTS.forEach(ag=>{
+    ["aAgent","rfAgent"].forEach(id=>{
+      const o=document.createElement("option");
+      o.value=ag.name; o.textContent=ag.name;
+      document.getElementById(id).appendChild(o);
     });
   });
+  loadAll();
+  renderWeekPlan();
+}
 
-  let allMissions = [];
+// ── NAVIGATION ──
+window.go=(id,el)=>{
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  document.getElementById("sec-"+id).classList.add("active");
+  if(el) el.classList.add("active");
+  if(id==="planning") renderWeekPlan();
+};
 
-  async function loadMissions() {
-    const q    = query(collection(db, "missions"), orderBy("date","desc"));
-    const snap = await getDocs(q);
-    allMissions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderMissions(allMissions);
+// ── LOAD DATA ──
+async function loadAll(){
+  try{
+    const [rs,as,ps,ss]=await Promise.all([
+      getDocs(query(collection(db,"rapports"),orderBy("createdAt","desc"))),
+      getDocs(collection(db,"abonnements")),
+      getDocs(collection(db,"planning2")),
+      getDocs(collection(db,"agentSettings"))
+    ]);
+    allRapports=rs.docs.map(d=>({id:d.id,...d.data()}));
+    allAbos=as.docs.map(d=>({id:d.id,...d.data()}));
+    allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
+    allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
+    renderDashboard(); renderAgents(); renderRapports(); renderAbos();
+    renderWeekPlan();
+    // update rapports badge
+    const nonLus=allRapports.filter(r=>!r.lu).length;
+    const nb=document.getElementById("navBadgeRap");
+    if(nonLus>0){nb.textContent=nonLus;nb.style.display="inline-block";}
+    else{nb.style.display="none";}
+  }catch(e){console.error(e);}
+}
+
+// ── DATE HELPERS ──
+function getMonday(d){const c=new Date(d);const day=c.getDay();c.setDate(c.getDate()-day+(day===0?-6:1));c.setHours(0,0,0,0);return c;}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function iso(d){return d.toISOString().split("T")[0];}
+function fmt(d){return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});}
+function fmtFull(d){return d.toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"long"});}
+
+function calcH(v){
+  if(!v||["OFF","ABSENT","CONGE","MALADIE",""].includes(v))return 0;
+  const p=v.split("-"); if(p.length<2)return 0;
+  let[dh,dm]=p[0].split(":").map(Number);
+  let[fh,fm]=p[1].split(":").map(Number);
+  if(fh<dh||(fh===dh&&fm<=dm))fh+=24;
+  return Math.round(((fh*60+fm)-(dh*60+dm))/60*10)/10;
+}
+
+function shiftCls(v){
+  if(!v)return "sh-empty";
+  if(v==="OFF")return "sh-off";
+  if(v==="ABSENT")return "sh-absent";
+  if(v==="CONGE")return "sh-conge";
+  if(v==="MALADIE")return "sh-maladie";
+  return "sh-work";
+}
+
+function shiftHtml(v){
+  if(!v)return `<span class="sh-t" style="font-size:20px;font-weight:200;color:var(--border)">+</span>`;
+  if(["OFF","ABSENT","CONGE","MALADIE"].includes(v)){
+    return `<span class="sh-t">${v==="CONGE"?"CONGÉ":v}</span>`;
   }
+  const h=calcH(v);
+  const parts=v.split("-");
+  return `<span class="sh-t">${parts[0]}→${parts[1]}</span><span class="sh-s">${h}h</span>`;
+}
 
-  function statusBadge(s) {
-    if (s === "planifié")  return `<span class="badge badge-blue">Planifié</span>`;
-    if (s === "en cours")  return `<span class="badge badge-amber">En cours</span>`;
-    if (s === "terminé")   return `<span class="badge badge-green">Terminé</span>`;
-    return `<span class="badge">${s}</span>`;
-  }
+// ── DASHBOARD ──
+function renderDashboard(){
+  const weekShifts=allPlanning.filter(p=>{
+    const d=new Date(p.date+"T12:00:00");
+    const we=addDays(weekStart,6);
+    return d>=weekStart&&d<=we&&p.val&&!["OFF","ABSENT","CONGE","MALADIE",""].includes(p.val);
+  });
+  document.getElementById("dShifts").textContent=weekShifts.length;
+  document.getElementById("dRapports").textContent=allRapports.length;
+  const nonLus=allRapports.filter(r=>!r.lu).length;
+  document.getElementById("dRapSub").textContent=nonLus>0?`${nonLus} non lu(s)`:"Tous lus";
+  document.getElementById("dAbos").textContent=allAbos.filter(a=>a.statut==="actif").length;
 
-  function renderMissions(list) {
-    const tbody = document.getElementById("planningBody");
-    document.getElementById("missionCount").textContent = `${list.length} mission(s)`;
-    if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-4);padding:32px;">Aucune mission trouvée.</td></tr>`;
-      return;
-    }
-    tbody.innerHTML = "";
-    list.forEach(m => {
-      const initials = AGENTS.find(a => a.name === m.agent)?.initials || "??";
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>
-          <div class="agent-row">
-            <div class="avatar">${initials}</div>
-            <span class="agent-name-txt">${m.agent}</span>
-          </div>
-        </td>
-        <td style="color:var(--text-1);font-weight:500;">${m.titre}</td>
-        <td style="color:var(--text-2);">${m.date || "—"}</td>
-        <td style="color:var(--text-3);">${m.heureDebut || ""} ${m.heureFin ? "→ " + m.heureFin : ""}</td>
-        <td>${statusBadge(m.statut)}</td>
-        <td style="display:flex;gap:6px;">
-          <button class="btn btn-sm" onclick="editMission('${m.id}')"><i class="ti ti-edit"></i></button>
-          <button class="btn btn-sm btn-danger" onclick="deleteMission('${m.id}')"><i class="ti ti-trash"></i></button>
-        </td>`;
-      tbody.appendChild(tr);
+  // Agents table with "started this week" indicator
+  const today=iso(new Date());
+  const tb=document.getElementById("dashAgents"); tb.innerHTML="";
+  AGENTS.forEach(ag=>{
+    const abo=allAbos.find(a=>a.agent===ag.name);
+    const rc=allRapports.filter(r=>r.agentName===ag.name).length;
+    // has at least one shift this week
+    const hasShift=allPlanning.some(p=>{
+      const d=new Date(p.date+"T12:00:00");
+      return p.agent===ag.name&&d>=weekStart&&d<=addDays(weekStart,6)&&p.val&&!["OFF","ABSENT","CONGE","MALADIE",""].includes(p.val);
     });
-  }
-
-  // Filters
-  function applyFilters() {
-    let list = [...allMissions];
-    const agent  = filterAgent.value;
-    const status = document.getElementById("filterStatus").value;
-    const date   = document.getElementById("filterDate").value;
-    if (agent)  list = list.filter(m => m.agent === agent);
-    if (status) list = list.filter(m => m.statut === status);
-    if (date)   list = list.filter(m => m.date === date);
-    renderMissions(list);
-  }
-  ["filterAgent","filterStatus","filterDate"].forEach(id =>
-    document.getElementById(id).addEventListener("change", applyFilters)
-  );
-
-  // Modal
-  window.openModal = function(data = null) {
-    document.getElementById("editMissionId").value   = data?.id || "";
-    document.getElementById("modalMissionTitle").textContent = data ? "Modifier la mission" : "Nouvelle mission";
-    document.getElementById("mAgent").value          = data?.agent      || AGENTS[0].name;
-    document.getElementById("mTitre").value          = data?.titre      || "";
-    document.getElementById("mDate").value           = data?.date       || "";
-    document.getElementById("mStatut").value         = data?.statut     || "planifié";
-    document.getElementById("mHeureDebut").value     = data?.heureDebut || "";
-    document.getElementById("mHeureFin").value       = data?.heureFin   || "";
-    document.getElementById("mNotes").value          = data?.notes      || "";
-    document.getElementById("modalMission").classList.add("open");
-  };
-
-  window.closeModal = function() {
-    document.getElementById("modalMission").classList.remove("open");
-  };
-
-  window.saveMission = async function() {
-    const id    = document.getElementById("editMissionId").value;
-    const data  = {
-      agent:      document.getElementById("mAgent").value,
-      titre:      document.getElementById("mTitre").value.trim(),
-      date:       document.getElementById("mDate").value,
-      statut:     document.getElementById("mStatut").value,
-      heureDebut: document.getElementById("mHeureDebut").value,
-      heureFin:   document.getElementById("mHeureFin").value,
-      notes:      document.getElementById("mNotes").value.trim(),
-    };
-    if (!data.titre || !data.date) {
-      showAlert("Titre et date sont obligatoires.", "error");
-      return;
-    }
-    if (id) {
-      await updateDoc(doc(db, "missions", id), data);
-      showAlert("Mission mise à jour.", "success");
-    } else {
-      data.createdAt = serverTimestamp();
-      await addDoc(collection(db, "missions"), data);
-      showAlert("Mission créée.", "success");
-    }
-    closeModal();
-    loadMissions();
-  };
-
-  window.editMission = function(id) {
-    const m = allMissions.find(x => x.id === id);
-    if (m) openModal(m);
-  };
-
-  window.deleteMission = async function(id) {
-    if (!confirm("Supprimer cette mission ?")) return;
-    await deleteDoc(doc(db, "missions", id));
-    showAlert("Mission supprimée.", "success");
-    loadMissions();
-  };
-
-  function showAlert(msg, type) {
-    const el = document.getElementById("alertBox");
-    el.className = `alert alert-${type}`;
-    el.textContent = msg;
-    el.style.display = "block";
-    setTimeout(() => el.style.display = "none", 3000);
-  }
-
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await signOut(auth);
-    window.location.href = "../index.html";
+    const started=hasShift;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><div class="ag-row">
+        <div class="ag-status ${started?"ag-started":"ag-notstarted"}" title="${started?"A commencé":"Pas encore"}"></div>
+        <div class="avatar">${ag.ini}</div>
+        <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
+      </div></td>
+      <td>${started?'<span class="badge badge-green">✓ Planning actif</span>':'<span class="badge badge-slate">Pas planifié</span>'}</td>
+      <td>${abo?`<span class="badge badge-green">${abo.plan}</span>`:'<span class="badge badge-red">Aucun</span>'}</td>
+      <td style="color:var(--t3)">${rc}</td>`;
+    tb.appendChild(tr);
   });
 
-  loadMissions();
-</script>
-</body>
-</html>
+  const rc2=document.getElementById("dashRapports");
+  if(!allRapports.length){rc2.innerHTML='<div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div>';return;}
+  rc2.innerHTML="";
+  allRapports.slice(0,5).forEach(r=>{
+    const d=document.createElement("div"); d.className="rpt-row";
+    const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
+    d.innerHTML=`
+      <div><div style="font-size:13px;color:var(--t1);font-weight:600">${r.titre||"Rapport"}</div>
+      <div style="font-size:11px;color:var(--t4);margin-top:2px">${r.agentName||"—"} · ${dt}</div></div>
+      <span class="badge ${r.lu?"badge-green":"badge-blue"}">${r.lu?"Lu":"Nouveau"}</span>`;
+    rc2.appendChild(d);
+  });
+}
+
+// ── PLANNING ──
+window.prevWeek=()=>{weekStart=addDays(weekStart,-7);renderWeekPlan();}
+window.nextWeek=()=>{weekStart=addDays(weekStart,7);renderWeekPlan();}
+
+function renderWeekPlan(){
+  document.getElementById("weekRange").textContent=fmt(weekStart)+" — "+fmt(addDays(weekStart,6));
+  // column headers
+  for(let d=0;d<7;d++){
+    const dd=addDays(weekStart,d);
+    const isToday=iso(dd)===iso(new Date());
+    document.getElementById("ph"+d).innerHTML=
+      `<span style="display:block;${isToday?"color:var(--acc);font-weight:700":""}">${JOURS[d].toUpperCase()}</span>
+       <span style="font-size:13px;font-weight:700;color:${isToday?"var(--acc)":"var(--t2)"}">${fmt(dd)}</span>`;
+  }
+  const tbody=document.getElementById("planBody"); tbody.innerHTML="";
+  AGENTS.forEach(ag=>{
+    const tr=document.createElement("tr");
+    let totalH=0;
+    let cells=`<td>
+      <div class="ag-row">
+        <div class="avatar">${ag.ini}</div>
+        <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
+      </div>
+    </td>`;
+    for(let d=0;d<7;d++){
+      const dateISO=iso(addDays(weekStart,d));
+      const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
+      const v=ps?.val||"";
+      totalH+=calcH(v);
+      const cls=shiftCls(v);
+      cells+=`<td>
+        <span class="shift-cell ${cls}" onclick="openPlanModal('${ag.name}','${dateISO}','${ps?.id||''}','${v.replace(/'/g,"\\'")}')">
+          ${shiftHtml(v)}
+        </span>
+      </td>`;
+    }
+    const totalCls=totalH>0?"total-h":"total-h total-0";
+    // agent shift type
+    const agSetting=allAgentSettings.find(s=>s.agent===ag.name);
+    const shType=agSetting?.shiftType||"variable";
+    const typeHtml=shType==="fix_jour"
+      ?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:2px 8px;border-radius:10px"><i class="ti ti-sun"></i> JOUR</span>`
+      :shType==="fix_nuit"
+      ?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#1e1b4b;border:1px solid #4338ca;color:#c7d2fe;padding:2px 8px;border-radius:10px"><i class="ti ti-moon"></i> NUIT</span>`
+      :`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:var(--pbg);border:1px solid var(--pbdr);color:var(--purple);padding:2px 8px;border-radius:10px"><i class="ti ti-refresh"></i> VAR</span>`;
+    cells+=`<td><span class="${totalCls}">${totalH}h</span></td><td>${typeHtml}</td>`;
+    tr.innerHTML=cells;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── PLAN MODAL ──
+window.openPlanModal=(agent,date,shiftId,val)=>{
+  pmAgent2=agent; pmDate3=date; pmId=shiftId||null;
+  document.getElementById("pmAgent").textContent=agent;
+  document.getElementById("pmDate2").textContent=fmtFull(new Date(date+"T12:00:00"));
+  document.getElementById("pmDel").style.display=shiftId?"inline-flex":"none";
+
+  // determine initial status
+  let initStatus="";
+  let initHoraire="";
+  if(!val||val===""){initStatus="";}
+  else if(["OFF","ABSENT","CONGE","MALADIE"].includes(val)){initStatus=val;}
+  else{initStatus="WORK"; initHoraire=val;}
+
+  document.getElementById("pmInput").value=initHoraire;
+  selectStatus(initStatus||"WORK");
+  document.getElementById("planModal").classList.add("open");
+  if(initStatus==="WORK"||!initStatus) setTimeout(()=>document.getElementById("pmInput").focus(),100);
+};
+
+window.selectStatus=(s)=>{
+  pmStatus=s;
+  ["WORK","OFF","ABSENT","CONGE","MALADIE"].forEach(x=>{
+    const el=document.getElementById("pill-"+x);
+    if(el) el.classList.toggle("sel",x===s);
+  });
+  document.getElementById("horaireWrap").style.display=s==="WORK"?"block":"none";
+};
+
+window.setPreset=(v)=>{
+  document.getElementById("pmInput").value=v;
+  document.getElementById("pmInput").focus();
+};
+
+window.closePlanModal=()=>document.getElementById("planModal").classList.remove("open");
+
+window.savePlanShift=async()=>{
+  let val="";
+  if(pmStatus==="WORK"){
+    val=document.getElementById("pmInput").value.trim();
+    // validate format HH:MM-HH:MM
+    if(!val){closePlanModal();return;}
+    if(!/^\d{2}:\d{2}-\d{2}:\d{2}$/.test(val)){
+      showAlert("planAlert","Format invalide! Utilisez HH:MM-HH:MM (ex: 17:00-00:00)","error");
+      return;
+    }
+  } else {
+    val=pmStatus;
+  }
+  const data={agent:pmAgent2,date:pmDate3,val};
+  try{
+    if(pmId){await updateDoc(doc(db,"planning2",pmId),data);}
+    else{data.createdAt=serverTimestamp();await addDoc(collection(db,"planning2"),data);}
+    closePlanModal();
+    showAlert("planAlert","✅ Enregistré !","success");
+    await loadAll();
+  }catch(e){
+    showAlert("planAlert","Erreur: "+e.message,"error");
+  }
+};
+
+window.deletePlanShift=async()=>{
+  if(pmId){
+    try{
+      await deleteDoc(doc(db,"planning2",pmId));
+      closePlanModal();
+      showAlert("planAlert","Supprimé.","success");
+      await loadAll();
+    }catch(e){showAlert("planAlert","Erreur.","error");}
+  }
+};
+
+// ── AGENTS ──
+function renderAgents(){
+  const tb=document.getElementById("agentsBody"); tb.innerHTML="";
+  AGENTS.forEach(ag=>{
+    const rc=allRapports.filter(r=>r.agentName===ag.name).length;
+    const abo=allAbos.find(a=>a.agent===ag.name);
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><div class="ag-row"><div class="avatar">${ag.ini}</div>
+        <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span></div></td>
+      <td style="color:var(--t3)">${rc}</td>
+      <td>${abo?`<span class="badge badge-green">${abo.plan}</span>`:'<span class="badge badge-red">Aucun</span>'}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+// ── RAPPORTS ──
+window.renderRapports=()=>{
+  let list=[...allRapports];
+  const ag=document.getElementById("rfAgent").value;
+  const st=document.getElementById("rfStatus").value;
+  if(ag)list=list.filter(r=>r.agentName===ag);
+  if(st==="new")list=list.filter(r=>!r.lu);
+  if(st==="lu")list=list.filter(r=>r.lu);
+  document.getElementById("rCount").textContent=`${list.length} rapport(s)`;
+  const cont=document.getElementById("rapList");
+  if(!list.length){cont.innerHTML='<div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div>';return;}
+  cont.innerHTML="";
+  list.forEach(r=>{
+    const ini=AGENTS.find(a=>a.name===r.agentName)?.ini||"??";
+    const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
+    const d=document.createElement("div");
+    d.style.cssText="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;";
+    d.innerHTML=`
+      <div class="avatar">${ini}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;color:var(--t1);font-weight:600">${r.titre||"Rapport"}</div>
+        <div style="font-size:11px;color:var(--t4);margin-top:2px">${r.agentName||"—"} · ${dt}</div>
+      </div>
+      <span class="badge ${r.lu?"badge-green":"badge-blue"}">${r.lu?"Lu":"Nouveau"}</span>
+      <i class="ti ti-chevron-right" style="color:var(--t4)"></i>`;
+    d.onmouseenter=()=>d.style.background=`var(--bg3)`;
+    d.onmouseleave=()=>d.style.background="";
+    d.onclick=()=>openRapport(r);
+    cont.appendChild(d);
+  });
+};
+
+window.openRapport=r=>{
+  curRapId=r.id;
+  document.getElementById("rmTitre").textContent=r.titre||"Rapport";
+  document.getElementById("rmAgent").textContent=r.agentName||"—";
+  const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
+  document.getElementById("rmDate").textContent=dt;
+  document.getElementById("rmContenu").textContent=r.contenu||"Aucun contenu.";
+  document.getElementById("btnMarquerLu").style.display=r.lu?"none":"inline-flex";
+  document.getElementById("rapModal").classList.add("open");
+};
+window.closeRapModal=()=>document.getElementById("rapModal").classList.remove("open");
+document.getElementById("btnMarquerLu").onclick=async()=>{
+  if(!curRapId)return;
+  await updateDoc(doc(db,"rapports",curRapId),{lu:true});
+  closeRapModal();
+  showAlert("rapAlert","✅ Rapport marqué comme lu.","success");
+  await loadAll();
+};
+
+// ── ABONNEMENTS ──
+function renderAbos(){
+  document.getElementById("aTotal").textContent=allAbos.length;
+  document.getElementById("aActifs").textContent=allAbos.filter(a=>a.statut==="actif").length;
+  document.getElementById("aInactifs").textContent=allAbos.filter(a=>a.statut!=="actif").length;
+  const tb=document.getElementById("aboBody"); tb.innerHTML="";
+  allAbos.forEach(a=>{
+    const ini=AGENTS.find(ag=>ag.name===a.agent)?.ini||"??";
+    const stB=a.statut==="actif"?"badge-green":a.statut==="suspendu"?"badge-amber":"badge-red";
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><div class="ag-row"><div class="avatar">${ini}</div>
+        <span style="font-size:13px;color:var(--t1);font-weight:600">${a.agent}</span></div></td>
+      <td><span class="badge badge-purple">${a.plan}</span></td>
+      <td style="color:var(--t3)">${a.debut||"—"}</td>
+      <td style="color:var(--t3)">${a.expire||"—"}</td>
+      <td><span class="badge ${stB}">${a.statut}</span></td>
+      <td style="display:flex;gap:6px">
+        <div class="btn btn-sm" onclick="editAbo('${a.id}')"><i class="ti ti-edit"></i></div>
+        <div class="btn btn-sm btn-danger" onclick="deleteAbo('${a.id}')"><i class="ti ti-trash"
