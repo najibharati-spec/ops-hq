@@ -284,6 +284,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
             <span class="week-label" id="weekRange">—</span>
             <div class="btn btn-sm" onclick="nextWeek()"><i class="ti ti-chevron-right"></i></div>
           </div>
+          <div class="btn" onclick="openShiftTypeModal()"><i class="ti ti-settings"></i> Shifts</div>
+          <div class="btn btn-success" onclick="exportExcel()"><i class="ti ti-table-export"></i> Excel</div>
+          <div class="btn btn-danger" onclick="exportPDF()"><i class="ti ti-file-export"></i> PDF</div>
         </div>
       </div>
       <div class="alert" id="planAlert"></div>
@@ -296,9 +299,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
         <span class="badge badge-red">ABSENT</span>
         <span class="badge badge-amber">CONGÉ</span>
         <span class="badge badge-purple">MALADIE</span>
-        <span style="margin-left:12px;font-size:11px;color:var(--t4)">
+        <span style="margin-left:8px;font-size:11px;color:var(--t4)">
           <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:4px;vertical-align:middle"></span>A commencé
           <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--border);margin-right:4px;margin-left:8px;vertical-align:middle"></span>Pas encore
+        </span>
+        <span style="margin-left:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--t4);font-weight:600">TYPE :</span>
+          <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:2px 8px;border-radius:10px"><i class="ti ti-sun"></i> FIX JOUR</span>
+          <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#1e1b4b;border:1px solid #4338ca;color:#c7d2fe;padding:2px 8px;border-radius:10px"><i class="ti ti-moon"></i> FIX NUIT</span>
+          <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:var(--pbg);border:1px solid var(--pbdr);color:var(--purple);padding:2px 8px;border-radius:10px"><i class="ti ti-refresh"></i> VARIABLE</span>
         </span>
       </div>
 
@@ -308,7 +317,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
             <th>AGENT</th>
             <th id="ph0"></th><th id="ph1"></th><th id="ph2"></th><th id="ph3"></th>
             <th id="ph4"></th><th id="ph5"></th><th id="ph6"></th>
-            <th>TOTAL</th>
+            <th>TOTAL</th><th>TYPE</th>
           </tr></thead>
           <tbody id="planBody"></tbody>
         </table>
@@ -510,7 +519,7 @@ const AGENTS=[
 const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 
 let currentUser=null, userDisplayName="";
-let allRapports=[], allAbos=[], allPlanning=[];
+let allRapports=[], allAbos=[], allPlanning=[], allAgentSettings=[];
 let weekStart=getMonday(new Date());
 let pmAgent2=null, pmDate3=null, pmId=null, curRapId=null;
 let pmStatus="WORK"; // current modal status selection
@@ -579,14 +588,16 @@ window.go=(id,el)=>{
 // ── LOAD DATA ──
 async function loadAll(){
   try{
-    const [rs,as,ps]=await Promise.all([
+    const [rs,as,ps,ss]=await Promise.all([
       getDocs(query(collection(db,"rapports"),orderBy("createdAt","desc"))),
       getDocs(collection(db,"abonnements")),
-      getDocs(collection(db,"planning2"))
+      getDocs(collection(db,"planning2")),
+      getDocs(collection(db,"agentSettings"))
     ]);
     allRapports=rs.docs.map(d=>({id:d.id,...d.data()}));
     allAbos=as.docs.map(d=>({id:d.id,...d.data()}));
     allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
+    allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
     renderDashboard(); renderAgents(); renderRapports(); renderAbos();
     renderWeekPlan();
     // update rapports badge
@@ -721,7 +732,15 @@ function renderWeekPlan(){
       </td>`;
     }
     const totalCls=totalH>0?"total-h":"total-h total-0";
-    cells+=`<td><span class="${totalCls}">${totalH}h</span></td>`;
+    // agent shift type
+    const agSetting=allAgentSettings.find(s=>s.agent===ag.name);
+    const shType=agSetting?.shiftType||"variable";
+    const typeHtml=shType==="fix_jour"
+      ?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:2px 8px;border-radius:10px"><i class="ti ti-sun"></i> JOUR</span>`
+      :shType==="fix_nuit"
+      ?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#1e1b4b;border:1px solid #4338ca;color:#c7d2fe;padding:2px 8px;border-radius:10px"><i class="ti ti-moon"></i> NUIT</span>`
+      :`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:var(--pbg);border:1px solid var(--pbdr);color:var(--purple);padding:2px 8px;border-radius:10px"><i class="ti ti-refresh"></i> VAR</span>`;
+    cells+=`<td><span class="${totalCls}">${totalH}h</span></td><td>${typeHtml}</td>`;
     tr.innerHTML=cells;
     tbody.appendChild(tr);
   });
@@ -885,62 +904,4 @@ function renderAbos(){
       <td><span class="badge ${stB}">${a.statut}</span></td>
       <td style="display:flex;gap:6px">
         <div class="btn btn-sm" onclick="editAbo('${a.id}')"><i class="ti ti-edit"></i></div>
-        <div class="btn btn-sm btn-danger" onclick="deleteAbo('${a.id}')"><i class="ti ti-trash"></i></div>
-      </td>`;
-    tb.appendChild(tr);
-  });
-}
-
-window.openAboModal=(data=null)=>{
-  document.getElementById("aEditId").value=data?.id||"";
-  document.getElementById("aModalTitle").textContent=data?"Modifier abonnement":"Nouvel abonnement";
-  document.getElementById("aAgent").value=data?.agent||AGENTS[0].name;
-  document.getElementById("aPlan").value=data?.plan||"Mensuel";
-  document.getElementById("aDebut").value=data?.debut||"";
-  document.getElementById("aExpire").value=data?.expire||"";
-  document.getElementById("aStatut").value=data?.statut||"actif";
-  document.getElementById("aboModal").classList.add("open");
-};
-window.closeAboModal=()=>document.getElementById("aboModal").classList.remove("open");
-window.saveAbo=async()=>{
-  const id=document.getElementById("aEditId").value;
-  const data={
-    agent:document.getElementById("aAgent").value,
-    plan:document.getElementById("aPlan").value,
-    debut:document.getElementById("aDebut").value,
-    expire:document.getElementById("aExpire").value,
-    statut:document.getElementById("aStatut").value
-  };
-  try{
-    if(id){await updateDoc(doc(db,"abonnements",id),data);showAlert("aboAlert","✅ Mis à jour.","success");}
-    else{data.createdAt=serverTimestamp();await addDoc(collection(db,"abonnements"),data);showAlert("aboAlert","✅ Créé.","success");}
-    closeAboModal(); await loadAll();
-  }catch(e){showAlert("aboAlert","Erreur.","error");}
-};
-window.editAbo=id=>{const a=allAbos.find(x=>x.id===id);if(a)openAboModal(a);};
-window.deleteAbo=async id=>{
-  if(!confirm("Supprimer cet abonnement ?"))return;
-  try{
-    await deleteDoc(doc(db,"abonnements",id));
-    showAlert("aboAlert","Supprimé.","success"); await loadAll();
-  }catch(e){showAlert("aboAlert","Erreur.","error");}
-};
-
-// ── HELPERS ──
-function showAlert(id,msg,type){
-  const el=document.getElementById(id);
-  el.className=`alert alert-${type}`; el.textContent=msg; el.style.display="block";
-  setTimeout(()=>el.style.display="none",3500);
-}
-
-// close modals on overlay click
-document.querySelectorAll(".modal-ov").forEach(ov=>{
-  ov.addEventListener("click",e=>{if(e.target===ov)ov.classList.remove("open");});
-});
-// Enter to save shift
-document.getElementById("pmInput").addEventListener("keydown",e=>{
-  if(e.key==="Enter") window.savePlanShift();
-});
-</script>
-</body>
-</html>
+        <div class="btn btn-sm btn-danger" onclick="deleteAbo('${a.id}')"><i class="ti ti-trash"
