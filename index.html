@@ -6,7 +6,6 @@
 <title>OPS HQ</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
 <style>
-/* ── TOKENS ── */
 :root{
   --bg:#f0f4f8;--bg2:#ffffff;--bg3:#f8fafc;--border:#e2e8f0;
   --t1:#0f172a;--t2:#334155;--t3:#64748b;--t4:#94a3b8;
@@ -23,8 +22,6 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--t1);font-size:14px}
 .page{display:none;min-height:100vh}.page.active{display:flex}
-
-/* ── LOGIN ── */
 .login-page{align-items:center;justify-content:center;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%)}
 .login-card{background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(79,70,229,.25)}
 .logo-text{display:block;font-size:28px;font-weight:700;color:var(--acc);letter-spacing:5px;text-align:center}
@@ -39,8 +36,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .btn-login{width:100%;background:var(--acc);border:none;color:#fff;border-radius:var(--r);padding:13px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;transition:background .15s;letter-spacing:.3px}
 .btn-login:hover{background:#4338ca}
 .login-foot{text-align:center;margin-top:24px;font-size:11px;color:var(--t4)}
-
-/* ── APP SHELL ── */
 .app-page{flex-direction:row}
 .sidebar{width:230px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:100vh;flex-shrink:0;position:sticky;top:0;height:100vh;box-shadow:var(--shadow)}
 .sb-logo{padding:22px 20px 18px;border-bottom:1px solid var(--border)}
@@ -70,14 +65,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .btn-danger:hover{background:#fee2e2}
 .btn-success{background:var(--gbg);border-color:var(--gbdr);color:var(--green)}
 .btn-sm{padding:5px 11px;font-size:12px}
-
-/* ── STAT CARDS ── */
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
 .stat-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px;box-shadow:var(--shadow)}
 .slabel{font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;font-weight:600}
 .sval{font-size:30px;font-weight:700}.ssub{font-size:11px;color:var(--t3);margin-top:5px}
-
-/* ── CARDS ── */
 .card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:20px 22px;margin-bottom:20px;box-shadow:var(--shadow)}
 .card-title{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;font-weight:600}
 .tbl{width:100%;border-collapse:collapse}
@@ -86,8 +77,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .tbl tr:last-child td{border-bottom:none}.tbl tbody tr:hover td{background:var(--bg3)}
 .avatar{width:34px;height:34px;border-radius:50%;background:var(--accbg);border:1.5px solid var(--accbdr);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--acc);flex-shrink:0}
 .ag-row{display:flex;align-items:center;gap:10px}
-
-/* ── MODALS ── */
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .modal-ov.open{display:flex}
 .modal{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:28px 30px;width:100%;max-width:480px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.15)}
@@ -109,29 +98,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:var(--t4)}
 .section{display:none}.section.active{display:block}
-
-/* ── PLANNING TABLE ── */
 .plan-wrap{overflow-x:auto;border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--shadow)}
 .plan-tbl{width:100%;border-collapse:collapse;background:#fff}
 .plan-tbl th{padding:12px 10px;text-align:center;font-size:11px;color:var(--t4);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg3);min-width:110px;font-weight:600}
 .plan-tbl th:first-child{text-align:left;padding-left:18px;min-width:170px;position:sticky;left:0;background:var(--bg3);z-index:2}
+.plan-tbl th:last-child{min-width:130px}
 .plan-tbl td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:center;vertical-align:middle}
 .plan-tbl td:first-child{text-align:left;padding-left:18px;position:sticky;left:0;background:#fff;z-index:1}
+.plan-tbl td:last-child{text-align:center}
 .plan-tbl tbody tr:hover td{background:#fafbff}
 .plan-tbl tbody tr:hover td:first-child{background:#fafbff}
 .plan-tbl tbody tr:last-child td{border-bottom:none}
-
-/* ── SHIFT CELLS ── */
 .shift-cell{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;padding:6px 10px;min-width:92px;cursor:pointer;transition:all .15s;gap:2px}
 .shift-cell:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
-
 .sh-work{background:var(--gbg);border:1.5px solid var(--gbdr)}
 .sh-off{background:var(--sbg);border:1.5px solid var(--sbdr)}
 .sh-absent{background:var(--rbg);border:1.5px solid var(--rbdr)}
 .sh-conge{background:var(--abg);border:1.5px solid var(--abdr)}
 .sh-maladie{background:var(--pbg);border:1.5px solid var(--pbdr)}
 .sh-empty{background:var(--bg);border:1.5px dashed var(--border)}
-
 .sh-t{font-size:12px;font-weight:700}
 .sh-s{font-size:10px;opacity:.75;margin-top:1px;font-weight:500}
 .sh-work .sh-t{color:var(--green)}.sh-work .sh-s{color:var(--green)}
@@ -140,30 +125,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .sh-conge .sh-t{color:var(--amber)}.sh-conge .sh-s{color:var(--amber)}
 .sh-maladie .sh-t{color:var(--purple)}.sh-maladie .sh-s{color:var(--purple)}
 .sh-empty .sh-t{color:var(--t4);font-size:18px;font-weight:300}
-
-/* ── TOTAL BADGE ── */
 .total-h{background:var(--gbg);border:1.5px solid var(--gbdr);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;color:var(--green);display:inline-block}
 .total-0{background:var(--sbg);border:1.5px solid var(--sbdr);color:var(--slate)}
-
-/* ── WEEK NAV ── */
 .week-nav{display:flex;align-items:center;gap:8px}
 .week-label{font-size:13px;font-weight:600;color:var(--t2);padding:0 4px;min-width:140px;text-align:center}
-
-/* ── PLANNING QUICK PRESETS ── */
 .presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .preset-btn{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid;transition:all .12s}
 .preset-work{background:var(--gbg);border-color:var(--gbdr);color:var(--green)}
 .preset-work:hover{background:#dcfce7}
-.preset-status{background:var(--sbg);border-color:var(--sbdr);color:var(--slate)}
-.preset-status:hover{background:#e2e8f0}
-
-/* ── PLAN INPUT ── */
 .plan-input-wrap{position:relative}
 .plan-input{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none;font-family:monospace;transition:border-color .15s;letter-spacing:.5px}
 .plan-input:focus{border-color:var(--acc);background:#fff}
-.plan-input-hint{font-size:10px;color:var(--t4);margin-top:5px}
-
-/* ── STATUS PILL ── */
 .status-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
 .status-pill{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1.5px solid;cursor:pointer;transition:all .12s;opacity:.6}
 .status-pill.sel{opacity:1;transform:scale(1.05)}
@@ -172,16 +144,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .sp-absent{background:var(--rbg);border-color:var(--rbdr);color:var(--red)}
 .sp-conge{background:var(--abg);border-color:var(--abdr);color:var(--amber)}
 .sp-maladie{background:var(--pbg);border-color:var(--pbdr);color:var(--purple)}
-
-/* ── AGENT STATUS INDICATOR ── */
 .ag-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .ag-started{background:var(--green)}
 .ag-notstarted{background:var(--border)}
+/* ZONE BADGE in table */
+.zone-badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.z-hay{background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc}
+.z-agdal{background:#f0fdf4;color:#15803d;border:1px solid #86efac}
+.z-carr{background:#fffbeb;color:#b45309;border:1px solid #fcd34d}
+.z-temara{background:#f5f3ff;color:#6d28d9;border:1px solid #c4b5fd}
+.z-sale{background:#fef2f2;color:#b91c1c;border:1px solid #fca5a5}
+/* TYPE badge */
+.type-j{font-size:10px;font-weight:700;background:#fff3cd;border:1px solid #ffc107;color:#854d0e;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.type-n{font-size:10px;font-weight:700;background:#1e1b4b;border:1px solid #4338ca;color:#c7d2fe;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.type-v{font-size:10px;font-weight:700;background:var(--pbg);border:1px solid var(--pbdr);color:var(--purple);padding:2px 8px;border-radius:10px;white-space:nowrap}
 </style>
 </head>
 <body>
 
-<!-- ══ LOGIN ══ -->
+<!-- LOGIN -->
 <div class="page login-page active" id="loginPage">
   <div class="login-card">
     <span class="logo-text">OPS HQ</span>
@@ -199,7 +180,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
   </div>
 </div>
 
-<!-- ══ APP ══ -->
+<!-- APP -->
 <div class="page app-page" id="appPage">
   <aside class="sidebar">
     <div class="sb-logo">
@@ -223,61 +204,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 
   <main class="main">
 
-    <!-- ── DASHBOARD ── -->
+    <!-- DASHBOARD -->
     <div class="section active" id="sec-dashboard">
       <div class="topbar">
-        <div>
-          <div class="ptitle">Dashboard</div>
-          <div class="psub" id="dateStr"></div>
-        </div>
+        <div><div class="ptitle">Dashboard</div><div class="psub" id="dateStr"></div></div>
         <div class="btns">
           <div class="btn btn-primary" onclick="go('planning',document.querySelector('.nav-item:nth-child(3)'))"><i class="ti ti-calendar"></i> Voir Planning</div>
         </div>
       </div>
       <div class="stat-grid">
-        <div class="stat-card">
-          <div class="slabel">Agents actifs</div>
-          <div class="sval" style="color:var(--green)">12</div>
-          <div class="ssub">Équipe complète</div>
-        </div>
-        <div class="stat-card">
-          <div class="slabel">Shifts cette semaine</div>
-          <div class="sval" style="color:var(--acc)" id="dShifts">0</div>
-          <div class="ssub">Planning actuel</div>
-        </div>
-        <div class="stat-card">
-          <div class="slabel">Rapports reçus</div>
-          <div class="sval" style="color:var(--amber)" id="dRapports">0</div>
-          <div class="ssub" id="dRapSub">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="slabel">Abonnements actifs</div>
-          <div class="sval" style="color:var(--purple)" id="dAbos">0</div>
-        </div>
+        <div class="stat-card"><div class="slabel">Agents actifs</div><div class="sval" style="color:var(--green)">12</div><div class="ssub">Équipe complète</div></div>
+        <div class="stat-card"><div class="slabel">Shifts cette semaine</div><div class="sval" style="color:var(--acc)" id="dShifts">0</div><div class="ssub">Planning actuel</div></div>
+        <div class="stat-card"><div class="slabel">Rapports reçus</div><div class="sval" style="color:var(--amber)" id="dRapports">0</div><div class="ssub" id="dRapSub">—</div></div>
+        <div class="stat-card"><div class="slabel">Abonnements actifs</div><div class="sval" style="color:var(--purple)" id="dAbos">0</div></div>
       </div>
       <div class="card">
         <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Agents — Statut semaine</span></div>
         <table class="tbl">
-          <thead><tr><th>Agent</th><th>Statut semaine</th><th>Abonnement</th><th>Rapports</th></tr></thead>
+          <thead><tr><th>Agent</th><th>Zone</th><th>Statut semaine</th><th>Abonnement</th><th>Rapports</th></tr></thead>
           <tbody id="dashAgents"></tbody>
         </table>
       </div>
       <div class="card">
-        <div class="card-title">
-          <span><i class="ti ti-file-text" style="margin-right:6px"></i>Derniers rapports</span>
-          <div class="btn btn-sm" onclick="go('rapports',null)">Voir tout</div>
-        </div>
+        <div class="card-title"><span><i class="ti ti-file-text" style="margin-right:6px"></i>Derniers rapports</span><div class="btn btn-sm" onclick="go('rapports',null)">Voir tout</div></div>
         <div id="dashRapports"><div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div></div>
       </div>
     </div>
 
-    <!-- ── PLANNING ── -->
+    <!-- PLANNING -->
     <div class="section" id="sec-planning">
       <div class="topbar">
-        <div>
-          <div class="ptitle">Planning</div>
-          <div class="psub" id="planWeekLabel">Semaine en cours</div>
-        </div>
+        <div><div class="ptitle">Planning</div><div class="psub" id="planWeekLabel">Semaine en cours</div></div>
         <div class="btns">
           <div class="week-nav">
             <div class="btn btn-sm" onclick="prevWeek()"><i class="ti ti-chevron-left"></i></div>
@@ -290,8 +247,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
         </div>
       </div>
       <div class="alert" id="planAlert"></div>
-
-      <!-- LEGEND -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
         <span style="font-size:11px;color:var(--t4);font-weight:600;margin-right:4px">LÉGENDE :</span>
         <span class="badge badge-green">TRAVAIL</span>
@@ -303,42 +258,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
           <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:4px;vertical-align:middle"></span>A commencé
           <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--border);margin-right:4px;margin-left:8px;vertical-align:middle"></span>Pas encore
         </span>
-        <span style="margin-left:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          <span style="font-size:11px;color:var(--t4);font-weight:600">TYPE :</span>
-          <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:2px 8px;border-radius:10px"><i class="ti ti-sun"></i> FIX JOUR</span>
-          <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#1e1b4b;border:1px solid #4338ca;color:#c7d2fe;padding:2px 8px;border-radius:10px"><i class="ti ti-moon"></i> FIX NUIT</span>
-          <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:var(--pbg);border:1px solid var(--pbdr);color:var(--purple);padding:2px 8px;border-radius:10px"><i class="ti ti-refresh"></i> VARIABLE</span>
-        </span>
       </div>
-
       <div class="plan-wrap">
         <table class="plan-tbl" id="planTable">
           <thead><tr>
             <th>AGENT</th>
             <th id="ph0"></th><th id="ph1"></th><th id="ph2"></th><th id="ph3"></th>
             <th id="ph4"></th><th id="ph5"></th><th id="ph6"></th>
-            <th>TOTAL</th><th>TYPE</th>
+            <th>TOTAL</th><th>TYPE</th><th>ZONE</th>
           </tr></thead>
           <tbody id="planBody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- ── AGENTS ── -->
+    <!-- AGENTS -->
     <div class="section" id="sec-agents">
-      <div class="topbar">
-        <div><div class="ptitle">Agents</div><div class="psub">12 agents On-Field</div></div>
-      </div>
+      <div class="topbar"><div><div class="ptitle">Agents</div><div class="psub">12 agents On-Field</div></div></div>
       <div class="card">
         <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Liste des agents</span></div>
         <table class="tbl">
-          <thead><tr><th>Agent</th><th>Rapports</th><th>Abonnement</th></tr></thead>
+          <thead><tr><th>Agent</th><th>Zone</th><th>Rapports</th><th>Abonnement</th></tr></thead>
           <tbody id="agentsBody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- ── RAPPORTS ── -->
+    <!-- RAPPORTS -->
     <div class="section" id="sec-rapports">
       <div class="topbar">
         <div><div class="ptitle">Rapports</div><div class="psub">Soumis par les agents</div></div>
@@ -351,15 +297,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
       </div>
       <div class="alert" id="rapAlert"></div>
       <div class="card">
-        <div class="card-title">
-          <span><i class="ti ti-inbox" style="margin-right:6px"></i>Rapports</span>
-          <span id="rCount" style="color:var(--t4);font-size:12px;"></span>
-        </div>
+        <div class="card-title"><span><i class="ti ti-inbox" style="margin-right:6px"></i>Rapports</span><span id="rCount" style="color:var(--t4);font-size:12px;"></span></div>
         <div id="rapList"><div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div></div>
       </div>
     </div>
 
-    <!-- ── ABONNEMENTS ── -->
+    <!-- ABONNEMENTS -->
     <div class="section" id="sec-abonnements">
       <div class="topbar">
         <div><div class="ptitle">Abonnements</div><div class="psub">Gestion des accès</div></div>
@@ -383,7 +326,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
   </main>
 </div>
 
-<!-- ══ MODAL RAPPORT DETAIL ══ -->
+<!-- MODAL RAPPORT -->
 <div class="modal-ov" id="rapModal">
   <div class="modal" style="max-width:560px">
     <div class="modal-title"><i class="ti ti-file-text" style="color:var(--acc)"></i><span id="rmTitre"></span></div>
@@ -400,7 +343,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
   </div>
 </div>
 
-<!-- ══ MODAL ABONNEMENT ══ -->
+<!-- MODAL ABONNEMENT -->
 <div class="modal-ov" id="aboModal">
   <div class="modal">
     <div class="modal-title"><i class="ti ti-credit-card" style="color:var(--acc)"></i><span id="aModalTitle">Nouvel abonnement</span></div>
@@ -408,18 +351,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
     <input type="hidden" id="aEditId"/>
     <div class="mfield"><label>Agent</label><select id="aAgent"></select></div>
     <div class="mfield"><label>Plan</label>
-      <select id="aPlan">
-        <option>Mensuel</option><option>Trimestriel</option><option>Annuel</option><option>Accès total</option>
-      </select>
+      <select id="aPlan"><option>Mensuel</option><option>Trimestriel</option><option>Annuel</option><option>Accès total</option></select>
     </div>
     <div class="grid2">
       <div class="mfield"><label>Date début</label><input type="date" id="aDebut"/></div>
       <div class="mfield"><label>Expiration</label><input type="date" id="aExpire"/></div>
     </div>
     <div class="mfield"><label>Statut</label>
-      <select id="aStatut">
-        <option value="actif">Actif</option><option value="suspendu">Suspendu</option><option value="expiré">Expiré</option>
-      </select>
+      <select id="aStatut"><option value="actif">Actif</option><option value="suspendu">Suspendu</option><option value="expiré">Expiré</option></select>
     </div>
     <div class="modal-acts">
       <div class="btn" onclick="closeAboModal()">Annuler</div>
@@ -428,7 +367,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
   </div>
 </div>
 
-<!-- ══ MODAL PLANNING SHIFT ══ -->
+<!-- MODAL PLANNING SHIFT -->
 <div class="modal-ov" id="planModal">
   <div class="modal" style="max-width:360px">
     <div class="modal-title">
@@ -439,26 +378,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
       </div>
     </div>
     <i class="ti ti-x modal-x" onclick="closePlanModal()"></i>
-
-    <!-- STATUS PILLS -->
     <div class="mfield">
       <label>Statut</label>
       <div class="status-row">
         <span class="status-pill sp-work" onclick="selectStatus('WORK')" id="pill-WORK">✓ Travail</span>
-        <span class="status-pill sp-off"  onclick="selectStatus('OFF')"  id="pill-OFF">OFF</span>
+        <span class="status-pill sp-off" onclick="selectStatus('OFF')" id="pill-OFF">OFF</span>
         <span class="status-pill sp-absent" onclick="selectStatus('ABSENT')" id="pill-ABSENT">ABSENT</span>
-        <span class="status-pill sp-conge"  onclick="selectStatus('CONGE')"  id="pill-CONGE">CONGÉ</span>
+        <span class="status-pill sp-conge" onclick="selectStatus('CONGE')" id="pill-CONGE">CONGÉ</span>
         <span class="status-pill sp-maladie" onclick="selectStatus('MALADIE')" id="pill-MALADIE">MALADIE</span>
       </div>
     </div>
-
-    <!-- HORAIRE (shown only when WORK) -->
     <div id="horaireWrap" class="mfield">
       <label>Horaire <span style="color:var(--t4);font-weight:400">(format: 17:00-00:00)</span></label>
       <div class="plan-input-wrap">
         <input class="plan-input" type="text" id="pmInput" placeholder="ex: 09:00-17:00" maxlength="11"/>
       </div>
-      <!-- QUICK PRESETS -->
       <div class="presets">
         <span class="preset-btn preset-work" onclick="setPreset('09:00-16:00')">9h→16h</span>
         <span class="preset-btn preset-work" onclick="setPreset('09:00-17:00')">9h→17h</span>
@@ -468,11 +402,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
         <span class="preset-btn preset-work" onclick="setPreset('15:00-23:00')">15h→23h</span>
         <span class="preset-btn preset-work" onclick="setPreset('17:00-00:00')">17h→00h</span>
         <span class="preset-btn preset-work" onclick="setPreset('18:00-01:00')">18h→01h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('18:00-02:00')">18h→02h</span>
         <span class="preset-btn preset-work" onclick="setPreset('18:30-02:30')">18h30→02h30</span>
         <span class="preset-btn preset-work" onclick="setPreset('19:30-02:30')">19h30→02h30</span>
       </div>
     </div>
-
     <div class="modal-acts">
       <div class="btn btn-danger btn-sm" onclick="deletePlanShift()" id="pmDel" style="display:none"><i class="ti ti-trash"></i></div>
       <div class="btn" onclick="closePlanModal()">Annuler</div>
@@ -481,68 +415,71 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
   </div>
 </div>
 
-<!-- ══ FIREBASE + LOGIC ══ -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc,
-  doc, getDoc, query, orderBy, serverTimestamp }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<!-- MODAL SHIFT TYPE -->
+<div class="modal-ov" id="shiftTypeModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title"><i class="ti ti-settings" style="color:var(--acc)"></i> Type de shifts par agent</div>
+    <i class="ti ti-x modal-x" onclick="closeShiftTypeModal()"></i>
+    <p style="font-size:12px;color:var(--t4);margin-bottom:16px">Définir si chaque agent est fixé sur le jour, la nuit, ou variable.</p>
+    <div id="shiftTypeList" style="display:flex;flex-direction:column;gap:10px;max-height:380px;overflow-y:auto;padding-right:4px"></div>
+    <div class="modal-acts">
+      <div class="btn" onclick="closeShiftTypeModal()">Annuler</div>
+      <div class="btn btn-primary" onclick="saveShiftTypes()"><i class="ti ti-device-floppy"></i> Enregistrer</div>
+    </div>
+  </div>
+</div>
 
-const FC={
-  apiKey:"AIzaSyDdXwRWBvTJ9RffnY16W_r0dHE1WOJj1Rs",
-  authDomain:"ops-hq-cc38c.firebaseapp.com",
-  projectId:"ops-hq-cc38c",
-  storageBucket:"ops-hq-cc38c.firebasestorage.app",
-  messagingSenderId:"909070102010",
-  appId:"1:909070102010:web:5abb7857fe2a557ed68843"
-};
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import{getFirestore,collection,getDocs,addDoc,updateDoc,deleteDoc,doc,getDoc,query,orderBy,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const FC={apiKey:"AIzaSyDdXwRWBvTJ9RffnY16W_r0dHE1WOJj1Rs",authDomain:"ops-hq-cc38c.firebaseapp.com",projectId:"ops-hq-cc38c",storageBucket:"ops-hq-cc38c.firebasestorage.app",messagingSenderId:"909070102010",appId:"1:909070102010:web:5abb7857fe2a557ed68843"};
 const app=initializeApp(FC);
 const auth=getAuth(app);
 const db=getFirestore(app);
 
 const ZONES=[
-  {name:"Hay Riad",           color:"#0ea5e9", bg:"#e0f2fe", border:"#7dd3fc"},
-  {name:"Agdal - Soussi",     color:"#16a34a", bg:"#f0fdf4", border:"#86efac"},
-  {name:"Carrousel - Hay Fath",color:"#d97706",bg:"#fffbeb", border:"#fcd34d"},
-  {name:"Temara",             color:"#7c3aed", bg:"#f5f3ff", border:"#c4b5fd"},
-  {name:"Salé - Medina",      color:"#dc2626", bg:"#fef2f2", border:"#fca5a5"},
+  {name:"Hay Riad",            cls:"z-hay"},
+  {name:"Agdal - Soussi",      cls:"z-agdal"},
+  {name:"Carrousel - Hay Fath",cls:"z-carr"},
+  {name:"Temara",              cls:"z-temara"},
+  {name:"Salé - Medina",       cls:"z-sale"},
 ];
+
 const AGENTS=[
-  {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad"},
-  {name:"Aymane Chlifane",  ini:"AC",  zone:"Hay Riad"},
-  {name:"Yahya Rhallab",    ini:"YR",  zone:"Agdal - Soussi"},
-  {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi"},
-  {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath"},
-  {name:"Islam Elmardi",    ini:"IE",  zone:"Carrousel - Hay Fath"},
-  {name:"Ayoub Abssi",      ini:"ABS", zone:"Temara"},
-  {name:"Mourad Cherradi",  ini:"MC",  zone:"Temara"},
-  {name:"Ayoub Ben Malek",  ini:"ABM", zone:"Salé - Medina"},
-  {name:"Hassan Azgoune",   ini:"HA",  zone:"Salé - Medina"},
-  {name:"Zakariae Benali",  ini:"ZB",  zone:"Salé - Medina"},
-  {name:"Charaf Loummihi",  ini:"CL",  zone:"Salé - Medina"},
-  {name:"Islam Elmardi",  ini:"IE"},
-  {name:"Oussama El Atrach",ini:"OE"}
+  {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad",             shiftType:"fix_nuit",  horaire:"18:00-01:00"},
+  {name:"Aymane Chlifane",  ini:"AC",  zone:"Hay Riad",             shiftType:"fix_jour",  horaire:"10:00-17:00"},
+  {name:"Yahya Rhallab",    ini:"YR",  zone:"Agdal - Soussi",       shiftType:"fix_nuit",  horaire:"18:00-01:00"},
+  {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi",       shiftType:"fix_jour",  horaire:"10:00-17:00"},
+  {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath", shiftType:"fix_jour",  horaire:"10:00-17:00"},
+  {name:"Islam Elmardi",    ini:"IE",  zone:"Carrousel - Hay Fath", shiftType:"fix_nuit",  horaire:"18:00-01:00"},
+  {name:"Ayoub Abssi",      ini:"ABS", zone:"Temara",               shiftType:"fix_jour",  horaire:"10:00-17:00"},
+  {name:"Mourad Cherradi",  ini:"MC",  zone:"Temara",               shiftType:"fix_nuit",  horaire:"18:00-01:00"},
+  {name:"Ayoub Ben Malek",  ini:"ABM", zone:"Salé - Medina",        shiftType:"fix_nuit",  horaire:"18:00-01:00"},
+  {name:"Hassan Azgoune",   ini:"HA",  zone:"Salé - Medina",        shiftType:"fix_jour",  horaire:"09:00-16:00"},
+  {name:"Zakariae Benali",  ini:"ZB",  zone:"Salé - Medina",        shiftType:"fix_nuit",  horaire:"18:00-01:00"},
+  {name:"Charaf Loummihi",  ini:"CL",  zone:"Salé - Medina",        shiftType:"variable",  horaire:""},
 ];
+
 const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 
-let currentUser=null, userDisplayName="";
-let allRapports=[], allAbos=[], allPlanning=[], allAgentSettings=[];
+let currentUser=null,userDisplayName="";
+let allRapports=[],allAbos=[],allPlanning=[],allAgentSettings=[];
 let weekStart=getMonday(new Date());
-let pmAgent2=null, pmDate3=null, pmId=null, curRapId=null;
-let pmStatus="WORK"; // current modal status selection
+let pmAgent2=null,pmDate3=null,pmId=null,curRapId=null;
+let pmStatus="WORK";
 
-// ── AUTH ──
-onAuthStateChanged(auth, async u=>{
+onAuthStateChanged(auth,async u=>{
   if(u){
     const snap=await getDoc(doc(db,"users",u.uid));
-    if(snap.exists()){
-      currentUser=u;
-      userDisplayName=snap.data().displayName||u.email;
-      showApp();
-    } else { await signOut(auth); }
-  } else { showLogin(); }
+    if(snap.exists()){currentUser=u;userDisplayName=snap.data().displayName||u.email;showApp();}
+    else{await signOut(auth);}
+  }else{showLogin();}
 });
 
 window.doLogin=async()=>{
@@ -550,14 +487,11 @@ window.doLogin=async()=>{
   const pw=document.getElementById("loginPassword").value;
   const err=document.getElementById("loginErr");
   const txt=document.getElementById("loginTxt");
-  err.style.display="none"; txt.textContent="Connexion...";
-  try{ await signInWithEmailAndPassword(auth,email,pw); }
-  catch(e){
-    err.textContent="Identifiant ou mot de passe incorrect.";
-    err.style.display="block"; txt.textContent="Se connecter";
-  }
+  err.style.display="none";txt.textContent="Connexion...";
+  try{await signInWithEmailAndPassword(auth,email,pw);}
+  catch(e){err.textContent="Identifiant ou mot de passe incorrect.";err.style.display="block";txt.textContent="Se connecter";}
 };
-window.doLogout=async()=>{ await signOut(auth); };
+window.doLogout=async()=>{await signOut(auth);};
 document.getElementById("eyeBtn").onclick=()=>{
   const inp=document.getElementById("loginPassword");
   inp.type=inp.type==="password"?"text":"password";
@@ -565,10 +499,7 @@ document.getElementById("eyeBtn").onclick=()=>{
 };
 document.getElementById("loginPassword").addEventListener("keydown",e=>{if(e.key==="Enter")window.doLogin();});
 
-function showLogin(){
-  document.getElementById("loginPage").classList.add("active");
-  document.getElementById("appPage").classList.remove("active");
-}
+function showLogin(){document.getElementById("loginPage").classList.add("active");document.getElementById("appPage").classList.remove("active");}
 function showApp(){
   document.getElementById("loginPage").classList.remove("active");
   document.getElementById("appPage").classList.add("active");
@@ -577,27 +508,24 @@ function showApp(){
   AGENTS.forEach(ag=>{
     ["aAgent","rfAgent"].forEach(id=>{
       const o=document.createElement("option");
-      o.value=ag.name; o.textContent=ag.name;
+      o.value=ag.name;o.textContent=ag.name;
       document.getElementById(id).appendChild(o);
     });
   });
-  loadAll();
-  renderWeekPlan();
+  loadAll();renderWeekPlan();
 }
 
-// ── NAVIGATION ──
 window.go=(id,el)=>{
   document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
   document.getElementById("sec-"+id).classList.add("active");
-  if(el) el.classList.add("active");
-  if(id==="planning") renderWeekPlan();
+  if(el)el.classList.add("active");
+  if(id==="planning")renderWeekPlan();
 };
 
-// ── LOAD DATA ──
 async function loadAll(){
   try{
-    const [rs,as,ps,ss]=await Promise.all([
+    const[rs,as,ps,ss]=await Promise.all([
       getDocs(query(collection(db,"rapports"),orderBy("createdAt","desc"))),
       getDocs(collection(db,"abonnements")),
       getDocs(collection(db,"planning2")),
@@ -607,17 +535,13 @@ async function loadAll(){
     allAbos=as.docs.map(d=>({id:d.id,...d.data()}));
     allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
-    renderDashboard(); renderAgents(); renderRapports(); renderAbos();
-    renderWeekPlan();
-    // update rapports badge
+    renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
     const nonLus=allRapports.filter(r=>!r.lu).length;
     const nb=document.getElementById("navBadgeRap");
-    if(nonLus>0){nb.textContent=nonLus;nb.style.display="inline-block";}
-    else{nb.style.display="none";}
+    if(nonLus>0){nb.textContent=nonLus;nb.style.display="inline-block";}else{nb.style.display="none";}
   }catch(e){console.error(e);}
 }
 
-// ── DATE HELPERS ──
 function getMonday(d){const c=new Date(d);const day=c.getDay();c.setDate(c.getDate()-day+(day===0?-6:1));c.setHours(0,0,0,0);return c;}
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
 function iso(d){return d.toISOString().split("T")[0];}
@@ -626,7 +550,7 @@ function fmtFull(d){return d.toLocaleDateString("fr-FR",{weekday:"long",day:"2-d
 
 function calcH(v){
   if(!v||["OFF","ABSENT","CONGE","MALADIE",""].includes(v))return 0;
-  const p=v.split("-"); if(p.length<2)return 0;
+  const p=v.split("-");if(p.length<2)return 0;
   let[dh,dm]=p[0].split(":").map(Number);
   let[fh,fm]=p[1].split(":").map(Number);
   if(fh<dh||(fh===dh&&fm<=dm))fh+=24;
@@ -634,29 +558,41 @@ function calcH(v){
 }
 
 function shiftCls(v){
-  if(!v)return "sh-empty";
-  if(v==="OFF")return "sh-off";
-  if(v==="ABSENT")return "sh-absent";
-  if(v==="CONGE")return "sh-conge";
-  if(v==="MALADIE")return "sh-maladie";
-  return "sh-work";
+  if(!v)return"sh-empty";
+  if(v==="OFF")return"sh-off";
+  if(v==="ABSENT")return"sh-absent";
+  if(v==="CONGE")return"sh-conge";
+  if(v==="MALADIE")return"sh-maladie";
+  return"sh-work";
 }
 
 function shiftHtml(v){
-  if(!v)return `<span class="sh-t" style="font-size:20px;font-weight:200;color:var(--border)">+</span>`;
-  if(["OFF","ABSENT","CONGE","MALADIE"].includes(v)){
-    return `<span class="sh-t">${v==="CONGE"?"CONGÉ":v}</span>`;
-  }
-  const h=calcH(v);
-  const parts=v.split("-");
-  return `<span class="sh-t">${parts[0]}→${parts[1]}</span><span class="sh-s">${h}h</span>`;
+  if(!v)return`<span class="sh-t" style="font-size:20px;font-weight:200;color:var(--border)">+</span>`;
+  if(["OFF","ABSENT","CONGE","MALADIE"].includes(v))return`<span class="sh-t">${v==="CONGE"?"CONGÉ":v}</span>`;
+  const h=calcH(v);const parts=v.split("-");
+  return`<span class="sh-t">${parts[0]}→${parts[1]}</span><span class="sh-s">${h}h</span>`;
 }
 
-// ── DASHBOARD ──
+function getZoneCls(zoneName){
+  const z=ZONES.find(x=>x.name===zoneName);return z?z.cls:"z-hay";
+}
+
+function getAgentSetting(agName){
+  const s=allAgentSettings.find(x=>x.agent===agName);
+  const ag=AGENTS.find(x=>x.name===agName);
+  return s||{shiftType:ag?.shiftType||"variable",horaire:ag?.horaire||""};
+}
+
+function typeHtml(shType){
+  if(shType==="fix_jour")return`<span class="type-j"><i class="ti ti-sun"></i> JOUR</span>`;
+  if(shType==="fix_nuit")return`<span class="type-n"><i class="ti ti-moon"></i> NUIT</span>`;
+  return`<span class="type-v"><i class="ti ti-refresh"></i> VAR</span>`;
+}
+
+// DASHBOARD
 function renderDashboard(){
   const weekShifts=allPlanning.filter(p=>{
-    const d=new Date(p.date+"T12:00:00");
-    const we=addDays(weekStart,6);
+    const d=new Date(p.date+"T12:00:00");const we=addDays(weekStart,6);
     return d>=weekStart&&d<=we&&p.val&&!["OFF","ABSENT","CONGE","MALADIE",""].includes(p.val);
   });
   document.getElementById("dShifts").textContent=weekShifts.length;
@@ -664,47 +600,42 @@ function renderDashboard(){
   const nonLus=allRapports.filter(r=>!r.lu).length;
   document.getElementById("dRapSub").textContent=nonLus>0?`${nonLus} non lu(s)`:"Tous lus";
   document.getElementById("dAbos").textContent=allAbos.filter(a=>a.statut==="actif").length;
-
-  // Agents table with "started this week" indicator
-  const today=iso(new Date());
-  const tb=document.getElementById("dashAgents"); tb.innerHTML="";
+  const tb=document.getElementById("dashAgents");tb.innerHTML="";
   AGENTS.forEach(ag=>{
     const abo=allAbos.find(a=>a.agent===ag.name);
     const rc=allRapports.filter(r=>r.agentName===ag.name).length;
-    // has at least one shift this week
     const hasShift=allPlanning.some(p=>{
       const d=new Date(p.date+"T12:00:00");
       return p.agent===ag.name&&d>=weekStart&&d<=addDays(weekStart,6)&&p.val&&!["OFF","ABSENT","CONGE","MALADIE",""].includes(p.val);
     });
-    const started=hasShift;
+    const zCls=getZoneCls(ag.zone);
     const tr=document.createElement("tr");
     tr.innerHTML=`
       <td><div class="ag-row">
-        <div class="ag-status ${started?"ag-started":"ag-notstarted"}" title="${started?"A commencé":"Pas encore"}"></div>
+        <div class="ag-status ${hasShift?"ag-started":"ag-notstarted"}"></div>
         <div class="avatar">${ag.ini}</div>
         <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
       </div></td>
-      <td>${started?'<span class="badge badge-green">✓ Planning actif</span>':'<span class="badge badge-slate">Pas planifié</span>'}</td>
+      <td><span class="zone-badge ${zCls}">${ag.zone}</span></td>
+      <td>${hasShift?'<span class="badge badge-green">✓ Planning actif</span>':'<span class="badge badge-slate">Pas planifié</span>'}</td>
       <td>${abo?`<span class="badge badge-green">${abo.plan}</span>`:'<span class="badge badge-red">Aucun</span>'}</td>
       <td style="color:var(--t3)">${rc}</td>`;
     tb.appendChild(tr);
   });
-
   const rc2=document.getElementById("dashRapports");
   if(!allRapports.length){rc2.innerHTML='<div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div>';return;}
   rc2.innerHTML="";
   allRapports.slice(0,5).forEach(r=>{
-    const d=document.createElement("div"); d.className="rpt-row";
+    const d=document.createElement("div");d.className="rpt-row";
     const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
-    d.innerHTML=`
-      <div><div style="font-size:13px;color:var(--t1);font-weight:600">${r.titre||"Rapport"}</div>
-      <div style="font-size:11px;color:var(--t4);margin-top:2px">${r.agentName||"—"} · ${dt}</div></div>
-      <span class="badge ${r.lu?"badge-green":"badge-blue"}">${r.lu?"Lu":"Nouveau"}</span>`;
+    d.innerHTML=`<div><div style="font-size:13px;color:var(--t1);font-weight:600">${r.titre||"Rapport"}</div>
+    <div style="font-size:11px;color:var(--t4);margin-top:2px">${r.agentName||"—"} · ${dt}</div></div>
+    <span class="badge ${r.lu?"badge-green":"badge-blue"}">${r.lu?"Lu":"Nouveau"}</span>`;
     rc2.appendChild(d);
   });
 }
 
-// ── PLANNING ──
+// PLANNING
 window.prevWeek=()=>{weekStart=addDays(weekStart,-7);renderWeekPlan();}
 window.nextWeek=()=>{weekStart=addDays(weekStart,7);renderWeekPlan();}
 
@@ -717,145 +648,105 @@ function renderWeekPlan(){
       `<span style="display:block;${isToday?"color:var(--acc);font-weight:700":""}">${JOURS[d].toUpperCase()}</span>
        <span style="font-size:13px;font-weight:700;color:${isToday?"var(--acc)":"var(--t2)"}">${fmt(dd)}</span>`;
   }
-  const tbody=document.getElementById("planBody"); tbody.innerHTML="";
-
-  ZONES.forEach(zone=>{
-    // Zone header row
-    const ztr=document.createElement("tr");
-    ztr.innerHTML=`<td colspan="11" style="padding:8px 18px;background:${zone.bg};border-top:2px solid ${zone.border};border-bottom:1px solid ${zone.border}">
-      <span style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:${zone.color}">
-        <i class="ti ti-map-pin" style="margin-right:5px;font-size:13px"></i>${zone.name}
-      </span>
+  const tbody=document.getElementById("planBody");tbody.innerHTML="";
+  AGENTS.forEach(ag=>{
+    const tr=document.createElement("tr");
+    let totalH=0;
+    const zCls=getZoneCls(ag.zone);
+    const setting=getAgentSetting(ag.name);
+    let cells=`<td>
+      <div class="ag-row">
+        <div class="avatar">${ag.ini}</div>
+        <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
+      </div>
     </td>`;
-    tbody.appendChild(ztr);
-
-    // Agents in this zone
-    const zoneAgents=AGENTS.filter(ag=>ag.zone===zone.name);
-    zoneAgents.forEach(ag=>{
-      const tr=document.createElement("tr");
-      let totalH=0;
-      let cells=`<td>
-        <div class="ag-row">
-          <div class="avatar" style="border-color:${zone.border};background:${zone.bg};color:${zone.color}">${ag.ini}</div>
-          <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
-        </div>
-      </td>`;
-      for(let d=0;d<7;d++){
-        const dateISO=iso(addDays(weekStart,d));
-        const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
-        const v=ps?.val||"";
-        totalH+=calcH(v);
-        const cls=shiftCls(v);
-        cells+=`<td>
-          <span class="shift-cell ${cls}" onclick="openPlanModal('${ag.name}','${dateISO}','${ps?.id||''}','${v.replace(/'/g,"\\'")}')">
-            ${shiftHtml(v)}
-          </span>
-        </td>`;
-      }
-      const totalCls=totalH>0?"total-h":"total-h total-0";
-      const agSetting=allAgentSettings.find(s=>s.agent===ag.name);
-      const shType=agSetting?.shiftType||"variable";
-      const typeHtml=shType==="fix_jour"
-        ?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:2px 8px;border-radius:10px"><i class="ti ti-sun"></i> JOUR</span>`
-        :shType==="fix_nuit"
-        ?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#1e1b4b;border:1px solid #4338ca;color:#c7d2fe;padding:2px 8px;border-radius:10px"><i class="ti ti-moon"></i> NUIT</span>`
-        :`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:var(--pbg);border:1px solid var(--pbdr);color:var(--purple);padding:2px 8px;border-radius:10px"><i class="ti ti-refresh"></i> VAR</span>`;
-      cells+=`<td><span class="${totalCls}">${totalH}h</span></td><td>${typeHtml}</td>`;
-      tr.innerHTML=cells;
-      tbody.appendChild(tr);
-    });
+    for(let d=0;d<7;d++){
+      const dateISO=iso(addDays(weekStart,d));
+      const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
+      const v=ps?.val||"";
+      totalH+=calcH(v);
+      const cls=shiftCls(v);
+      cells+=`<td><span class="shift-cell ${cls}" onclick="openPlanModal('${ag.name}','${dateISO}','${ps?.id||''}','${v.replace(/'/g,"\\'")}')">
+        ${shiftHtml(v)}</span></td>`;
+    }
+    const totalCls=totalH>0?"total-h":"total-h total-0";
+    cells+=`<td><span class="${totalCls}">${totalH}h</span></td>`;
+    cells+=`<td>${typeHtml(setting.shiftType)}</td>`;
+    cells+=`<td><span class="zone-badge ${zCls}">${ag.zone}</span></td>`;
+    tr.innerHTML=cells;
+    tbody.appendChild(tr);
   });
 }
 
-// ── PLAN MODAL ──
+// PLAN MODAL
 window.openPlanModal=(agent,date,shiftId,val)=>{
-  pmAgent2=agent; pmDate3=date; pmId=shiftId||null;
+  pmAgent2=agent;pmDate3=date;pmId=shiftId||null;
   document.getElementById("pmAgent").textContent=agent;
   document.getElementById("pmDate2").textContent=fmtFull(new Date(date+"T12:00:00"));
   document.getElementById("pmDel").style.display=shiftId?"inline-flex":"none";
-
-  // determine initial status
-  let initStatus="";
-  let initHoraire="";
+  let initStatus="",initHoraire="";
   if(!val||val===""){initStatus="";}
   else if(["OFF","ABSENT","CONGE","MALADIE"].includes(val)){initStatus=val;}
-  else{initStatus="WORK"; initHoraire=val;}
-
+  else{initStatus="WORK";initHoraire=val;}
   document.getElementById("pmInput").value=initHoraire;
   selectStatus(initStatus||"WORK");
   document.getElementById("planModal").classList.add("open");
-  if(initStatus==="WORK"||!initStatus) setTimeout(()=>document.getElementById("pmInput").focus(),100);
+  if(initStatus==="WORK"||!initStatus)setTimeout(()=>document.getElementById("pmInput").focus(),100);
 };
 
 window.selectStatus=(s)=>{
   pmStatus=s;
   ["WORK","OFF","ABSENT","CONGE","MALADIE"].forEach(x=>{
     const el=document.getElementById("pill-"+x);
-    if(el) el.classList.toggle("sel",x===s);
+    if(el)el.classList.toggle("sel",x===s);
   });
   document.getElementById("horaireWrap").style.display=s==="WORK"?"block":"none";
 };
 
-window.setPreset=(v)=>{
-  document.getElementById("pmInput").value=v;
-  document.getElementById("pmInput").focus();
-};
-
+window.setPreset=(v)=>{document.getElementById("pmInput").value=v;document.getElementById("pmInput").focus();};
 window.closePlanModal=()=>document.getElementById("planModal").classList.remove("open");
 
 window.savePlanShift=async()=>{
   let val="";
   if(pmStatus==="WORK"){
     val=document.getElementById("pmInput").value.trim();
-    // validate format HH:MM-HH:MM
     if(!val){closePlanModal();return;}
-    if(!/^\d{2}:\d{2}-\d{2}:\d{2}$/.test(val)){
-      showAlert("planAlert","Format invalide! Utilisez HH:MM-HH:MM (ex: 17:00-00:00)","error");
-      return;
-    }
-  } else {
-    val=pmStatus;
-  }
+    if(!/^\d{2}:\d{2}-\d{2}:\d{2}$/.test(val)){showAlert("planAlert","Format invalide! Utilisez HH:MM-HH:MM","error");return;}
+  }else{val=pmStatus;}
   const data={agent:pmAgent2,date:pmDate3,val};
   try{
     if(pmId){await updateDoc(doc(db,"planning2",pmId),data);}
     else{data.createdAt=serverTimestamp();await addDoc(collection(db,"planning2"),data);}
-    closePlanModal();
-    showAlert("planAlert","✅ Enregistré !","success");
-    await loadAll();
-  }catch(e){
-    showAlert("planAlert","Erreur: "+e.message,"error");
-  }
+    closePlanModal();showAlert("planAlert","✅ Enregistré !","success");await loadAll();
+  }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
 };
 
 window.deletePlanShift=async()=>{
   if(pmId){
-    try{
-      await deleteDoc(doc(db,"planning2",pmId));
-      closePlanModal();
-      showAlert("planAlert","Supprimé.","success");
-      await loadAll();
-    }catch(e){showAlert("planAlert","Erreur.","error");}
+    try{await deleteDoc(doc(db,"planning2",pmId));closePlanModal();showAlert("planAlert","Supprimé.","success");await loadAll();}
+    catch(e){showAlert("planAlert","Erreur.","error");}
   }
 };
 
-// ── AGENTS ──
+// AGENTS
 function renderAgents(){
-  const tb=document.getElementById("agentsBody"); tb.innerHTML="";
+  const tb=document.getElementById("agentsBody");tb.innerHTML="";
   AGENTS.forEach(ag=>{
     const rc=allRapports.filter(r=>r.agentName===ag.name).length;
     const abo=allAbos.find(a=>a.agent===ag.name);
+    const zCls=getZoneCls(ag.zone);
     const tr=document.createElement("tr");
     tr.innerHTML=`
       <td><div class="ag-row"><div class="avatar">${ag.ini}</div>
         <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span></div></td>
+      <td><span class="zone-badge ${zCls}">${ag.zone}</span></td>
       <td style="color:var(--t3)">${rc}</td>
       <td>${abo?`<span class="badge badge-green">${abo.plan}</span>`:'<span class="badge badge-red">Aucun</span>'}</td>`;
     tb.appendChild(tr);
   });
 }
 
-// ── RAPPORTS ──
+// RAPPORTS
 window.renderRapports=()=>{
   let list=[...allRapports];
   const ag=document.getElementById("rfAgent").value;
@@ -872,12 +763,9 @@ window.renderRapports=()=>{
     const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
     const d=document.createElement("div");
     d.style.cssText="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;";
-    d.innerHTML=`
-      <div class="avatar">${ini}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;color:var(--t1);font-weight:600">${r.titre||"Rapport"}</div>
-        <div style="font-size:11px;color:var(--t4);margin-top:2px">${r.agentName||"—"} · ${dt}</div>
-      </div>
+    d.innerHTML=`<div class="avatar">${ini}</div>
+      <div style="flex:1"><div style="font-size:13px;color:var(--t1);font-weight:600">${r.titre||"Rapport"}</div>
+      <div style="font-size:11px;color:var(--t4);margin-top:2px">${r.agentName||"—"} · ${dt}</div></div>
       <span class="badge ${r.lu?"badge-green":"badge-blue"}">${r.lu?"Lu":"Nouveau"}</span>
       <i class="ti ti-chevron-right" style="color:var(--t4)"></i>`;
     d.onmouseenter=()=>d.style.background=`var(--bg3)`;
@@ -901,17 +789,15 @@ window.closeRapModal=()=>document.getElementById("rapModal").classList.remove("o
 document.getElementById("btnMarquerLu").onclick=async()=>{
   if(!curRapId)return;
   await updateDoc(doc(db,"rapports",curRapId),{lu:true});
-  closeRapModal();
-  showAlert("rapAlert","✅ Rapport marqué comme lu.","success");
-  await loadAll();
+  closeRapModal();showAlert("rapAlert","✅ Rapport marqué comme lu.","success");await loadAll();
 };
 
-// ── ABONNEMENTS ──
+// ABONNEMENTS
 function renderAbos(){
   document.getElementById("aTotal").textContent=allAbos.length;
   document.getElementById("aActifs").textContent=allAbos.filter(a=>a.statut==="actif").length;
   document.getElementById("aInactifs").textContent=allAbos.filter(a=>a.statut!=="actif").length;
-  const tb=document.getElementById("aboBody"); tb.innerHTML="";
+  const tb=document.getElementById("aboBody");tb.innerHTML="";
   allAbos.forEach(a=>{
     const ini=AGENTS.find(ag=>ag.name===a.agent)?.ini||"??";
     const stB=a.statut==="actif"?"badge-green":a.statut==="suspendu"?"badge-amber":"badge-red";
@@ -944,57 +830,33 @@ window.openAboModal=(data=null)=>{
 window.closeAboModal=()=>document.getElementById("aboModal").classList.remove("open");
 window.saveAbo=async()=>{
   const id=document.getElementById("aEditId").value;
-  const data={
-    agent:document.getElementById("aAgent").value,
-    plan:document.getElementById("aPlan").value,
-    debut:document.getElementById("aDebut").value,
-    expire:document.getElementById("aExpire").value,
-    statut:document.getElementById("aStatut").value
-  };
+  const data={agent:document.getElementById("aAgent").value,plan:document.getElementById("aPlan").value,debut:document.getElementById("aDebut").value,expire:document.getElementById("aExpire").value,statut:document.getElementById("aStatut").value};
   try{
     if(id){await updateDoc(doc(db,"abonnements",id),data);showAlert("aboAlert","✅ Mis à jour.","success");}
     else{data.createdAt=serverTimestamp();await addDoc(collection(db,"abonnements"),data);showAlert("aboAlert","✅ Créé.","success");}
-    closeAboModal(); await loadAll();
+    closeAboModal();await loadAll();
   }catch(e){showAlert("aboAlert","Erreur.","error");}
 };
 window.editAbo=id=>{const a=allAbos.find(x=>x.id===id);if(a)openAboModal(a);};
 window.deleteAbo=async id=>{
   if(!confirm("Supprimer cet abonnement ?"))return;
-  try{
-    await deleteDoc(doc(db,"abonnements",id));
-    showAlert("aboAlert","Supprimé.","success"); await loadAll();
-  }catch(e){showAlert("aboAlert","Erreur.","error");}
+  try{await deleteDoc(doc(db,"abonnements",id));showAlert("aboAlert","Supprimé.","success");await loadAll();}
+  catch(e){showAlert("aboAlert","Erreur.","error");}
 };
 
-// ── HELPERS ──
-function showAlert(id,msg,type){
-  const el=document.getElementById(id);
-  el.className=`alert alert-${type}`; el.textContent=msg; el.style.display="block";
-  setTimeout(()=>el.style.display="none",3500);
-}
-
-// close modals on overlay click
-document.querySelectorAll(".modal-ov").forEach(ov=>{
-  ov.addEventListener("click",e=>{if(e.target===ov)ov.classList.remove("open");});
-});
-// Enter to save shift
-document.getElementById("pmInput").addEventListener("keydown",e=>{
-  if(e.key==="Enter") window.savePlanShift();
-});
-
-// ── SHIFT TYPE MODAL ──
+// SHIFT TYPE MODAL
 window.openShiftTypeModal=()=>{
-  const list=document.getElementById("shiftTypeList");
-  list.innerHTML="";
+  const list=document.getElementById("shiftTypeList");list.innerHTML="";
   AGENTS.forEach(ag=>{
-    const setting=allAgentSettings.find(s=>s.agent===ag.name);
-    const cur=setting?.shiftType||"variable";
+    const setting=getAgentSetting(ag.name);
+    const cur=setting.shiftType||"variable";
     const row=document.createElement("div");
     row.style.cssText="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)";
     row.innerHTML=`
       <div class="ag-row" style="gap:8px">
         <div class="avatar">${ag.ini}</div>
         <span style="font-size:13px;font-weight:600;color:var(--t1)">${ag.name}</span>
+        <span class="zone-badge ${getZoneCls(ag.zone)}" style="font-size:10px">${ag.zone}</span>
       </div>
       <select data-agent="${ag.name}" style="background:#fff;border:1.5px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--t1);outline:none;cursor:pointer">
         <option value="fix_jour" ${cur==="fix_jour"?"selected":""}>☀️ Fix Jour</option>
@@ -1005,9 +867,7 @@ window.openShiftTypeModal=()=>{
   });
   document.getElementById("shiftTypeModal").classList.add("open");
 };
-
 window.closeShiftTypeModal=()=>document.getElementById("shiftTypeModal").classList.remove("open");
-
 window.saveShiftTypes=async()=>{
   const selects=document.querySelectorAll("#shiftTypeList select");
   const promises=[];
@@ -1015,52 +875,32 @@ window.saveShiftTypes=async()=>{
     const agentName=sel.dataset.agent;
     const shiftType=sel.value;
     const existing=allAgentSettings.find(s=>s.agent===agentName);
-    if(existing){
-      promises.push(updateDoc(doc(db,"agentSettings",existing.id),{agent:agentName,shiftType}));
-    } else {
-      promises.push(addDoc(collection(db,"agentSettings"),{agent:agentName,shiftType}));
-    }
+    if(existing){promises.push(updateDoc(doc(db,"agentSettings",existing.id),{agent:agentName,shiftType}));}
+    else{promises.push(addDoc(collection(db,"agentSettings"),{agent:agentName,shiftType}));}
   });
   try{
     await Promise.all(promises);
-    closeShiftTypeModal();
-    showAlert("planAlert","✅ Types de shifts enregistrés !","success");
-    await loadAll();
+    closeShiftTypeModal();showAlert("planAlert","✅ Types de shifts enregistrés !","success");await loadAll();
   }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
 };
 
-// ── EXPORT EXCEL ──
+// EXPORT EXCEL
 window.exportExcel=()=>{
   const weekLabel=document.getElementById("weekRange").textContent;
-  const headers=["Agent","Zone","Type"];
-  for(let d=0;d<7;d++){
-    const dd=addDays(weekStart,d);
-    headers.push(`${JOURS[d]} ${fmt(dd)}`);
-  }
-  headers.push("Total H");
-
-  const rows=[];
-  ZONES.forEach(zone=>{
-    // zone separator row
-    rows.push([zone.name,"","","","","","","","",""]);
-    AGENTS.filter(ag=>ag.zone===zone.name).forEach(ag=>{
-      const setting=allAgentSettings.find(s=>s.agent===ag.name);
-      const shType=setting?.shiftType||"variable";
-      const typeLabel=shType==="fix_jour"?"Fix Jour":shType==="fix_nuit"?"Fix Nuit":"Variable";
-      const row=[ag.name,ag.zone,typeLabel];
-      let totalH=0;
-      for(let d=0;d<7;d++){
-        const dateISO=iso(addDays(weekStart,d));
-        const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
-        const v=ps?.val||"";
-        totalH+=calcH(v);
-        row.push(v||"—");
-      }
-      row.push(totalH+"h");
-      rows.push(row);
-    });
+  const headers=["Agent","Zone","Type",...JOURS.map((j,i)=>`${j} ${fmt(addDays(weekStart,i))}`),"Total H"];
+  const rows=AGENTS.map(ag=>{
+    const setting=getAgentSetting(ag.name);
+    const typeLabel=setting.shiftType==="fix_jour"?"Fix Jour":setting.shiftType==="fix_nuit"?"Fix Nuit":"Variable";
+    const row=[ag.name,ag.zone,typeLabel];
+    let totalH=0;
+    for(let d=0;d<7;d++){
+      const dateISO=iso(addDays(weekStart,d));
+      const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
+      const v=ps?.val||"";
+      totalH+=calcH(v);row.push(v||"—");
+    }
+    row.push(totalH+"h");return row;
   });
-
   const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
   ws["!cols"]=[{wch:22},{wch:20},{wch:10},...Array(7).fill({wch:14}),{wch:8}];
   const wb=XLSX.utils.book_new();
@@ -1068,52 +908,32 @@ window.exportExcel=()=>{
   XLSX.writeFile(wb,`Planning_${weekLabel.replace(" — ","-")}.xlsx`);
 };
 
-// ── EXPORT PDF ──
+// EXPORT PDF
 window.exportPDF=()=>{
-  const {jsPDF}=window.jspdf;
+  const{jsPDF}=window.jspdf;
   const doc2=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
   const weekLabel=document.getElementById("weekRange").textContent;
-
-  doc2.setFontSize(14);
-  doc2.setFont("helvetica","bold");
+  doc2.setFontSize(14);doc2.setFont("helvetica","bold");
   doc2.text(`OPS HQ — Planning ${weekLabel}`,14,15);
-  doc2.setFontSize(9);
-  doc2.setFont("helvetica","normal");
-  doc2.setTextColor(120);
-  doc2.text(`Exporté le ${new Date().toLocaleDateString("fr-FR")}`,14,21);
-  doc2.setTextColor(0);
-
+  doc2.setFontSize(9);doc2.setFont("helvetica","normal");doc2.setTextColor(120);
+  doc2.text(`Exporté le ${new Date().toLocaleDateString("fr-FR")}`,14,21);doc2.setTextColor(0);
   const head=[["Agent","Zone","Type",...JOURS.map((j,i)=>`${j} ${fmt(addDays(weekStart,i))}`),"Total"]];
-  const body=[];
-  ZONES.forEach(zone=>{
-    body.push([{content:zone.name,colSpan:11,styles:{fillColor:[30,27,75],textColor:[255,255,255],fontStyle:"bold",fontSize:8}}]);
-    AGENTS.filter(ag=>ag.zone===zone.name).forEach(ag=>{
-      const setting=allAgentSettings.find(s=>s.agent===ag.name);
-      const shType=setting?.shiftType||"variable";
-      const typeLabel=shType==="fix_jour"?"Jour":shType==="fix_nuit"?"Nuit":"Var";
-      let totalH=0;
-      const cells=[ag.name,ag.zone,typeLabel];
-      for(let d=0;d<7;d++){
-        const dateISO=iso(addDays(weekStart,d));
-        const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
-        const v=ps?.val||"";
-        totalH+=calcH(v);
-        cells.push(v||"—");
-      }
-      cells.push(totalH+"h");
-      body.push(cells);
-    });
+  const body=AGENTS.map(ag=>{
+    const setting=getAgentSetting(ag.name);
+    const typeLabel=setting.shiftType==="fix_jour"?"Jour":setting.shiftType==="fix_nuit"?"Nuit":"Var";
+    let totalH=0;const cells=[ag.name,ag.zone,typeLabel];
+    for(let d=0;d<7;d++){
+      const dateISO=iso(addDays(weekStart,d));
+      const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
+      const v=ps?.val||"";totalH+=calcH(v);cells.push(v||"—");
+    }
+    cells.push(totalH+"h");return cells;
   });
-
   doc2.autoTable({
     head,body,startY:26,
     styles:{fontSize:7,cellPadding:2,halign:"center"},
     headStyles:{fillColor:[79,70,229],textColor:255,fontStyle:"bold"},
-    columnStyles:{
-      0:{halign:"left",cellWidth:28},
-      1:{halign:"left",cellWidth:24},
-      2:{cellWidth:10}
-    },
+    columnStyles:{0:{halign:"left",cellWidth:26},1:{halign:"left",cellWidth:22},2:{cellWidth:10}},
     alternateRowStyles:{fillColor:[248,250,252]},
     didParseCell:(data)=>{
       if(data.section==="body"&&data.column.index>2&&data.column.index<10){
@@ -1128,26 +948,19 @@ window.exportPDF=()=>{
   });
   doc2.save(`Planning_${weekLabel.replace(" — ","-")}.pdf`);
 };
+
+function showAlert(id,msg,type){
+  const el=document.getElementById(id);
+  el.className=`alert alert-${type}`;el.textContent=msg;el.style.display="block";
+  setTimeout(()=>el.style.display="none",3500);
+}
+
+document.querySelectorAll(".modal-ov").forEach(ov=>{
+  ov.addEventListener("click",e=>{if(e.target===ov)ov.classList.remove("open");});
+});
+document.getElementById("pmInput").addEventListener("keydown",e=>{
+  if(e.key==="Enter")window.savePlanShift();
+});
 </script>
-<!-- ══ MODAL SHIFT TYPE ══ -->
-<div class="modal-ov" id="shiftTypeModal">
-  <div class="modal" style="max-width:520px">
-    <div class="modal-title"><i class="ti ti-settings" style="color:var(--acc)"></i> Type de shifts par agent</div>
-    <i class="ti ti-x modal-x" onclick="closeShiftTypeModal()"></i>
-    <p style="font-size:12px;color:var(--t4);margin-bottom:16px">Définir si chaque agent est fixé sur le jour, la nuit, ou variable (peut changer).</p>
-    <div id="shiftTypeList" style="display:flex;flex-direction:column;gap:10px;max-height:380px;overflow-y:auto;padding-right:4px"></div>
-    <div class="modal-acts">
-      <div class="btn" onclick="closeShiftTypeModal()">Annuler</div>
-      <div class="btn btn-primary" onclick="saveShiftTypes()"><i class="ti ti-device-floppy"></i> Enregistrer</div>
-    </div>
-  </div>
-</div>
-
-<!-- SheetJS for Excel export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- jsPDF + AutoTable for PDF export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-
 </body>
 </html>
