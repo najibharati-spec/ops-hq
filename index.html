@@ -502,17 +502,26 @@ const app=initializeApp(FC);
 const auth=getAuth(app);
 const db=getFirestore(app);
 
+const ZONES=[
+  {name:"Hay Riad",           color:"#0ea5e9", bg:"#e0f2fe", border:"#7dd3fc"},
+  {name:"Agdal - Soussi",     color:"#16a34a", bg:"#f0fdf4", border:"#86efac"},
+  {name:"Carrousel - Hay Fath",color:"#d97706",bg:"#fffbeb", border:"#fcd34d"},
+  {name:"Temara",             color:"#7c3aed", bg:"#f5f3ff", border:"#c4b5fd"},
+  {name:"Salé - Medina",      color:"#dc2626", bg:"#fef2f2", border:"#fca5a5"},
+];
 const AGENTS=[
-  {name:"Achraf Akhlij",  ini:"AA"},
-  {name:"Youssef Derkaoui",ini:"YD"},
-  {name:"Aymane Chlifane", ini:"AC"},
-  {name:"Ayoub Abssi",    ini:"ABS"},
-  {name:"Mourad Cherradi",ini:"MC"},
-  {name:"Yahya Rhallab",  ini:"YR"},
-  {name:"Hassan Azgoune", ini:"HA"},
-  {name:"Ayoub Ben Malek",ini:"ABM"},
-  {name:"Charaf Loummihi",ini:"CL"},
-  {name:"Zakariae Benali",ini:"ZB"},
+  {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad"},
+  {name:"Aymane Chlifane",  ini:"AC",  zone:"Hay Riad"},
+  {name:"Yahya Rhallab",    ini:"YR",  zone:"Agdal - Soussi"},
+  {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi"},
+  {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath"},
+  {name:"Islam Elmardi",    ini:"IE",  zone:"Carrousel - Hay Fath"},
+  {name:"Ayoub Abssi",      ini:"ABS", zone:"Temara"},
+  {name:"Mourad Cherradi",  ini:"MC",  zone:"Temara"},
+  {name:"Ayoub Ben Malek",  ini:"ABM", zone:"Salé - Medina"},
+  {name:"Hassan Azgoune",   ini:"HA",  zone:"Salé - Medina"},
+  {name:"Zakariae Benali",  ini:"ZB",  zone:"Salé - Medina"},
+  {name:"Charaf Loummihi",  ini:"CL",  zone:"Salé - Medina"},
   {name:"Islam Elmardi",  ini:"IE"},
   {name:"Oussama El Atrach",ini:"OE"}
 ];
@@ -701,7 +710,6 @@ window.nextWeek=()=>{weekStart=addDays(weekStart,7);renderWeekPlan();}
 
 function renderWeekPlan(){
   document.getElementById("weekRange").textContent=fmt(weekStart)+" — "+fmt(addDays(weekStart,6));
-  // column headers
   for(let d=0;d<7;d++){
     const dd=addDays(weekStart,d);
     const isToday=iso(dd)===iso(new Date());
@@ -710,39 +718,52 @@ function renderWeekPlan(){
        <span style="font-size:13px;font-weight:700;color:${isToday?"var(--acc)":"var(--t2)"}">${fmt(dd)}</span>`;
   }
   const tbody=document.getElementById("planBody"); tbody.innerHTML="";
-  AGENTS.forEach(ag=>{
-    const tr=document.createElement("tr");
-    let totalH=0;
-    let cells=`<td>
-      <div class="ag-row">
-        <div class="avatar">${ag.ini}</div>
-        <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
-      </div>
+
+  ZONES.forEach(zone=>{
+    // Zone header row
+    const ztr=document.createElement("tr");
+    ztr.innerHTML=`<td colspan="11" style="padding:8px 18px;background:${zone.bg};border-top:2px solid ${zone.border};border-bottom:1px solid ${zone.border}">
+      <span style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:${zone.color}">
+        <i class="ti ti-map-pin" style="margin-right:5px;font-size:13px"></i>${zone.name}
+      </span>
     </td>`;
-    for(let d=0;d<7;d++){
-      const dateISO=iso(addDays(weekStart,d));
-      const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
-      const v=ps?.val||"";
-      totalH+=calcH(v);
-      const cls=shiftCls(v);
-      cells+=`<td>
-        <span class="shift-cell ${cls}" onclick="openPlanModal('${ag.name}','${dateISO}','${ps?.id||''}','${v.replace(/'/g,"\\'")}')">
-          ${shiftHtml(v)}
-        </span>
+    tbody.appendChild(ztr);
+
+    // Agents in this zone
+    const zoneAgents=AGENTS.filter(ag=>ag.zone===zone.name);
+    zoneAgents.forEach(ag=>{
+      const tr=document.createElement("tr");
+      let totalH=0;
+      let cells=`<td>
+        <div class="ag-row">
+          <div class="avatar" style="border-color:${zone.border};background:${zone.bg};color:${zone.color}">${ag.ini}</div>
+          <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
+        </div>
       </td>`;
-    }
-    const totalCls=totalH>0?"total-h":"total-h total-0";
-    // agent shift type
-    const agSetting=allAgentSettings.find(s=>s.agent===ag.name);
-    const shType=agSetting?.shiftType||"variable";
-    const typeHtml=shType==="fix_jour"
-      ?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:2px 8px;border-radius:10px"><i class="ti ti-sun"></i> JOUR</span>`
-      :shType==="fix_nuit"
-      ?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#1e1b4b;border:1px solid #4338ca;color:#c7d2fe;padding:2px 8px;border-radius:10px"><i class="ti ti-moon"></i> NUIT</span>`
-      :`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:var(--pbg);border:1px solid var(--pbdr);color:var(--purple);padding:2px 8px;border-radius:10px"><i class="ti ti-refresh"></i> VAR</span>`;
-    cells+=`<td><span class="${totalCls}">${totalH}h</span></td><td>${typeHtml}</td>`;
-    tr.innerHTML=cells;
-    tbody.appendChild(tr);
+      for(let d=0;d<7;d++){
+        const dateISO=iso(addDays(weekStart,d));
+        const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
+        const v=ps?.val||"";
+        totalH+=calcH(v);
+        const cls=shiftCls(v);
+        cells+=`<td>
+          <span class="shift-cell ${cls}" onclick="openPlanModal('${ag.name}','${dateISO}','${ps?.id||''}','${v.replace(/'/g,"\\'")}')">
+            ${shiftHtml(v)}
+          </span>
+        </td>`;
+      }
+      const totalCls=totalH>0?"total-h":"total-h total-0";
+      const agSetting=allAgentSettings.find(s=>s.agent===ag.name);
+      const shType=agSetting?.shiftType||"variable";
+      const typeHtml=shType==="fix_jour"
+        ?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:2px 8px;border-radius:10px"><i class="ti ti-sun"></i> JOUR</span>`
+        :shType==="fix_nuit"
+        ?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#1e1b4b;border:1px solid #4338ca;color:#c7d2fe;padding:2px 8px;border-radius:10px"><i class="ti ti-moon"></i> NUIT</span>`
+        :`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:var(--pbg);border:1px solid var(--pbdr);color:var(--purple);padding:2px 8px;border-radius:10px"><i class="ti ti-refresh"></i> VAR</span>`;
+      cells+=`<td><span class="${totalCls}">${totalH}h</span></td><td>${typeHtml}</td>`;
+      tr.innerHTML=cells;
+      tbody.appendChild(tr);
+    });
   });
 }
 
@@ -1011,32 +1032,37 @@ window.saveShiftTypes=async()=>{
 // ── EXPORT EXCEL ──
 window.exportExcel=()=>{
   const weekLabel=document.getElementById("weekRange").textContent;
-  const headers=["Agent","Type"];
+  const headers=["Agent","Zone","Type"];
   for(let d=0;d<7;d++){
     const dd=addDays(weekStart,d);
     headers.push(`${JOURS[d]} ${fmt(dd)}`);
   }
   headers.push("Total H");
 
-  const rows=AGENTS.map(ag=>{
-    const setting=allAgentSettings.find(s=>s.agent===ag.name);
-    const shType=setting?.shiftType||"variable";
-    const typeLabel=shType==="fix_jour"?"Fix Jour":shType==="fix_nuit"?"Fix Nuit":"Variable";
-    const row=[ag.name,typeLabel];
-    let totalH=0;
-    for(let d=0;d<7;d++){
-      const dateISO=iso(addDays(weekStart,d));
-      const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
-      const v=ps?.val||"";
-      totalH+=calcH(v);
-      row.push(v||"—");
-    }
-    row.push(totalH+"h");
-    return row;
+  const rows=[];
+  ZONES.forEach(zone=>{
+    // zone separator row
+    rows.push([zone.name,"","","","","","","","",""]);
+    AGENTS.filter(ag=>ag.zone===zone.name).forEach(ag=>{
+      const setting=allAgentSettings.find(s=>s.agent===ag.name);
+      const shType=setting?.shiftType||"variable";
+      const typeLabel=shType==="fix_jour"?"Fix Jour":shType==="fix_nuit"?"Fix Nuit":"Variable";
+      const row=[ag.name,ag.zone,typeLabel];
+      let totalH=0;
+      for(let d=0;d<7;d++){
+        const dateISO=iso(addDays(weekStart,d));
+        const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
+        const v=ps?.val||"";
+        totalH+=calcH(v);
+        row.push(v||"—");
+      }
+      row.push(totalH+"h");
+      rows.push(row);
+    });
   });
 
   const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
-  ws["!cols"]=[{wch:22},{wch:10},...Array(7).fill({wch:14}),{wch:8}];
+  ws["!cols"]=[{wch:22},{wch:20},{wch:10},...Array(7).fill({wch:14}),{wch:8}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,`Planning ${weekLabel}`);
   XLSX.writeFile(wb,`Planning_${weekLabel.replace(" — ","-")}.xlsx`);
@@ -1057,35 +1083,40 @@ window.exportPDF=()=>{
   doc2.text(`Exporté le ${new Date().toLocaleDateString("fr-FR")}`,14,21);
   doc2.setTextColor(0);
 
-  const head=[["Agent","Type",...JOURS.map((j,i)=>`${j} ${fmt(addDays(weekStart,i))}`),"Total"]];
-  const body=AGENTS.map(ag=>{
-    const setting=allAgentSettings.find(s=>s.agent===ag.name);
-    const shType=setting?.shiftType||"variable";
-    const typeLabel=shType==="fix_jour"?"☀ Jour":shType==="fix_nuit"?"🌙 Nuit":"↺ Var";
-    let totalH=0;
-    const cells=[ag.name,typeLabel];
-    for(let d=0;d<7;d++){
-      const dateISO=iso(addDays(weekStart,d));
-      const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
-      const v=ps?.val||"";
-      totalH+=calcH(v);
-      cells.push(v||"—");
-    }
-    cells.push(totalH+"h");
-    return cells;
+  const head=[["Agent","Zone","Type",...JOURS.map((j,i)=>`${j} ${fmt(addDays(weekStart,i))}`),"Total"]];
+  const body=[];
+  ZONES.forEach(zone=>{
+    body.push([{content:zone.name,colSpan:11,styles:{fillColor:[30,27,75],textColor:[255,255,255],fontStyle:"bold",fontSize:8}}]);
+    AGENTS.filter(ag=>ag.zone===zone.name).forEach(ag=>{
+      const setting=allAgentSettings.find(s=>s.agent===ag.name);
+      const shType=setting?.shiftType||"variable";
+      const typeLabel=shType==="fix_jour"?"Jour":shType==="fix_nuit"?"Nuit":"Var";
+      let totalH=0;
+      const cells=[ag.name,ag.zone,typeLabel];
+      for(let d=0;d<7;d++){
+        const dateISO=iso(addDays(weekStart,d));
+        const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
+        const v=ps?.val||"";
+        totalH+=calcH(v);
+        cells.push(v||"—");
+      }
+      cells.push(totalH+"h");
+      body.push(cells);
+    });
   });
 
   doc2.autoTable({
     head,body,startY:26,
-    styles:{fontSize:7.5,cellPadding:2.5,halign:"center"},
+    styles:{fontSize:7,cellPadding:2,halign:"center"},
     headStyles:{fillColor:[79,70,229],textColor:255,fontStyle:"bold"},
     columnStyles:{
-      0:{halign:"left",cellWidth:32},
-      1:{cellWidth:14}
+      0:{halign:"left",cellWidth:28},
+      1:{halign:"left",cellWidth:24},
+      2:{cellWidth:10}
     },
     alternateRowStyles:{fillColor:[248,250,252]},
     didParseCell:(data)=>{
-      if(data.section==="body"&&data.column.index>1&&data.column.index<9){
+      if(data.section==="body"&&data.column.index>2&&data.column.index<10){
         const v=data.cell.raw||"";
         if(v==="OFF")data.cell.styles.textColor=[71,85,105];
         else if(v==="ABSENT")data.cell.styles.textColor=[220,38,38];
@@ -1095,7 +1126,6 @@ window.exportPDF=()=>{
       }
     }
   });
-
   doc2.save(`Planning_${weekLabel.replace(" — ","-")}.pdf`);
 };
 </script>
