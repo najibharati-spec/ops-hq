@@ -6,263 +6,303 @@
 <title>OPS HQ</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
 <style>
+/* ── TOKENS ── */
 :root{
-  --bg:#f4f6fb;--bg2:#fff;--bg3:#f8f9fc;
-  --navy:#1a2456;--navy2:#243070;--navy3:#2e3d8f;
-  --blue:#3b5bdb;--blue2:#4c6ef5;--blue3:#748ffc;
-  --border:#e3e8f0;--border2:#c8d3e8;
-  --t1:#1a2456;--t2:#3d4f7c;--t3:#6b7db3;--t4:#9baacf;
-  --green:#0ca678;--gbg:#e6f9f2;--gborder:#a3e6cf;
-  --amber:#f59f00;--abg:#fff8e1;--aborder:#ffe08a;
-  --red:#e03131;--rbg:#fff0f0;--rborder:#ffc9c9;
-  --purple:#7048e8;--pbg:#f3f0ff;--pborder:#d0bfff;
-  --shadow:0 2px 8px rgba(26,36,86,.08);
-  --shadow2:0 4px 20px rgba(26,36,86,.13);
-  --r:8px;--rl:12px;
+  --bg:#f0f4f8;--bg2:#ffffff;--bg3:#f8fafc;--border:#e2e8f0;
+  --t1:#0f172a;--t2:#334155;--t3:#64748b;--t4:#94a3b8;
+  --acc:#4f46e5;--acc2:#6366f1;--accbg:#eef2ff;--accbdr:#c7d2fe;
+  --green:#16a34a;--gbg:#f0fdf4;--gbdr:#86efac;
+  --amber:#d97706;--abg:#fffbeb;--abdr:#fcd34d;
+  --red:#dc2626;--rbg:#fef2f2;--rbdr:#fca5a5;
+  --purple:#7c3aed;--pbg:#f5f3ff;--pbdr:#c4b5fd;
+  --slate:#475569;--sbg:#f1f5f9;--sbdr:#cbd5e1;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.08),0 2px 4px -2px rgba(0,0,0,.05);
+  --r:8px;--rl:12px
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--t1);font-size:14px}
 .page{display:none;min-height:100vh}.page.active{display:flex}
 
 /* ── LOGIN ── */
-.login-page{align-items:center;justify-content:center;
-  background:linear-gradient(135deg,var(--navy) 0%,var(--navy3) 50%,var(--blue2) 100%);
-  min-height:100vh;}
-.login-card{background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:420px;box-shadow:var(--shadow2)}
-.login-logo{text-align:center;margin-bottom:28px}
-.logo-icon{width:56px;height:56px;background:linear-gradient(135deg,var(--navy),var(--blue2));border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px}
-.logo-icon i{font-size:28px;color:#fff}
-.logo-name{font-size:24px;font-weight:700;color:var(--navy);letter-spacing:2px}
-.logo-sub{font-size:12px;color:var(--t3);margin-top:2px}
-.field{margin-bottom:16px}
-.field label{display:block;font-size:11px;font-weight:600;color:var(--t2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
+.login-page{align-items:center;justify-content:center;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%)}
+.login-card{background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(79,70,229,.25)}
+.logo-text{display:block;font-size:28px;font-weight:700;color:var(--acc);letter-spacing:5px;text-align:center}
+.logo-sub{display:block;font-size:11px;color:var(--t4);letter-spacing:2px;text-align:center;margin-top:4px;margin-bottom:32px;text-transform:uppercase}
+.field{margin-bottom:16px}.field label{display:block;font-size:11px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-weight:600}
 .inp-wrap{position:relative;display:flex;align-items:center}
-.inp-wrap i.ico{position:absolute;left:12px;color:var(--t3);font-size:16px;pointer-events:none}
-.inp-wrap input{width:100%;background:#f8f9fc;border:1.5px solid var(--border);border-radius:var(--r);padding:10px 40px 10px 38px;color:var(--t1);font-size:14px;outline:none;transition:border-color .15s}
-.inp-wrap input:focus{border-color:var(--blue2);background:#fff}
-.eye{position:absolute;right:12px;color:var(--t3);font-size:16px;cursor:pointer}
-.err{background:var(--rbg);border:1px solid var(--rborder);color:var(--red);border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:14px;display:none}
-.btn-login{width:100%;background:linear-gradient(135deg,var(--navy),var(--blue2));border:none;color:#fff;border-radius:var(--r);padding:13px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;box-shadow:0 4px 14px rgba(59,91,219,.35);transition:opacity .15s}
-.btn-login:hover{opacity:.9}
-.login-foot{text-align:center;margin-top:20px;font-size:11px;color:var(--t3)}
+.inp-wrap i:first-child{position:absolute;left:12px;color:var(--t4);font-size:16px;pointer-events:none}
+.inp-wrap input{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:11px 40px 11px 38px;color:var(--t1);font-size:14px;outline:none;transition:border-color .15s}
+.inp-wrap input:focus{border-color:var(--acc);background:#fff}
+.eye{position:absolute;right:12px;color:var(--t4);font-size:16px;cursor:pointer}
+.err{background:var(--rbg);border:1px solid var(--rbdr);color:var(--red);border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:14px;display:none}
+.btn-login{width:100%;background:var(--acc);border:none;color:#fff;border-radius:var(--r);padding:13px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;transition:background .15s;letter-spacing:.3px}
+.btn-login:hover{background:#4338ca}
+.login-foot{text-align:center;margin-top:24px;font-size:11px;color:var(--t4)}
 
-/* ── APP LAYOUT ── */
+/* ── APP SHELL ── */
 .app-page{flex-direction:row}
-.sidebar{width:240px;background:var(--navy);display:flex;flex-direction:column;min-height:100vh;flex-shrink:0;position:sticky;top:0;height:100vh}
-.sb-top{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
-.sb-logo-name{font-size:20px;font-weight:700;color:#fff;letter-spacing:3px}
-.sb-logo-sub{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:1.5px;margin-top:2px;text-transform:uppercase}
-.nav-sec{padding:16px 20px 5px;font-size:10px;color:rgba(255,255,255,.3);letter-spacing:2px;text-transform:uppercase}
-.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;font-size:13px;color:rgba(255,255,255,.55);cursor:pointer;border-left:3px solid transparent;text-decoration:none;transition:all .15s;font-weight:500}
-.nav-item i{font-size:18px}
-.nav-item:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.06)}
-.nav-item.active{color:#fff;background:rgba(255,255,255,.1);border-left-color:var(--blue3)}
-.sb-user{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.08)}
-.sb-uname{font-size:13px;color:#fff;font-weight:600}
-.sb-urole{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
-.sb-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:6px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8)}
-.btn-logout{margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);transition:all .15s}
-.btn-logout:hover{background:rgba(255,255,255,.14);color:#fff}
-
-/* ── MAIN ── */
-.main{flex:1;padding:28px 32px;overflow-y:auto;max-height:100vh;background:var(--bg)}
+.sidebar{width:230px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:100vh;flex-shrink:0;position:sticky;top:0;height:100vh;box-shadow:var(--shadow)}
+.sb-logo{padding:22px 20px 18px;border-bottom:1px solid var(--border)}
+.sb-logo .logo-text{font-size:18px;letter-spacing:3px;text-align:left;margin-bottom:2px}
+.sb-logo .logo-sub{text-align:left;margin-bottom:0;font-size:10px}
+.nav-sec{padding:18px 20px 5px;font-size:10px;color:var(--t4);letter-spacing:2px;text-transform:uppercase;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;color:var(--t3);cursor:pointer;border-left:2px solid transparent;text-decoration:none;transition:all .15s;font-weight:500}
+.nav-item i{font-size:17px}
+.nav-item:hover{color:var(--t2);background:var(--bg)}
+.nav-item.active{color:var(--acc);background:var(--accbg);border-left-color:var(--acc)}
+.sb-user{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border)}
+.sb-user .uname{font-size:13px;color:var(--t1);font-weight:600}
+.sb-user .urole{font-size:11px;color:var(--t4);margin-top:2px}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-top:6px}
+.badge-blue{background:var(--accbg);color:var(--acc2)}.badge-green{background:var(--gbg);color:var(--green)}
+.badge-amber{background:var(--abg);color:var(--amber)}.badge-red{background:var(--rbg);color:var(--red)}
+.badge-purple{background:var(--pbg);color:var(--purple)}.badge-slate{background:var(--sbg);color:var(--slate)}
+.main{flex:1;padding:28px 32px;overflow-y:auto;max-height:100vh}
 .topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px}
-.ptitle{font-size:22px;font-weight:700;color:var(--navy)}.psub{font-size:12px;color:var(--t3);margin-top:3px}
+.ptitle{font-size:22px;font-weight:700;color:var(--t1)}.psub{font-size:12px;color:var(--t4);margin-top:3px}
 .btns{display:flex;gap:10px;align-items:center}
-.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r);font-size:13px;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--t2);text-decoration:none;transition:all .15s;font-weight:500}
-.btn:hover{border-color:var(--blue2);color:var(--blue2);background:#f0f3ff}
-.btn-primary{background:var(--blue2);border-color:var(--blue2);color:#fff}
-.btn-primary:hover{background:var(--navy3);border-color:var(--navy3);color:#fff}
-.btn-danger{background:var(--rbg);border-color:var(--rborder);color:var(--red)}
-.btn-success{background:var(--gbg);border-color:var(--gborder);color:var(--green)}
-.btn-sm{padding:5px 12px;font-size:12px}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r);font-size:13px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--t2);text-decoration:none;transition:all .15s;font-weight:500;box-shadow:var(--shadow)}
+.btn:hover{background:var(--bg);border-color:var(--t4)}
+.btn-primary{background:var(--acc);border-color:var(--acc);color:#fff;box-shadow:0 2px 8px rgba(79,70,229,.3)}
+.btn-primary:hover{background:#4338ca;border-color:#4338ca}
+.btn-danger{background:var(--rbg);border-color:var(--rbdr);color:var(--red)}
+.btn-danger:hover{background:#fee2e2}
+.btn-success{background:var(--gbg);border-color:var(--gbdr);color:var(--green)}
+.btn-sm{padding:5px 11px;font-size:12px}
 
-/* ── STATS ── */
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+/* ── STAT CARDS ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
 .stat-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px;box-shadow:var(--shadow)}
-.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:20px}
-.slabel{font-size:11px;font-weight:600;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
-.sval{font-size:28px;font-weight:700;color:var(--navy)}.ssub{font-size:11px;color:var(--t3);margin-top:4px}
+.slabel{font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;font-weight:600}
+.sval{font-size:30px;font-weight:700}.ssub{font-size:11px;color:var(--t3);margin-top:5px}
 
-/* ── CARD ── */
+/* ── CARDS ── */
 .card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:20px 22px;margin-bottom:20px;box-shadow:var(--shadow)}
-.card-title{font-size:12px;font-weight:700;color:var(--t2);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
-
-/* ── TABLE ── */
+.card-title{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;font-weight:600}
 .tbl{width:100%;border-collapse:collapse}
-.tbl th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;border-bottom:2px solid var(--border);background:var(--bg3)}
+.tbl th{text-align:left;padding:10px 14px;font-size:11px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:600}
 .tbl td{padding:12px 14px;font-size:13px;color:var(--t2);border-bottom:1px solid var(--border);vertical-align:middle}
-.tbl tr:last-child td{border-bottom:none}.tbl tbody tr:hover td{background:#f8f9ff}
-
-/* ── AVATAR ── */
-.avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--navy),var(--blue2));display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.tbl tr:last-child td{border-bottom:none}.tbl tbody tr:hover td{background:var(--bg3)}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--accbg);border:1.5px solid var(--accbdr);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--acc);flex-shrink:0}
 .ag-row{display:flex;align-items:center;gap:10px}
 
-/* ── BADGE ── */
-.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
-.badge-blue{background:#e8efff;color:var(--blue2)}.badge-green{background:var(--gbg);color:var(--green)}
-.badge-amber{background:var(--abg);color:var(--amber)}.badge-red{background:var(--rbg);color:var(--red)}
-.badge-purple{background:var(--pbg);color:var(--purple)}.badge-navy{background:#eef0fa;color:var(--navy)}
-
-/* ── MODAL ── */
-.modal-ov{display:none;position:fixed;inset:0;background:rgba(26,36,86,.4);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+/* ── MODALS ── */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .modal-ov.open{display:flex}
-.modal{background:#fff;border-radius:16px;padding:28px 30px;width:100%;max-width:480px;position:relative;box-shadow:var(--shadow2)}
-.modal-title{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:20px;display:flex;align-items:center;gap:8px}
-.modal-x{position:absolute;top:16px;right:16px;color:var(--t3);cursor:pointer;font-size:20px;line-height:1}
-.modal-x:hover{color:var(--red)}
-.mfield{margin-bottom:16px}
-.mfield label{display:block;font-size:11px;font-weight:600;color:var(--t2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
+.modal{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:28px 30px;width:100%;max-width:480px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal-title{font-size:16px;font-weight:700;color:var(--t1);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.modal-x{position:absolute;top:16px;right:16px;color:var(--t4);cursor:pointer;font-size:20px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:all .15s}
+.modal-x:hover{color:var(--t1);background:var(--bg)}
+.mfield{margin-bottom:16px}.mfield label{display:block;font-size:11px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-weight:600}
 .mfield input,.mfield select,.mfield textarea{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none;font-family:inherit;transition:border-color .15s}
-.mfield input:focus,.mfield select:focus,.mfield textarea:focus{border-color:var(--blue2);background:#fff}
-.mfield textarea{resize:vertical;min-height:90px}
+.mfield input:focus,.mfield select:focus,.mfield textarea:focus{border-color:var(--acc);background:#fff}
+.mfield textarea{resize:vertical;min-height:90px}.mfield select option{background:#fff}
 .modal-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .alert{padding:12px 16px;border-radius:var(--r);font-size:13px;margin-bottom:16px;display:none;font-weight:500}
-.alert-success{background:var(--gbg);border:1px solid var(--gborder);color:var(--green)}
-.alert-error{background:var(--rbg);border:1px solid var(--rborder);color:var(--red)}
-.empty{text-align:center;padding:48px 20px;color:var(--t3)}
-.empty i{font-size:40px;margin-bottom:12px;display:block;color:var(--t4)}
-.rpt-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.alert-success{background:var(--gbg);border:1px solid var(--gbdr);color:var(--green)}
+.alert-error{background:var(--rbg);border:1px solid var(--rbdr);color:var(--red)}
+.empty{text-align:center;padding:48px 20px;color:var(--t4)}
+.empty i{font-size:40px;margin-bottom:12px;display:block}
+.rpt-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--t4)}
 .section{display:none}.section.active{display:block}
 
-/* ── PLANNING ── */
-.plan-tbl{width:100%;border-collapse:collapse}
-.plan-tbl th{padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;border-bottom:2px solid var(--border);background:var(--bg3);min-width:100px}
-.plan-tbl th:first-child{text-align:left;padding-left:16px;min-width:170px}
-.plan-tbl td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:center;vertical-align:middle}
-.plan-tbl td:first-child{text-align:left;padding-left:16px}
-.plan-tbl tbody tr:hover td{background:#f8f9ff}
-.sh{display:inline-flex;flex-direction:column;align-items:center;border-radius:8px;padding:5px 8px;min-width:88px;cursor:pointer;transition:transform .1s,box-shadow .1s;border:1.5px solid transparent}
-.sh:hover{transform:scale(1.05);box-shadow:0 3px 10px rgba(0,0,0,.12)}
-.sh-work{background:#e6f9f2;border-color:#a3e6cf}.sh-work .sh-t{color:#0ca678;font-size:12px;font-weight:700}.sh-work .sh-s{color:#0ca678;font-size:10px;opacity:.8}
-.sh-off{background:#f1f3f5;border-color:#ced4da}.sh-off .sh-t{color:#868e96;font-size:12px;font-weight:600}.sh-off .sh-s{color:#adb5bd;font-size:10px}
-.sh-absent{background:var(--rbg);border-color:var(--rborder)}.sh-absent .sh-t{color:var(--red);font-size:12px;font-weight:700}
-.sh-conge{background:var(--abg);border-color:var(--aborder)}.sh-conge .sh-t{color:var(--amber);font-size:12px;font-weight:700}
-.sh-maladie{background:var(--pbg);border-color:var(--pborder)}.sh-maladie .sh-t{color:var(--purple);font-size:12px;font-weight:700}
-.sh-empty{background:var(--bg3);border-color:var(--border);border-style:dashed}.sh-empty .sh-t{color:var(--t4);font-size:20px;font-weight:300;line-height:1.2}
-.total-h{background:var(--gbg);border:1px solid var(--gborder);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;color:var(--green);display:inline-block}
+/* ── PLANNING TABLE ── */
+.plan-wrap{overflow-x:auto;border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--shadow)}
+.plan-tbl{width:100%;border-collapse:collapse;background:#fff}
+.plan-tbl th{padding:12px 10px;text-align:center;font-size:11px;color:var(--t4);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg3);min-width:110px;font-weight:600}
+.plan-tbl th:first-child{text-align:left;padding-left:18px;min-width:170px;position:sticky;left:0;background:var(--bg3);z-index:2}
+.plan-tbl td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:center;vertical-align:middle}
+.plan-tbl td:first-child{text-align:left;padding-left:18px;position:sticky;left:0;background:#fff;z-index:1}
+.plan-tbl tbody tr:hover td{background:#fafbff}
+.plan-tbl tbody tr:hover td:first-child{background:#fafbff}
+.plan-tbl tbody tr:last-child td{border-bottom:none}
 
-/* ── AGENT SESSION BADGE ── */
-.session-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
-.fix-nuit{background:#f3f0ff;color:var(--purple);border:1px solid var(--pborder)}
-.fix-jour{background:var(--abg);color:var(--amber);border:1px solid var(--aborder)}
-.rotation{background:#e8efff;color:var(--blue2);border:1px solid #c5d3ff}
+/* ── SHIFT CELLS ── */
+.shift-cell{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;padding:6px 10px;min-width:92px;cursor:pointer;transition:all .15s;gap:2px}
+.shift-cell:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
 
-/* ── AGENT SETTINGS ── */
-.agent-setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
-.setting-btns{display:flex;gap:6px}
-.set-btn{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--t2);transition:all .15s}
-.set-btn:hover{border-color:var(--blue2);color:var(--blue2)}
-.set-btn.active-jour{background:var(--abg);border-color:var(--aborder);color:var(--amber)}
-.set-btn.active-nuit{background:var(--pbg);border-color:var(--pborder);color:var(--purple)}
-.set-btn.active-rot{background:#e8efff;border-color:#c5d3ff;color:var(--blue2)}
+.sh-work{background:var(--gbg);border:1.5px solid var(--gbdr)}
+.sh-off{background:var(--sbg);border:1.5px solid var(--sbdr)}
+.sh-absent{background:var(--rbg);border:1.5px solid var(--rbdr)}
+.sh-conge{background:var(--abg);border:1.5px solid var(--abdr)}
+.sh-maladie{background:var(--pbg);border:1.5px solid var(--pbdr)}
+.sh-empty{background:var(--bg);border:1.5px dashed var(--border)}
+
+.sh-t{font-size:12px;font-weight:700}
+.sh-s{font-size:10px;opacity:.75;margin-top:1px;font-weight:500}
+.sh-work .sh-t{color:var(--green)}.sh-work .sh-s{color:var(--green)}
+.sh-off .sh-t{color:var(--slate)}.sh-off .sh-s{color:var(--slate)}
+.sh-absent .sh-t{color:var(--red)}.sh-absent .sh-s{color:var(--red)}
+.sh-conge .sh-t{color:var(--amber)}.sh-conge .sh-s{color:var(--amber)}
+.sh-maladie .sh-t{color:var(--purple)}.sh-maladie .sh-s{color:var(--purple)}
+.sh-empty .sh-t{color:var(--t4);font-size:18px;font-weight:300}
+
+/* ── TOTAL BADGE ── */
+.total-h{background:var(--gbg);border:1.5px solid var(--gbdr);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;color:var(--green);display:inline-block}
+.total-0{background:var(--sbg);border:1.5px solid var(--sbdr);color:var(--slate)}
+
+/* ── WEEK NAV ── */
+.week-nav{display:flex;align-items:center;gap:8px}
+.week-label{font-size:13px;font-weight:600;color:var(--t2);padding:0 4px;min-width:140px;text-align:center}
+
+/* ── PLANNING QUICK PRESETS ── */
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.preset-btn{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid;transition:all .12s}
+.preset-work{background:var(--gbg);border-color:var(--gbdr);color:var(--green)}
+.preset-work:hover{background:#dcfce7}
+.preset-status{background:var(--sbg);border-color:var(--sbdr);color:var(--slate)}
+.preset-status:hover{background:#e2e8f0}
+
+/* ── PLAN INPUT ── */
+.plan-input-wrap{position:relative}
+.plan-input{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none;font-family:monospace;transition:border-color .15s;letter-spacing:.5px}
+.plan-input:focus{border-color:var(--acc);background:#fff}
+.plan-input-hint{font-size:10px;color:var(--t4);margin-top:5px}
+
+/* ── STATUS PILL ── */
+.status-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.status-pill{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1.5px solid;cursor:pointer;transition:all .12s;opacity:.6}
+.status-pill.sel{opacity:1;transform:scale(1.05)}
+.sp-work{background:var(--gbg);border-color:var(--gbdr);color:var(--green)}
+.sp-off{background:var(--sbg);border-color:var(--sbdr);color:var(--slate)}
+.sp-absent{background:var(--rbg);border-color:var(--rbdr);color:var(--red)}
+.sp-conge{background:var(--abg);border-color:var(--abdr);color:var(--amber)}
+.sp-maladie{background:var(--pbg);border-color:var(--pbdr);color:var(--purple)}
+
+/* ── AGENT STATUS INDICATOR ── */
+.ag-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ag-started{background:var(--green)}
+.ag-notstarted{background:var(--border)}
 </style>
 </head>
 <body>
 
-<!-- ═══ LOGIN ═══ -->
+<!-- ══ LOGIN ══ -->
 <div class="page login-page active" id="loginPage">
   <div class="login-card">
-    <div class="login-logo">
-      <div class="logo-icon"><i class="ti ti-shield-check"></i></div>
-      <div class="logo-name">OPS HQ</div>
-      <div class="logo-sub">Field Management System</div>
-    </div>
+    <span class="logo-text">OPS HQ</span>
+    <span class="logo-sub">Field Management System</span>
     <div class="field"><label>Identifiant</label>
-      <div class="inp-wrap"><i class="ti ti-user ico"></i>
-        <input type="text" id="loginEmail" placeholder="email@opshq.ma"/>
-      </div>
+      <div class="inp-wrap"><i class="ti ti-user"></i><input type="text" id="loginEmail" placeholder="email@opshq.ma"/></div>
     </div>
     <div class="field"><label>Mot de passe</label>
-      <div class="inp-wrap"><i class="ti ti-lock ico"></i>
-        <input type="password" id="loginPassword" placeholder="••••••••"/>
-        <i class="ti ti-eye eye" id="eyeBtn"></i>
-      </div>
+      <div class="inp-wrap"><i class="ti ti-lock"></i><input type="password" id="loginPassword" placeholder="••••••••"/>
+        <i class="ti ti-eye eye" id="eyeBtn"></i></div>
     </div>
     <div class="err" id="loginErr"></div>
-    <button class="btn-login" onclick="doLogin()">
-      <span id="loginTxt">Se connecter</span><i class="ti ti-arrow-right"></i>
-    </button>
+    <button class="btn-login" onclick="doLogin()"><span id="loginTxt">Se connecter</span><i class="ti ti-arrow-right"></i></button>
     <div class="login-foot">Système réservé aux membres autorisés</div>
   </div>
 </div>
 
-<!-- ═══ APP ═══ -->
+<!-- ══ APP ══ -->
 <div class="page app-page" id="appPage">
   <aside class="sidebar">
-    <div class="sb-top">
-      <div class="sb-logo-name">OPS HQ</div>
-      <div class="sb-logo-sub">Field Management</div>
+    <div class="sb-logo">
+      <span class="logo-text">OPS HQ</span>
+      <span class="logo-sub">Field Management</span>
     </div>
     <span class="nav-sec">Principal</span>
     <div class="nav-item active" onclick="go('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
     <div class="nav-item" onclick="go('planning',this)"><i class="ti ti-calendar"></i> Planning</div>
     <div class="nav-item" onclick="go('agents',this)"><i class="ti ti-users"></i> Agents</div>
     <span class="nav-sec">Gestion</span>
-    <div class="nav-item" onclick="go('rapports',this)"><i class="ti ti-file-text"></i> Rapports</div>
+    <div class="nav-item" onclick="go('rapports',this)"><i class="ti ti-file-text"></i> Rapports <span id="navBadgeRap" style="margin-left:auto;display:none" class="badge badge-blue">0</span></div>
     <div class="nav-item" onclick="go('abonnements',this)"><i class="ti ti-credit-card"></i> Abonnements</div>
-    <div class="nav-item" id="agentNav" style="display:none" onclick="go('mon-planning',this)"><i class="ti ti-calendar-user"></i> Mon Planning</div>
-    <div class="nav-item" id="agentRapNav" style="display:none" onclick="go('mes-rapports',this)"><i class="ti ti-file-plus"></i> Mes Rapports</div>
     <div class="sb-user">
-      <div class="sb-uname" id="sbName">—</div>
-      <div class="sb-urole" id="sbRole">—</div>
-      <span class="sb-badge" id="sbBadge">—</span><br/>
-      <div class="btn-logout" onclick="doLogout()"><i class="ti ti-logout"></i> Déconnexion</div>
+      <div class="uname" id="sbName">—</div>
+      <div class="urole">Lead On-Field Agent</div>
+      <span class="badge badge-blue">ADMIN</span><br/><br/>
+      <div class="btn btn-sm" onclick="doLogout()" style="cursor:pointer;display:inline-flex;"><i class="ti ti-logout"></i> Déconnexion</div>
     </div>
   </aside>
 
   <main class="main">
 
-    <!-- DASHBOARD (admin) -->
+    <!-- ── DASHBOARD ── -->
     <div class="section active" id="sec-dashboard">
       <div class="topbar">
-        <div><div class="ptitle">Dashboard</div><div class="psub" id="dateStr"></div></div>
-        <div class="btns"><div class="btn btn-primary" onclick="go('planning',null)"><i class="ti ti-calendar-plus"></i> Planning</div></div>
+        <div>
+          <div class="ptitle">Dashboard</div>
+          <div class="psub" id="dateStr"></div>
+        </div>
+        <div class="btns">
+          <div class="btn btn-primary" onclick="go('planning',document.querySelector('.nav-item:nth-child(3)'))"><i class="ti ti-calendar"></i> Voir Planning</div>
+        </div>
       </div>
       <div class="stat-grid">
         <div class="stat-card">
-          <div class="stat-icon" style="background:#e8efff"><i class="ti ti-users" style="color:var(--blue2)"></i></div>
-          <div class="slabel">Agents actifs</div><div class="sval">12</div><div class="ssub">Équipe complète</div>
+          <div class="slabel">Agents actifs</div>
+          <div class="sval" style="color:var(--green)">12</div>
+          <div class="ssub">Équipe complète</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon" style="background:var(--gbg)"><i class="ti ti-calendar-check" style="color:var(--green)"></i></div>
-          <div class="slabel">Shifts semaine</div><div class="sval" id="dShifts">0</div><div class="ssub">Planning actuel</div>
+          <div class="slabel">Shifts cette semaine</div>
+          <div class="sval" style="color:var(--acc)" id="dShifts">0</div>
+          <div class="ssub">Planning actuel</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon" style="background:var(--abg)"><i class="ti ti-file-text" style="color:var(--amber)"></i></div>
-          <div class="slabel">Rapports reçus</div><div class="sval" id="dRapports">0</div><div class="ssub" id="dRapSub">—</div>
+          <div class="slabel">Rapports reçus</div>
+          <div class="sval" style="color:var(--amber)" id="dRapports">0</div>
+          <div class="ssub" id="dRapSub">—</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon" style="background:var(--pbg)"><i class="ti ti-credit-card" style="color:var(--purple)"></i></div>
-          <div class="slabel">Abonnements actifs</div><div class="sval" id="dAbos">0</div>
+          <div class="slabel">Abonnements actifs</div>
+          <div class="sval" style="color:var(--purple)" id="dAbos">0</div>
         </div>
       </div>
       <div class="card">
-        <div class="card-title"><span>Agents sur le terrain</span></div>
-        <table class="tbl"><thead><tr><th>Agent</th><th>Type Shift</th><th>Abonnement</th><th>Rapports</th></tr></thead>
-        <tbody id="dashAgents"></tbody></table>
+        <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Agents — Statut semaine</span></div>
+        <table class="tbl">
+          <thead><tr><th>Agent</th><th>Statut semaine</th><th>Abonnement</th><th>Rapports</th></tr></thead>
+          <tbody id="dashAgents"></tbody>
+        </table>
       </div>
       <div class="card">
-        <div class="card-title"><span>Derniers rapports</span><div class="btn btn-sm" onclick="go('rapports',null)">Voir tout</div></div>
+        <div class="card-title">
+          <span><i class="ti ti-file-text" style="margin-right:6px"></i>Derniers rapports</span>
+          <div class="btn btn-sm" onclick="go('rapports',null)">Voir tout</div>
+        </div>
         <div id="dashRapports"><div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div></div>
       </div>
     </div>
 
-    <!-- PLANNING (admin) -->
+    <!-- ── PLANNING ── -->
     <div class="section" id="sec-planning">
       <div class="topbar">
-        <div><div class="ptitle">Planning</div><div class="psub">Cliquez sur une case pour assigner</div></div>
+        <div>
+          <div class="ptitle">Planning</div>
+          <div class="psub" id="planWeekLabel">Semaine en cours</div>
+        </div>
         <div class="btns">
-          <div class="btn btn-sm" onclick="prevWeek()"><i class="ti ti-chevron-left"></i></div>
-          <span id="weekRange" style="font-size:13px;color:var(--t2);padding:0 8px;font-weight:600;"></span>
-          <div class="btn btn-sm" onclick="nextWeek()"><i class="ti ti-chevron-right"></i></div>
-          <div class="btn btn-primary btn-sm" onclick="autoGenWeek()"><i class="ti ti-wand"></i> Auto</div>
+          <div class="week-nav">
+            <div class="btn btn-sm" onclick="prevWeek()"><i class="ti ti-chevron-left"></i></div>
+            <span class="week-label" id="weekRange">—</span>
+            <div class="btn btn-sm" onclick="nextWeek()"><i class="ti ti-chevron-right"></i></div>
+          </div>
         </div>
       </div>
       <div class="alert" id="planAlert"></div>
-      <div class="card" style="padding:0;overflow-x:auto;">
+
+      <!-- LEGEND -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+        <span style="font-size:11px;color:var(--t4);font-weight:600;margin-right:4px">LÉGENDE :</span>
+        <span class="badge badge-green">TRAVAIL</span>
+        <span class="badge badge-slate">OFF</span>
+        <span class="badge badge-red">ABSENT</span>
+        <span class="badge badge-amber">CONGÉ</span>
+        <span class="badge badge-purple">MALADIE</span>
+        <span style="margin-left:12px;font-size:11px;color:var(--t4)">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:4px;vertical-align:middle"></span>A commencé
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--border);margin-right:4px;margin-left:8px;vertical-align:middle"></span>Pas encore
+        </span>
+      </div>
+
+      <div class="plan-wrap">
         <table class="plan-tbl" id="planTable">
           <thead><tr>
             <th>AGENT</th>
@@ -275,150 +315,103 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
       </div>
     </div>
 
-    <!-- AGENTS (admin) -->
+    <!-- ── AGENTS ── -->
     <div class="section" id="sec-agents">
       <div class="topbar">
-        <div><div class="ptitle">Agents</div><div class="psub">Gestion des sessions et types de shifts</div></div>
+        <div><div class="ptitle">Agents</div><div class="psub">12 agents On-Field</div></div>
       </div>
       <div class="card">
-        <div class="card-title"><span>Configuration des shifts</span></div>
-        <div id="agentSettingsList"></div>
-      </div>
-    </div>
-
-    <!-- RAPPORTS (admin) -->
-    <div class="section" id="sec-rapports">
-      <div class="topbar">
-        <div><div class="ptitle">Rapports</div><div class="psub">Soumis par les agents</div></div>
-        <div class="btns">
-          <select id="rfAgent" class="btn btn-sm" onchange="renderRapports()"><option value="">Tous les agents</option></select>
-          <select id="rfStatus" class="btn btn-sm" onchange="renderRapports()"><option value="">Tous</option><option value="new">Nouveaux</option><option value="lu">Lus</option></select>
-        </div>
-      </div>
-      <div class="alert" id="rapAlert"></div>
-      <div class="card">
-        <div class="card-title"><span>Rapports</span><span id="rCount" style="color:var(--t3);font-size:12px;font-weight:400;"></span></div>
-        <div id="rapList"><div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div></div>
-      </div>
-    </div>
-
-    <!-- ABONNEMENTS (admin) -->
-    <div class="section" id="sec-abonnements">
-      <div class="topbar">
-        <div><div class="ptitle">Abonnements</div></div>
-        <div class="btns"><div class="btn btn-primary" onclick="openAboModal()"><i class="ti ti-plus"></i> Ajouter</div></div>
-      </div>
-      <div class="alert" id="aboAlert"></div>
-      <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
-        <div class="stat-card"><div class="slabel">Total</div><div class="sval" id="aTotal">0</div></div>
-        <div class="stat-card"><div class="slabel">Actifs</div><div class="sval" style="color:var(--green)" id="aActifs">0</div></div>
-        <div class="stat-card"><div class="slabel">Inactifs</div><div class="sval" style="color:var(--red)" id="aInactifs">0</div></div>
-      </div>
-      <div class="card" style="padding:0">
-        <table class="tbl"><thead><tr><th>Agent</th><th>Plan</th><th>Début</th><th>Expiration</th><th>Statut</th><th>Action</th></tr></thead>
-        <tbody id="aboBody"></tbody></table>
-      </div>
-    </div>
-
-    <!-- MON PLANNING (agent) -->
-    <div class="section" id="sec-mon-planning">
-      <div class="topbar">
-        <div><div class="ptitle">Mon Planning</div><div class="psub" id="myPlanWeek"></div></div>
-        <div class="btns">
-          <div class="btn btn-sm" onclick="prevWeekAgent()"><i class="ti ti-chevron-left"></i></div>
-          <div class="btn btn-sm" onclick="nextWeekAgent()"><i class="ti ti-chevron-right"></i></div>
-        </div>
-      </div>
-      <div class="card" style="padding:0;overflow-x:auto;">
-        <table class="plan-tbl" id="myPlanTable">
-          <thead><tr>
-            <th>Jour</th><th>Date</th><th>Horaire</th><th>Statut</th>
-          </tr></thead>
-          <tbody id="myPlanBody"></tbody>
+        <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Liste des agents</span></div>
+        <table class="tbl">
+          <thead><tr><th>Agent</th><th>Rapports</th><th>Abonnement</th></tr></thead>
+          <tbody id="agentsBody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- MES RAPPORTS (agent) -->
-    <div class="section" id="sec-mes-rapports">
+    <!-- ── RAPPORTS ── -->
+    <div class="section" id="sec-rapports">
       <div class="topbar">
-        <div><div class="ptitle">Mes Rapports</div></div>
-        <div class="btns"><div class="btn btn-primary" onclick="openRapportModal()"><i class="ti ti-plus"></i> Nouveau rapport</div></div>
+        <div><div class="ptitle">Rapports</div><div class="psub">Soumis par les agents</div></div>
+        <div class="btns">
+          <select id="rfAgent" class="btn" onchange="renderRapports()" style="cursor:pointer"><option value="">Tous les agents</option></select>
+          <select id="rfStatus" class="btn" onchange="renderRapports()" style="cursor:pointer">
+            <option value="">Tous</option><option value="new">Nouveaux</option><option value="lu">Lus</option>
+          </select>
+        </div>
       </div>
-      <div class="alert" id="myRapAlert"></div>
+      <div class="alert" id="rapAlert"></div>
       <div class="card">
-        <div class="card-title"><span>Mes rapports soumis</span></div>
-        <div id="myRapList"><div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport soumis.</p></div></div>
+        <div class="card-title">
+          <span><i class="ti ti-inbox" style="margin-right:6px"></i>Rapports</span>
+          <span id="rCount" style="color:var(--t4);font-size:12px;"></span>
+        </div>
+        <div id="rapList"><div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div></div>
+      </div>
+    </div>
+
+    <!-- ── ABONNEMENTS ── -->
+    <div class="section" id="sec-abonnements">
+      <div class="topbar">
+        <div><div class="ptitle">Abonnements</div><div class="psub">Gestion des accès</div></div>
+        <div class="btns"><div class="btn btn-primary" onclick="openAboModal()"><i class="ti ti-plus"></i> Ajouter</div></div>
+      </div>
+      <div class="alert" id="aboAlert"></div>
+      <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card"><div class="slabel">Total</div><div class="sval" style="color:var(--acc)" id="aTotal">0</div></div>
+        <div class="stat-card"><div class="slabel">Actifs</div><div class="sval" style="color:var(--green)" id="aActifs">0</div></div>
+        <div class="stat-card"><div class="slabel">Inactifs</div><div class="sval" style="color:var(--red)" id="aInactifs">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-credit-card" style="margin-right:6px"></i>Liste des abonnements</span></div>
+        <table class="tbl">
+          <thead><tr><th>Agent</th><th>Plan</th><th>Début</th><th>Expiration</th><th>Statut</th><th>Action</th></tr></thead>
+          <tbody id="aboBody"></tbody>
+        </table>
       </div>
     </div>
 
   </main>
 </div>
 
-<!-- MODAL PLANNING SHIFT -->
-<div class="modal-ov" id="planModal">
-  <div class="modal" style="max-width:320px">
-    <div class="modal-title"><i class="ti ti-calendar"></i><span id="pmAgent"></span></div>
-    <i class="ti ti-x modal-x" onclick="closePlanModal()"></i>
-    <div style="font-size:12px;color:var(--t3);margin-bottom:16px" id="pmDate2"></div>
-    <div class="mfield"><label>Horaire</label>
-      <select id="pmSelect">
-        <option value="">— Choisir —</option>
-        <option value="OFF">OFF</option>
-        <option value="ABSENT">ABSENT</option>
-        <option value="CONGE">CONGÉ</option>
-        <option value="MALADIE">MALADIE</option>
-        <option disabled>──────────</option>
-        <option value="09:00-16:00">09:00 → 16:00</option>
-        <option value="09:00-17:00">09:00 → 17:00</option>
-        <option value="10:00-17:00">10:00 → 17:00</option>
-        <option value="10:00-18:00">10:00 → 18:00</option>
-        <option value="11:00-18:00">11:00 → 18:00</option>
-        <option value="11:00-19:00">11:00 → 19:00</option>
-        <option value="15:00-23:00">15:00 → 23:00</option>
-        <option value="16:00-23:00">16:00 → 23:00</option>
-        <option value="17:00-00:00">17:00 → 00:00</option>
-        <option value="17:00-01:00">17:00 → 01:00</option>
-        <option value="18:00-01:00">18:00 → 01:00</option>
-        <option value="18:30-02:30">18:30 → 02:30</option>
-        <option value="19:30-02:30">19:30 → 02:30</option>
-      </select>
+<!-- ══ MODAL RAPPORT DETAIL ══ -->
+<div class="modal-ov" id="rapModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title"><i class="ti ti-file-text" style="color:var(--acc)"></i><span id="rmTitre"></span></div>
+    <i class="ti ti-x modal-x" onclick="closeRapModal()"></i>
+    <div style="font-size:12px;color:var(--t4);margin-bottom:14px;display:flex;gap:12px;align-items:center">
+      <span><i class="ti ti-user" style="margin-right:4px"></i><span id="rmAgent"></span></span>
+      <span><i class="ti ti-calendar" style="margin-right:4px"></i><span id="rmDate"></span></span>
     </div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:16px;font-size:13px;color:var(--t2);line-height:1.7;white-space:pre-wrap" id="rmContenu"></div>
     <div class="modal-acts">
-      <div class="btn btn-danger btn-sm" onclick="deletePlanShift()" id="pmDel" style="display:none"><i class="ti ti-trash"></i></div>
-      <div class="btn" onclick="closePlanModal()">Annuler</div>
-      <div class="btn btn-primary" onclick="savePlanShift()"><i class="ti ti-check"></i> OK</div>
+      <div class="btn" onclick="closeRapModal()">Fermer</div>
+      <div class="btn btn-success" id="btnMarquerLu"><i class="ti ti-check"></i> Marquer lu</div>
     </div>
   </div>
 </div>
 
-<!-- MODAL RAPPORT -->
-<div class="modal-ov" id="rapDetailModal">
-  <div class="modal" style="max-width:540px">
-    <div class="modal-title"><i class="ti ti-file-text"></i><span id="rdTitre"></span></div>
-    <i class="ti ti-x modal-x" onclick="closeRapDetail()"></i>
-    <div style="font-size:12px;color:var(--t3);margin-bottom:14px"><span id="rdAgent"></span> — <span id="rdDate"></span></div>
-    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px;font-size:13px;color:var(--t1);line-height:1.7;white-space:pre-wrap" id="rdContenu"></div>
-    <div class="modal-acts">
-      <div class="btn" onclick="closeRapDetail()">Fermer</div>
-      <div class="btn btn-success" id="btnLu"><i class="ti ti-check"></i> Marquer lu</div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL ABONNEMENT -->
+<!-- ══ MODAL ABONNEMENT ══ -->
 <div class="modal-ov" id="aboModal">
   <div class="modal">
-    <div class="modal-title"><i class="ti ti-credit-card"></i><span id="aModalTitle">Nouvel abonnement</span></div>
+    <div class="modal-title"><i class="ti ti-credit-card" style="color:var(--acc)"></i><span id="aModalTitle">Nouvel abonnement</span></div>
     <i class="ti ti-x modal-x" onclick="closeAboModal()"></i>
     <input type="hidden" id="aEditId"/>
     <div class="mfield"><label>Agent</label><select id="aAgent"></select></div>
-    <div class="mfield"><label>Plan</label><select id="aPlan"><option>Mensuel</option><option>Trimestriel</option><option>Annuel</option><option>Accès total</option></select></div>
+    <div class="mfield"><label>Plan</label>
+      <select id="aPlan">
+        <option>Mensuel</option><option>Trimestriel</option><option>Annuel</option><option>Accès total</option>
+      </select>
+    </div>
     <div class="grid2">
-      <div class="mfield"><label>Début</label><input type="date" id="aDebut"/></div>
+      <div class="mfield"><label>Date début</label><input type="date" id="aDebut"/></div>
       <div class="mfield"><label>Expiration</label><input type="date" id="aExpire"/></div>
     </div>
-    <div class="mfield"><label>Statut</label><select id="aStatut"><option value="actif">Actif</option><option value="suspendu">Suspendu</option><option value="expiré">Expiré</option></select></div>
+    <div class="mfield"><label>Statut</label>
+      <select id="aStatut">
+        <option value="actif">Actif</option><option value="suspendu">Suspendu</option><option value="expiré">Expiré</option>
+      </select>
+    </div>
     <div class="modal-acts">
       <div class="btn" onclick="closeAboModal()">Annuler</div>
       <div class="btn btn-primary" onclick="saveAbo()"><i class="ti ti-device-floppy"></i> Enregistrer</div>
@@ -426,56 +419,109 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
   </div>
 </div>
 
-<!-- MODAL NOUVEAU RAPPORT (agent) -->
-<div class="modal-ov" id="newRapModal">
-  <div class="modal">
-    <div class="modal-title"><i class="ti ti-file-plus"></i> Nouveau rapport</div>
-    <i class="ti ti-x modal-x" onclick="closeRapportModal()"></i>
-    <div class="mfield"><label>Titre</label><input type="text" id="nrTitre" placeholder="Ex: Rapport de patrouille"/></div>
-    <div class="mfield"><label>Contenu</label><textarea id="nrContenu" placeholder="Décrivez la mission..."></textarea></div>
+<!-- ══ MODAL PLANNING SHIFT ══ -->
+<div class="modal-ov" id="planModal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-title">
+      <i class="ti ti-calendar" style="color:var(--acc)"></i>
+      <div>
+        <div id="pmAgent" style="font-weight:700;color:var(--t1)"></div>
+        <div id="pmDate2" style="font-size:12px;font-weight:400;color:var(--t4);margin-top:2px"></div>
+      </div>
+    </div>
+    <i class="ti ti-x modal-x" onclick="closePlanModal()"></i>
+
+    <!-- STATUS PILLS -->
+    <div class="mfield">
+      <label>Statut</label>
+      <div class="status-row">
+        <span class="status-pill sp-work" onclick="selectStatus('WORK')" id="pill-WORK">✓ Travail</span>
+        <span class="status-pill sp-off"  onclick="selectStatus('OFF')"  id="pill-OFF">OFF</span>
+        <span class="status-pill sp-absent" onclick="selectStatus('ABSENT')" id="pill-ABSENT">ABSENT</span>
+        <span class="status-pill sp-conge"  onclick="selectStatus('CONGE')"  id="pill-CONGE">CONGÉ</span>
+        <span class="status-pill sp-maladie" onclick="selectStatus('MALADIE')" id="pill-MALADIE">MALADIE</span>
+      </div>
+    </div>
+
+    <!-- HORAIRE (shown only when WORK) -->
+    <div id="horaireWrap" class="mfield">
+      <label>Horaire <span style="color:var(--t4);font-weight:400">(format: 17:00-00:00)</span></label>
+      <div class="plan-input-wrap">
+        <input class="plan-input" type="text" id="pmInput" placeholder="ex: 09:00-17:00" maxlength="11"/>
+      </div>
+      <!-- QUICK PRESETS -->
+      <div class="presets">
+        <span class="preset-btn preset-work" onclick="setPreset('09:00-16:00')">9h→16h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('09:00-17:00')">9h→17h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('10:00-17:00')">10h→17h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('10:00-18:00')">10h→18h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('11:00-19:00')">11h→19h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('15:00-23:00')">15h→23h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('17:00-00:00')">17h→00h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('18:00-01:00')">18h→01h</span>
+        <span class="preset-btn preset-work" onclick="setPreset('18:30-02:30')">18h30→02h30</span>
+        <span class="preset-btn preset-work" onclick="setPreset('19:30-02:30')">19h30→02h30</span>
+      </div>
+    </div>
+
     <div class="modal-acts">
-      <div class="btn" onclick="closeRapportModal()">Annuler</div>
-      <div class="btn btn-primary" onclick="submitRapport()"><i class="ti ti-send"></i> Envoyer</div>
+      <div class="btn btn-danger btn-sm" onclick="deletePlanShift()" id="pmDel" style="display:none"><i class="ti ti-trash"></i></div>
+      <div class="btn" onclick="closePlanModal()">Annuler</div>
+      <div class="btn btn-primary" onclick="savePlanShift()"><i class="ti ti-check"></i> Enregistrer</div>
     </div>
   </div>
 </div>
 
+<!-- ══ FIREBASE + LOGIC ══ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc,
-  doc, getDoc, query, orderBy, where, serverTimestamp }
+  doc, getDoc, query, orderBy, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const FC={apiKey:"AIzaSyDdXwRWBvTJ9RffnY16W_r0dHE1WOJj1Rs",authDomain:"ops-hq-cc38c.firebaseapp.com",projectId:"ops-hq-cc38c",storageBucket:"ops-hq-cc38c.firebasestorage.app",messagingSenderId:"909070102010",appId:"1:909070102010:web:5abb7857fe2a557ed68843"};
-const app=initializeApp(FC); const auth=getAuth(app); const db=getFirestore(app);
+const FC={
+  apiKey:"AIzaSyDdXwRWBvTJ9RffnY16W_r0dHE1WOJj1Rs",
+  authDomain:"ops-hq-cc38c.firebaseapp.com",
+  projectId:"ops-hq-cc38c",
+  storageBucket:"ops-hq-cc38c.firebasestorage.app",
+  messagingSenderId:"909070102010",
+  appId:"1:909070102010:web:5abb7857fe2a557ed68843"
+};
+const app=initializeApp(FC);
+const auth=getAuth(app);
+const db=getFirestore(app);
 
 const AGENTS=[
-  {name:"Achraf Akhlij",ini:"AA"},{name:"Youssef Derkaoui",ini:"YD"},
-  {name:"Aymane Chlifane",ini:"AC"},{name:"Ayoub Abssi",ini:"AB"},
-  {name:"Mourad Cherradi",ini:"MC"},{name:"Yahya Rhallab",ini:"YR"},
-  {name:"Hassan Azgoune",ini:"HA"},{name:"Ayoub Ben Malek",ini:"AB"},
-  {name:"Charaf Loummihi",ini:"CL"},{name:"Zakariae Benali",ini:"ZB"},
-  {name:"Islam Elmardi",ini:"IE"},{name:"Oussama El Atrach",ini:"OE"}
+  {name:"Achraf Akhlij",  ini:"AA"},
+  {name:"Youssef Derkaoui",ini:"YD"},
+  {name:"Aymane Chlifane", ini:"AC"},
+  {name:"Ayoub Abssi",    ini:"ABS"},
+  {name:"Mourad Cherradi",ini:"MC"},
+  {name:"Yahya Rhallab",  ini:"YR"},
+  {name:"Hassan Azgoune", ini:"HA"},
+  {name:"Ayoub Ben Malek",ini:"ABM"},
+  {name:"Charaf Loummihi",ini:"CL"},
+  {name:"Zakariae Benali",ini:"ZB"},
+  {name:"Islam Elmardi",  ini:"IE"},
+  {name:"Oussama El Atrach",ini:"OE"}
 ];
 const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
-// Default shifts: jour=10:00-17:00, nuit=18:30-02:30
-const DEFAULT_JOUR="10:00-17:00", DEFAULT_NUIT="18:30-02:30";
 
-let currentUser=null, userRole=null, userDisplayName="", userAgentName="";
-let allRapports=[], allAbos=[], allPlanning=[], allAgentSettings=[];
-let weekStart=getMonday(new Date()), agentWeekStart=getMonday(new Date());
-let pmAgentVal=null, pmDateVal=null, pmIdVal=null, curRapId=null;
+let currentUser=null, userDisplayName="";
+let allRapports=[], allAbos=[], allPlanning=[];
+let weekStart=getMonday(new Date());
+let pmAgent2=null, pmDate3=null, pmId=null, curRapId=null;
+let pmStatus="WORK"; // current modal status selection
 
-// ── AUTH ──────────────────────────────────────
+// ── AUTH ──
 onAuthStateChanged(auth, async u=>{
   if(u){
     const snap=await getDoc(doc(db,"users",u.uid));
     if(snap.exists()){
-      currentUser=u; userRole=snap.data().role||"agent";
+      currentUser=u;
       userDisplayName=snap.data().displayName||u.email;
-      userAgentName=snap.data().displayName||"";
       showApp();
     } else { await signOut(auth); }
   } else { showLogin(); }
@@ -488,288 +534,288 @@ window.doLogin=async()=>{
   const txt=document.getElementById("loginTxt");
   err.style.display="none"; txt.textContent="Connexion...";
   try{ await signInWithEmailAndPassword(auth,email,pw); }
-  catch(e){ err.textContent="Identifiant ou mot de passe incorrect."; err.style.display="block"; txt.textContent="Se connecter"; }
+  catch(e){
+    err.textContent="Identifiant ou mot de passe incorrect.";
+    err.style.display="block"; txt.textContent="Se connecter";
+  }
 };
 window.doLogout=async()=>{ await signOut(auth); };
 document.getElementById("eyeBtn").onclick=()=>{
-  const i=document.getElementById("loginPassword");
-  i.type=i.type==="password"?"text":"password";
-  document.getElementById("eyeBtn").className=i.type==="password"?"ti ti-eye eye":"ti ti-eye-off eye";
+  const inp=document.getElementById("loginPassword");
+  inp.type=inp.type==="password"?"text":"password";
+  document.getElementById("eyeBtn").className=inp.type==="password"?"ti ti-eye eye":"ti ti-eye-off eye";
 };
 document.getElementById("loginPassword").addEventListener("keydown",e=>{if(e.key==="Enter")window.doLogin();});
 
-function showLogin(){ document.getElementById("loginPage").classList.add("active"); document.getElementById("appPage").classList.remove("active"); }
-
+function showLogin(){
+  document.getElementById("loginPage").classList.add("active");
+  document.getElementById("appPage").classList.remove("active");
+}
 function showApp(){
   document.getElementById("loginPage").classList.remove("active");
   document.getElementById("appPage").classList.add("active");
   document.getElementById("sbName").textContent=userDisplayName;
   document.getElementById("dateStr").textContent=new Date().toLocaleDateString("fr-FR",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
-
-  if(userRole==="admin"){
-    document.getElementById("sbRole").textContent="Lead On-Field Agent";
-    document.getElementById("sbBadge").textContent="ADMIN";
-    // Show admin nav, hide agent nav
-    document.getElementById("agentNav").style.display="none";
-    document.getElementById("agentRapNav").style.display="none";
-    // Populate selects
-    AGENTS.forEach(ag=>{
-      ["aAgent","rfAgent"].forEach(id=>{
-        const o=document.createElement("option"); o.value=ag.name; o.textContent=ag.name;
-        document.getElementById(id).appendChild(o);
-      });
+  AGENTS.forEach(ag=>{
+    ["aAgent","rfAgent"].forEach(id=>{
+      const o=document.createElement("option");
+      o.value=ag.name; o.textContent=ag.name;
+      document.getElementById(id).appendChild(o);
     });
-    loadAll();
-  } else {
-    // Agent view
-    document.getElementById("sbRole").textContent="On-Field Agent";
-    document.getElementById("sbBadge").textContent="AGENT";
-    // Hide admin sections, show agent sections
-    ["dashboard","planning","agents","rapports","abonnements"].forEach(s=>{
-      const el=document.getElementById("sec-"+s);
-      if(el) el.style.display="none";
-    });
-    document.querySelectorAll(".nav-item").forEach(n=>n.style.display="none");
-    document.getElementById("agentNav").style.display="flex";
-    document.getElementById("agentRapNav").style.display="flex";
-    go("mon-planning", document.getElementById("agentNav"));
-    loadAgentData();
-  }
+  });
+  loadAll();
+  renderWeekPlan();
 }
 
-// ── NAVIGATION ────────────────────────────────
+// ── NAVIGATION ──
 window.go=(id,el)=>{
   document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
-  const sec=document.getElementById("sec-"+id);
-  if(sec) sec.classList.add("active");
+  document.getElementById("sec-"+id).classList.add("active");
   if(el) el.classList.add("active");
   if(id==="planning") renderWeekPlan();
-  if(id==="agents") renderAgentSettings();
-  if(id==="mon-planning") renderMyPlanning();
-  if(id==="mes-rapports") renderMyRapports();
 };
 
-// ── HELPERS ───────────────────────────────────
-function getMonday(d){const c=new Date(d);const day=c.getDay();c.setDate(c.getDate()-day+(day===0?-6:1));c.setHours(0,0,0,0);return c;}
-function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
-function iso(d){return d.toISOString().split("T")[0];}
-function fmt(d){return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});}
-function fmtLong(d){return new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"long"});}
-function calcH(v){
-  if(!v||["OFF","ABSENT","CONGE","MALADIE",""].includes(v))return 0;
-  const p=v.split("-"); if(p.length<2)return 0;
-  let[dh,dm]=p[0].split(":").map(Number); let[fh,fm]=p[1].split(":").map(Number);
-  if(fh<dh||(fh===dh&&fm<dm))fh+=24;
-  return Math.round(((fh*60+fm)-(dh*60+dm))/60*10)/10;
-}
-function shiftCls(v){
-  if(!v)return "sh-empty"; if(v==="OFF")return "sh-off"; if(v==="ABSENT")return "sh-absent";
-  if(v==="CONGE")return "sh-conge"; if(v==="MALADIE")return "sh-maladie"; return "sh-work";
-}
-function shiftHtml(v){
-  if(!v)return `<span class="sh-t">+</span>`;
-  if(["OFF","ABSENT","CONGE","MALADIE"].includes(v))return `<span class="sh-t">${v}</span>`;
-  const h=calcH(v);
-  return `<span class="sh-t">${v.replace("-","→")}</span><span class="sh-s">${h}h</span>`;
-}
-function showAlert(id,msg,type){
-  const el=document.getElementById(id);
-  if(!el)return;
-  el.className=`alert alert-${type}`; el.textContent=msg; el.style.display="block";
-  setTimeout(()=>el.style.display="none",3000);
-}
-function getAgentType(name){
-  const s=allAgentSettings.find(x=>x.agent===name);
-  return s?.type||"rotation"; // rotation / fix-jour / fix-nuit
-}
-function getAutoShift(agentName, weekIdx){
-  // weekIdx = semaine index (0,1,2,...)
-  const type=getAgentType(agentName);
-  if(type==="fix-jour")return DEFAULT_JOUR;
-  if(type==="fix-nuit")return DEFAULT_NUIT;
-  // rotation: semaine paire = jour, impaire = nuit
-  return weekIdx%2===0?DEFAULT_JOUR:DEFAULT_NUIT;
-}
-
-// ── LOAD DATA ─────────────────────────────────
+// ── LOAD DATA ──
 async function loadAll(){
   try{
-    const [rs,as,ps,ss]=await Promise.all([
+    const [rs,as,ps]=await Promise.all([
       getDocs(query(collection(db,"rapports"),orderBy("createdAt","desc"))),
       getDocs(collection(db,"abonnements")),
-      getDocs(collection(db,"planning2")),
-      getDocs(collection(db,"agentSettings"))
+      getDocs(collection(db,"planning2"))
     ]);
     allRapports=rs.docs.map(d=>({id:d.id,...d.data()}));
     allAbos=as.docs.map(d=>({id:d.id,...d.data()}));
     allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
-    allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
-    renderDashboard(); renderRapports(); renderAbos();
+    renderDashboard(); renderAgents(); renderRapports(); renderAbos();
     renderWeekPlan();
+    // update rapports badge
+    const nonLus=allRapports.filter(r=>!r.lu).length;
+    const nb=document.getElementById("navBadgeRap");
+    if(nonLus>0){nb.textContent=nonLus;nb.style.display="inline-block";}
+    else{nb.style.display="none";}
   }catch(e){console.error(e);}
 }
 
-async function loadAgentData(){
-  try{
-    const [ps,rs]=await Promise.all([
-      getDocs(collection(db,"planning2")),
-      getDocs(query(collection(db,"rapports"),where("agentName","==",userAgentName),orderBy("createdAt","desc")))
-    ]);
-    allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
-    allRapports=rs.docs.map(d=>({id:d.id,...d.data()}));
-    renderMyPlanning();
-    renderMyRapports();
-  }catch(e){console.error(e);}
+// ── DATE HELPERS ──
+function getMonday(d){const c=new Date(d);const day=c.getDay();c.setDate(c.getDate()-day+(day===0?-6:1));c.setHours(0,0,0,0);return c;}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function iso(d){return d.toISOString().split("T")[0];}
+function fmt(d){return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});}
+function fmtFull(d){return d.toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"long"});}
+
+function calcH(v){
+  if(!v||["OFF","ABSENT","CONGE","MALADIE",""].includes(v))return 0;
+  const p=v.split("-"); if(p.length<2)return 0;
+  let[dh,dm]=p[0].split(":").map(Number);
+  let[fh,fm]=p[1].split(":").map(Number);
+  if(fh<dh||(fh===dh&&fm<=dm))fh+=24;
+  return Math.round(((fh*60+fm)-(dh*60+dm))/60*10)/10;
 }
 
-// ── DASHBOARD ─────────────────────────────────
+function shiftCls(v){
+  if(!v)return "sh-empty";
+  if(v==="OFF")return "sh-off";
+  if(v==="ABSENT")return "sh-absent";
+  if(v==="CONGE")return "sh-conge";
+  if(v==="MALADIE")return "sh-maladie";
+  return "sh-work";
+}
+
+function shiftHtml(v){
+  if(!v)return `<span class="sh-t" style="font-size:20px;font-weight:200;color:var(--border)">+</span>`;
+  if(["OFF","ABSENT","CONGE","MALADIE"].includes(v)){
+    return `<span class="sh-t">${v==="CONGE"?"CONGÉ":v}</span>`;
+  }
+  const h=calcH(v);
+  const parts=v.split("-");
+  return `<span class="sh-t">${parts[0]}→${parts[1]}</span><span class="sh-s">${h}h</span>`;
+}
+
+// ── DASHBOARD ──
 function renderDashboard(){
-  const ws=weekStart; const we=addDays(ws,6);
-  const wShifts=allPlanning.filter(p=>{
+  const weekShifts=allPlanning.filter(p=>{
     const d=new Date(p.date+"T12:00:00");
-    return d>=ws&&d<=we&&p.val&&!["OFF","ABSENT","CONGE","MALADIE",""].includes(p.val);
+    const we=addDays(weekStart,6);
+    return d>=weekStart&&d<=we&&p.val&&!["OFF","ABSENT","CONGE","MALADIE",""].includes(p.val);
   });
-  document.getElementById("dShifts").textContent=wShifts.length;
+  document.getElementById("dShifts").textContent=weekShifts.length;
   document.getElementById("dRapports").textContent=allRapports.length;
   const nonLus=allRapports.filter(r=>!r.lu).length;
   document.getElementById("dRapSub").textContent=nonLus>0?`${nonLus} non lu(s)`:"Tous lus";
   document.getElementById("dAbos").textContent=allAbos.filter(a=>a.statut==="actif").length;
+
+  // Agents table with "started this week" indicator
+  const today=iso(new Date());
   const tb=document.getElementById("dashAgents"); tb.innerHTML="";
   AGENTS.forEach(ag=>{
     const abo=allAbos.find(a=>a.agent===ag.name);
     const rc=allRapports.filter(r=>r.agentName===ag.name).length;
-    const type=getAgentType(ag.name);
-    const typeTag=type==="fix-nuit"?`<span class="session-tag fix-nuit">🌙 Fix Nuit</span>`:
-      type==="fix-jour"?`<span class="session-tag fix-jour">☀️ Fix Jour</span>`:
-      `<span class="session-tag rotation">🔄 Rotation</span>`;
+    // has at least one shift this week
+    const hasShift=allPlanning.some(p=>{
+      const d=new Date(p.date+"T12:00:00");
+      return p.agent===ag.name&&d>=weekStart&&d<=addDays(weekStart,6)&&p.val&&!["OFF","ABSENT","CONGE","MALADIE",""].includes(p.val);
+    });
+    const started=hasShift;
     const tr=document.createElement("tr");
-    tr.innerHTML=`<td><div class="ag-row"><div class="avatar">${ag.ini}</div><span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span></div></td>
-      <td>${typeTag}</td>
+    tr.innerHTML=`
+      <td><div class="ag-row">
+        <div class="ag-status ${started?"ag-started":"ag-notstarted"}" title="${started?"A commencé":"Pas encore"}"></div>
+        <div class="avatar">${ag.ini}</div>
+        <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
+      </div></td>
+      <td>${started?'<span class="badge badge-green">✓ Planning actif</span>':'<span class="badge badge-slate">Pas planifié</span>'}</td>
       <td>${abo?`<span class="badge badge-green">${abo.plan}</span>`:'<span class="badge badge-red">Aucun</span>'}</td>
-      <td style="color:var(--t2)">${rc}</td>`;
+      <td style="color:var(--t3)">${rc}</td>`;
     tb.appendChild(tr);
   });
+
   const rc2=document.getElementById("dashRapports");
   if(!allRapports.length){rc2.innerHTML='<div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div>';return;}
   rc2.innerHTML="";
   allRapports.slice(0,5).forEach(r=>{
     const d=document.createElement("div"); d.className="rpt-row";
     const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
-    d.innerHTML=`<div><div style="font-size:13px;color:var(--t1);font-weight:600">${r.titre||"Rapport"}</div>
-      <div style="font-size:11px;color:var(--t3);margin-top:2px">${r.agentName||"—"} · ${dt}</div></div>
-      <span class="badge ${r.lu?"badge-green":"badge-amber"}">${r.lu?"Lu":"Nouveau"}</span>`;
+    d.innerHTML=`
+      <div><div style="font-size:13px;color:var(--t1);font-weight:600">${r.titre||"Rapport"}</div>
+      <div style="font-size:11px;color:var(--t4);margin-top:2px">${r.agentName||"—"} · ${dt}</div></div>
+      <span class="badge ${r.lu?"badge-green":"badge-blue"}">${r.lu?"Lu":"Nouveau"}</span>`;
     rc2.appendChild(d);
   });
 }
 
-// ── PLANNING ──────────────────────────────────
+// ── PLANNING ──
 window.prevWeek=()=>{weekStart=addDays(weekStart,-7);renderWeekPlan();}
 window.nextWeek=()=>{weekStart=addDays(weekStart,7);renderWeekPlan();}
 
-function getWeekIndex(date){
-  const epoch=new Date("2024-01-01");
-  const diff=Math.floor((date-epoch)/(7*24*3600*1000));
-  return diff;
-}
-
 function renderWeekPlan(){
-  document.getElementById("weekRange").textContent=fmt(weekStart)+" → "+fmt(addDays(weekStart,6));
-  const todayISO=iso(new Date());
+  document.getElementById("weekRange").textContent=fmt(weekStart)+" — "+fmt(addDays(weekStart,6));
+  // column headers
   for(let d=0;d<7;d++){
-    const dd=addDays(weekStart,d); const dateISO=iso(dd);
-    const isToday=dateISO===todayISO;
+    const dd=addDays(weekStart,d);
+    const isToday=iso(dd)===iso(new Date());
     document.getElementById("ph"+d).innerHTML=
-      `<span style="display:block;font-size:10px">${JOURS[d].toUpperCase()}</span>
-       <span style="font-size:12px;font-weight:700;color:${isToday?"var(--blue2)":"var(--t2)"}">${fmt(dd)}</span>`;
-    document.getElementById("ph"+d).style.background=isToday?"#f0f4ff":"";
+      `<span style="display:block;${isToday?"color:var(--acc);font-weight:700":""}">${JOURS[d].toUpperCase()}</span>
+       <span style="font-size:13px;font-weight:700;color:${isToday?"var(--acc)":"var(--t2)"}">${fmt(dd)}</span>`;
   }
   const tbody=document.getElementById("planBody"); tbody.innerHTML="";
-  const weekIdx=getWeekIndex(weekStart);
   AGENTS.forEach(ag=>{
     const tr=document.createElement("tr");
     let totalH=0;
-    let cells=`<td><div class="ag-row"><div class="avatar">${ag.ini}</div>
-      <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span></div></td>`;
+    let cells=`<td>
+      <div class="ag-row">
+        <div class="avatar">${ag.ini}</div>
+        <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
+      </div>
+    </td>`;
     for(let d=0;d<7;d++){
       const dateISO=iso(addDays(weekStart,d));
       const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
-      const v=ps?.val||""; totalH+=calcH(v);
-      const eid=ps?.id||"";
-      cells+=`<td><span class="sh ${shiftCls(v)}" onclick="openPlanModal('${ag.name}','${dateISO}','${eid}','${v}')">${shiftHtml(v)}</span></td>`;
+      const v=ps?.val||"";
+      totalH+=calcH(v);
+      const cls=shiftCls(v);
+      cells+=`<td>
+        <span class="shift-cell ${cls}" onclick="openPlanModal('${ag.name}','${dateISO}','${ps?.id||''}','${v.replace(/'/g,"\\'")}')">
+          ${shiftHtml(v)}
+        </span>
+      </td>`;
     }
-    cells+=`<td><span class="total-h">${totalH}h</span></td>`;
-    tr.innerHTML=cells; tbody.appendChild(tr);
+    const totalCls=totalH>0?"total-h":"total-h total-0";
+    cells+=`<td><span class="${totalCls}">${totalH}h</span></td>`;
+    tr.innerHTML=cells;
+    tbody.appendChild(tr);
   });
 }
 
-// Auto generate week
-window.autoGenWeek=async()=>{
-  if(!confirm("Générer automatiquement le planning pour cette semaine?"))return;
-  const weekIdx=getWeekIndex(weekStart);
-  let count=0;
-  for(const ag of AGENTS){
-    const shiftVal=getAutoShift(ag.name, weekIdx);
-    for(let d=0;d<7;d++){
-      const dateISO=iso(addDays(weekStart,d));
-      const exists=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
-      if(!exists){
-        await addDoc(collection(db,"planning2"),{agent:ag.name,date:dateISO,val:shiftVal,createdAt:serverTimestamp()});
-        count++;
-      }
-    }
-  }
-  showAlert("planAlert",`✅ ${count} shifts générés automatiquement!`,"success");
-  await loadAll();
-}
-
+// ── PLAN MODAL ──
 window.openPlanModal=(agent,date,shiftId,val)=>{
-  pmAgentVal=agent; pmDateVal=date; pmIdVal=shiftId||null;
+  pmAgent2=agent; pmDate3=date; pmId=shiftId||null;
   document.getElementById("pmAgent").textContent=agent;
-  document.getElementById("pmDate2").textContent=fmtLong(date);
-  document.getElementById("pmSelect").value=val||"";
+  document.getElementById("pmDate2").textContent=fmtFull(new Date(date+"T12:00:00"));
   document.getElementById("pmDel").style.display=shiftId?"inline-flex":"none";
+
+  // determine initial status
+  let initStatus="";
+  let initHoraire="";
+  if(!val||val===""){initStatus="";}
+  else if(["OFF","ABSENT","CONGE","MALADIE"].includes(val)){initStatus=val;}
+  else{initStatus="WORK"; initHoraire=val;}
+
+  document.getElementById("pmInput").value=initHoraire;
+  selectStatus(initStatus||"WORK");
   document.getElementById("planModal").classList.add("open");
-};
-window.closePlanModal=()=>document.getElementById("planModal").classList.remove("open");
-window.savePlanShift=async()=>{
-  const v=document.getElementById("pmSelect").value;
-  if(!v){closePlanModal();return;}
-  const data={agent:pmAgentVal,date:pmDateVal,val:v};
-  if(pmIdVal){await updateDoc(doc(db,"planning2",pmIdVal),data);}
-  else{data.createdAt=serverTimestamp();await addDoc(collection(db,"planning2"),data);}
-  closePlanModal(); showAlert("planAlert","✅ Enregistré!","success"); await loadAll();
-};
-window.deletePlanShift=async()=>{
-  if(pmIdVal){await deleteDoc(doc(db,"planning2",pmIdVal));}
-  closePlanModal(); showAlert("planAlert","Supprimé.","success"); await loadAll();
+  if(initStatus==="WORK"||!initStatus) setTimeout(()=>document.getElementById("pmInput").focus(),100);
 };
 
-// ── AGENT SETTINGS ────────────────────────────
-function renderAgentSettings(){
-  const cont=document.getElementById("agentSettingsList"); cont.innerHTML="";
+window.selectStatus=(s)=>{
+  pmStatus=s;
+  ["WORK","OFF","ABSENT","CONGE","MALADIE"].forEach(x=>{
+    const el=document.getElementById("pill-"+x);
+    if(el) el.classList.toggle("sel",x===s);
+  });
+  document.getElementById("horaireWrap").style.display=s==="WORK"?"block":"none";
+};
+
+window.setPreset=(v)=>{
+  document.getElementById("pmInput").value=v;
+  document.getElementById("pmInput").focus();
+};
+
+window.closePlanModal=()=>document.getElementById("planModal").classList.remove("open");
+
+window.savePlanShift=async()=>{
+  let val="";
+  if(pmStatus==="WORK"){
+    val=document.getElementById("pmInput").value.trim();
+    // validate format HH:MM-HH:MM
+    if(!val){closePlanModal();return;}
+    if(!/^\d{2}:\d{2}-\d{2}:\d{2}$/.test(val)){
+      showAlert("planAlert","Format invalide! Utilisez HH:MM-HH:MM (ex: 17:00-00:00)","error");
+      return;
+    }
+  } else {
+    val=pmStatus;
+  }
+  const data={agent:pmAgent2,date:pmDate3,val};
+  try{
+    if(pmId){await updateDoc(doc(db,"planning2",pmId),data);}
+    else{data.createdAt=serverTimestamp();await addDoc(collection(db,"planning2"),data);}
+    closePlanModal();
+    showAlert("planAlert","✅ Enregistré !","success");
+    await loadAll();
+  }catch(e){
+    showAlert("planAlert","Erreur: "+e.message,"error");
+  }
+};
+
+window.deletePlanShift=async()=>{
+  if(pmId){
+    try{
+      await deleteDoc(doc(db,"planning2",pmId));
+      closePlanModal();
+      showAlert("planAlert","Supprimé.","success");
+      await loadAll();
+    }catch(e){showAlert("planAlert","Erreur.","error");}
+  }
+};
+
+// ── AGENTS ──
+function renderAgents(){
+  const tb=document.getElementById("agentsBody"); tb.innerHTML="";
   AGENTS.forEach(ag=>{
-    const type=getAgentType(ag.name);
-    const div=document.createElement("div"); div.className="agent-setting-row";
-    div.innerHTML=`<div class="ag-row"><div class="avatar">${ag.ini}</div>
-      <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span></div>
-      <div class="setting-btns">
-        <button class="set-btn ${type==="fix-jour"?"active-jour":""}" onclick="setAgentType('${ag.name}','fix-jour')">☀️ Fix Jour</button>
-        <button class="set-btn ${type==="fix-nuit"?"active-nuit":""}" onclick="setAgentType('${ag.name}','fix-nuit')">🌙 Fix Nuit</button>
-        <button class="set-btn ${type==="rotation"?"active-rot":""}" onclick="setAgentType('${ag.name}','rotation')">🔄 Rotation</button>
-      </div>`;
-    cont.appendChild(div);
+    const rc=allRapports.filter(r=>r.agentName===ag.name).length;
+    const abo=allAbos.find(a=>a.agent===ag.name);
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><div class="ag-row"><div class="avatar">${ag.ini}</div>
+        <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span></div></td>
+      <td style="color:var(--t3)">${rc}</td>
+      <td>${abo?`<span class="badge badge-green">${abo.plan}</span>`:'<span class="badge badge-red">Aucun</span>'}</td>`;
+    tb.appendChild(tr);
   });
 }
 
-window.setAgentType=async(agentName, type)=>{
-  const existing=allAgentSettings.find(s=>s.agent===agentName);
-  if(existing){await updateDoc(doc(db,"agentSettings",existing.id),{type});}
-  else{await addDoc(collection(db,"agentSettings"),{agent:agentName,type,createdAt:serverTimestamp()});}
-  await loadAll(); renderAgentSettings();
-};
-
-// ── RAPPORTS (admin) ──────────────────────────
+// ── RAPPORTS ──
 window.renderRapports=()=>{
   let list=[...allRapports];
   const ag=document.getElementById("rfAgent").value;
@@ -785,33 +831,42 @@ window.renderRapports=()=>{
     const ini=AGENTS.find(a=>a.name===r.agentName)?.ini||"??";
     const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
     const d=document.createElement("div");
-    d.style.cssText="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer";
-    d.innerHTML=`<div class="avatar">${ini}</div>
-      <div style="flex:1"><div style="font-size:13px;color:var(--t1);font-weight:600">${r.titre||"Rapport"}</div>
-      <div style="font-size:11px;color:var(--t3);margin-top:2px">${r.agentName||"—"} · ${dt}</div></div>
-      <span class="badge ${r.lu?"badge-green":"badge-amber"}">${r.lu?"Lu":"Nouveau"}</span>
+    d.style.cssText="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;";
+    d.innerHTML=`
+      <div class="avatar">${ini}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;color:var(--t1);font-weight:600">${r.titre||"Rapport"}</div>
+        <div style="font-size:11px;color:var(--t4);margin-top:2px">${r.agentName||"—"} · ${dt}</div>
+      </div>
+      <span class="badge ${r.lu?"badge-green":"badge-blue"}">${r.lu?"Lu":"Nouveau"}</span>
       <i class="ti ti-chevron-right" style="color:var(--t4)"></i>`;
-    d.onclick=()=>openRapDetail(r); cont.appendChild(d);
+    d.onmouseenter=()=>d.style.background=`var(--bg3)`;
+    d.onmouseleave=()=>d.style.background="";
+    d.onclick=()=>openRapport(r);
+    cont.appendChild(d);
   });
 };
-function openRapDetail(r){
+
+window.openRapport=r=>{
   curRapId=r.id;
-  document.getElementById("rdTitre").textContent=r.titre||"Rapport";
-  document.getElementById("rdAgent").textContent=r.agentName||"—";
+  document.getElementById("rmTitre").textContent=r.titre||"Rapport";
+  document.getElementById("rmAgent").textContent=r.agentName||"—";
   const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
-  document.getElementById("rdDate").textContent=dt;
-  document.getElementById("rdContenu").textContent=r.contenu||"Aucun contenu.";
-  document.getElementById("btnLu").style.display=r.lu?"none":"inline-flex";
-  document.getElementById("rapDetailModal").classList.add("open");
-}
-window.closeRapDetail=()=>document.getElementById("rapDetailModal").classList.remove("open");
-document.getElementById("btnLu").onclick=async()=>{
+  document.getElementById("rmDate").textContent=dt;
+  document.getElementById("rmContenu").textContent=r.contenu||"Aucun contenu.";
+  document.getElementById("btnMarquerLu").style.display=r.lu?"none":"inline-flex";
+  document.getElementById("rapModal").classList.add("open");
+};
+window.closeRapModal=()=>document.getElementById("rapModal").classList.remove("open");
+document.getElementById("btnMarquerLu").onclick=async()=>{
   if(!curRapId)return;
   await updateDoc(doc(db,"rapports",curRapId),{lu:true});
-  closeRapDetail(); showAlert("rapAlert","Rapport marqué comme lu.","success"); await loadAll();
+  closeRapModal();
+  showAlert("rapAlert","✅ Rapport marqué comme lu.","success");
+  await loadAll();
 };
 
-// ── ABONNEMENTS ───────────────────────────────
+// ── ABONNEMENTS ──
 function renderAbos(){
   document.getElementById("aTotal").textContent=allAbos.length;
   document.getElementById("aActifs").textContent=allAbos.filter(a=>a.statut==="actif").length;
@@ -821,20 +876,24 @@ function renderAbos(){
     const ini=AGENTS.find(ag=>ag.name===a.agent)?.ini||"??";
     const stB=a.statut==="actif"?"badge-green":a.statut==="suspendu"?"badge-amber":"badge-red";
     const tr=document.createElement("tr");
-    tr.innerHTML=`<td><div class="ag-row"><div class="avatar">${ini}</div><span style="font-size:13px;color:var(--t1);font-weight:600">${a.agent}</span></div></td>
-      <td><span class="badge badge-blue">${a.plan}</span></td>
-      <td style="color:var(--t2)">${a.debut||"—"}</td><td style="color:var(--t2)">${a.expire||"—"}</td>
+    tr.innerHTML=`
+      <td><div class="ag-row"><div class="avatar">${ini}</div>
+        <span style="font-size:13px;color:var(--t1);font-weight:600">${a.agent}</span></div></td>
+      <td><span class="badge badge-purple">${a.plan}</span></td>
+      <td style="color:var(--t3)">${a.debut||"—"}</td>
+      <td style="color:var(--t3)">${a.expire||"—"}</td>
       <td><span class="badge ${stB}">${a.statut}</span></td>
-      <td><div style="display:flex;gap:6px">
+      <td style="display:flex;gap:6px">
         <div class="btn btn-sm" onclick="editAbo('${a.id}')"><i class="ti ti-edit"></i></div>
         <div class="btn btn-sm btn-danger" onclick="deleteAbo('${a.id}')"><i class="ti ti-trash"></i></div>
-      </div></td>`;
+      </td>`;
     tb.appendChild(tr);
   });
 }
+
 window.openAboModal=(data=null)=>{
   document.getElementById("aEditId").value=data?.id||"";
-  document.getElementById("aModalTitle").textContent=data?"Modifier":"Nouvel abonnement";
+  document.getElementById("aModalTitle").textContent=data?"Modifier abonnement":"Nouvel abonnement";
   document.getElementById("aAgent").value=data?.agent||AGENTS[0].name;
   document.getElementById("aPlan").value=data?.plan||"Mensuel";
   document.getElementById("aDebut").value=data?.debut||"";
@@ -845,82 +904,43 @@ window.openAboModal=(data=null)=>{
 window.closeAboModal=()=>document.getElementById("aboModal").classList.remove("open");
 window.saveAbo=async()=>{
   const id=document.getElementById("aEditId").value;
-  const data={agent:document.getElementById("aAgent").value,plan:document.getElementById("aPlan").value,
-    debut:document.getElementById("aDebut").value,expire:document.getElementById("aExpire").value,
-    statut:document.getElementById("aStatut").value};
-  if(id){await updateDoc(doc(db,"abonnements",id),data);showAlert("aboAlert","Mis à jour.","success");}
-  else{data.createdAt=serverTimestamp();await addDoc(collection(db,"abonnements"),data);showAlert("aboAlert","Créé.","success");}
-  closeAboModal(); await loadAll();
+  const data={
+    agent:document.getElementById("aAgent").value,
+    plan:document.getElementById("aPlan").value,
+    debut:document.getElementById("aDebut").value,
+    expire:document.getElementById("aExpire").value,
+    statut:document.getElementById("aStatut").value
+  };
+  try{
+    if(id){await updateDoc(doc(db,"abonnements",id),data);showAlert("aboAlert","✅ Mis à jour.","success");}
+    else{data.createdAt=serverTimestamp();await addDoc(collection(db,"abonnements"),data);showAlert("aboAlert","✅ Créé.","success");}
+    closeAboModal(); await loadAll();
+  }catch(e){showAlert("aboAlert","Erreur.","error");}
 };
 window.editAbo=id=>{const a=allAbos.find(x=>x.id===id);if(a)openAboModal(a);};
 window.deleteAbo=async id=>{
-  if(!confirm("Supprimer?"))return;
-  await deleteDoc(doc(db,"abonnements",id));
-  showAlert("aboAlert","Supprimé.","success"); await loadAll();
+  if(!confirm("Supprimer cet abonnement ?"))return;
+  try{
+    await deleteDoc(doc(db,"abonnements",id));
+    showAlert("aboAlert","Supprimé.","success"); await loadAll();
+  }catch(e){showAlert("aboAlert","Erreur.","error");}
 };
 
-// ── MON PLANNING (agent) ──────────────────────
-window.prevWeekAgent=()=>{agentWeekStart=addDays(agentWeekStart,-7);renderMyPlanning();}
-window.nextWeekAgent=()=>{agentWeekStart=addDays(agentWeekStart,7);renderMyPlanning();}
-
-function renderMyPlanning(){
-  document.getElementById("myPlanWeek").textContent=fmt(agentWeekStart)+" → "+fmt(addDays(agentWeekStart,6));
-  const tbody=document.getElementById("myPlanBody"); tbody.innerHTML="";
-  const todayISO=iso(new Date());
-  for(let d=0;d<7;d++){
-    const dateISO=iso(addDays(agentWeekStart,d));
-    const ps=allPlanning.find(x=>x.agent===userAgentName&&x.date===dateISO);
-    const v=ps?.val||"";
-    const isToday=dateISO===todayISO;
-    const tr=document.createElement("tr");
-    if(isToday) tr.style.background="#f0f4ff";
-    let statusBadge="";
-    if(!v) statusBadge='<span class="badge" style="background:#f1f3f5;color:#868e96">Non planifié</span>';
-    else if(v==="OFF") statusBadge='<span class="badge badge-red">OFF</span>';
-    else if(v==="ABSENT") statusBadge='<span class="badge badge-red">ABSENT</span>';
-    else if(v==="CONGE") statusBadge='<span class="badge badge-amber">CONGÉ</span>';
-    else if(v==="MALADIE") statusBadge='<span class="badge badge-purple">MALADIE</span>';
-    else statusBadge=`<span class="badge badge-green">Shift assigné</span>`;
-    const h=calcH(v);
-    tr.innerHTML=`<td style="font-weight:600;color:var(--t2)">${JOURS[d]}${isToday?' <span style="font-size:10px;color:var(--blue2);font-weight:700">TODAY</span>':''}</td>
-      <td style="color:var(--t3)">${new Date(dateISO+"T12:00:00").toLocaleDateString("fr-FR",{day:"2-digit",month:"long"})}</td>
-      <td><span style="font-size:14px;font-weight:700;color:${v&&!["OFF","ABSENT","CONGE","MALADIE"].includes(v)?"var(--green)":"var(--t2)"}">${v?v.replace("-","→"):"—"}</span>${h?`<span style="font-size:11px;color:var(--t3);margin-left:6px">${h}h</span>`:""}</td>
-      <td>${statusBadge}</td>`;
-    tbody.appendChild(tr);
-  }
+// ── HELPERS ──
+function showAlert(id,msg,type){
+  const el=document.getElementById(id);
+  el.className=`alert alert-${type}`; el.textContent=msg; el.style.display="block";
+  setTimeout(()=>el.style.display="none",3500);
 }
 
-// ── MES RAPPORTS (agent) ──────────────────────
-function renderMyRapports(){
-  const cont=document.getElementById("myRapList");
-  if(!allRapports.length){cont.innerHTML='<div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport soumis.</p></div>';return;}
-  cont.innerHTML="";
-  allRapports.forEach(r=>{
-    const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
-    const d=document.createElement("div"); d.className="rpt-row";
-    d.innerHTML=`<div><div style="font-size:13px;color:var(--t1);font-weight:600">${r.titre||"Rapport"}</div>
-      <div style="font-size:11px;color:var(--t3);margin-top:2px">${dt}</div></div>
-      <span class="badge ${r.lu?"badge-green":"badge-amber"}">${r.lu?"Lu par admin":"En attente"}</span>`;
-    cont.appendChild(d);
-  });
-}
-
-window.openRapportModal=()=>document.getElementById("newRapModal").classList.add("open");
-window.closeRapportModal=()=>document.getElementById("newRapModal").classList.remove("open");
-window.submitRapport=async()=>{
-  const titre=document.getElementById("nrTitre").value.trim();
-  const contenu=document.getElementById("nrContenu").value.trim();
-  if(!titre||!contenu){showAlert("myRapAlert","Titre et contenu obligatoires.","error");return;}
-  await addDoc(collection(db,"rapports"),{
-    titre,contenu,agentName:userAgentName,agentUid:currentUser.uid,
-    lu:false,createdAt:serverTimestamp()
-  });
-  closeRapportModal();
-  document.getElementById("nrTitre").value="";
-  document.getElementById("nrContenu").value="";
-  showAlert("myRapAlert","✅ Rapport envoyé!","success");
-  await loadAgentData();
-};
+// close modals on overlay click
+document.querySelectorAll(".modal-ov").forEach(ov=>{
+  ov.addEventListener("click",e=>{if(e.target===ov)ov.classList.remove("open");});
+});
+// Enter to save shift
+document.getElementById("pmInput").addEventListener("keydown",e=>{
+  if(e.key==="Enter") window.savePlanShift();
+});
 </script>
 </body>
 </html>
