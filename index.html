@@ -111,22 +111,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .plan-tbl tbody tr:last-child td{border-bottom:none}
 .shift-cell{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;padding:6px 10px;min-width:92px;cursor:pointer;transition:all .15s;gap:2px}
 .shift-cell:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
-.sh-work{background:var(--gbg);border:1.5px solid var(--gbdr)}
-.sh-off{background:var(--sbg);border:1.5px solid var(--sbdr)}
-.sh-absent{background:var(--rbg);border:1.5px solid var(--rbdr)}
-.sh-conge{background:var(--abg);border:1.5px solid var(--abdr)}
-.sh-maladie{background:var(--pbg);border:1.5px solid var(--pbdr)}
+/* ── SHIFT COLOR VARIABLES (customizable) ── */
+:root{
+  --sh-work-bg:#f0fdf4;  --sh-work-bdr:#86efac;  --sh-work-txt:#16a34a;
+  --sh-off-bg:#f1f5f9;   --sh-off-bdr:#cbd5e1;   --sh-off-txt:#475569;
+  --sh-absent-bg:#fef2f2;--sh-absent-bdr:#fca5a5;--sh-absent-txt:#dc2626;
+  --sh-conge-bg:#fffbeb; --sh-conge-bdr:#fcd34d; --sh-conge-txt:#d97706;
+  --sh-maladie-bg:#f5f3ff;--sh-maladie-bdr:#c4b5fd;--sh-maladie-txt:#7c3aed;
+}
+.sh-work{background:var(--sh-work-bg);border:1.5px solid var(--sh-work-bdr)}
+.sh-off{background:var(--sh-off-bg);border:1.5px solid var(--sh-off-bdr)}
+.sh-absent{background:var(--sh-absent-bg);border:1.5px solid var(--sh-absent-bdr)}
+.sh-conge{background:var(--sh-conge-bg);border:1.5px solid var(--sh-conge-bdr)}
+.sh-maladie{background:var(--sh-maladie-bg);border:1.5px solid var(--sh-maladie-bdr)}
 .sh-empty{background:var(--bg);border:1.5px dashed var(--border)}
 .sh-t{font-size:12px;font-weight:700}
 .sh-s{font-size:10px;opacity:.75;margin-top:1px;font-weight:500}
-.sh-work .sh-t{color:var(--green)}.sh-work .sh-s{color:var(--green)}
-.sh-off .sh-t{color:var(--slate)}.sh-off .sh-s{color:var(--slate)}
-.sh-absent .sh-t{color:var(--red)}.sh-absent .sh-s{color:var(--red)}
-.sh-conge .sh-t{color:var(--amber)}.sh-conge .sh-s{color:var(--amber)}
-.sh-maladie .sh-t{color:var(--purple)}.sh-maladie .sh-s{color:var(--purple)}
+.sh-work .sh-t{color:var(--sh-work-txt)}.sh-work .sh-s{color:var(--sh-work-txt)}
+.sh-off .sh-t{color:var(--sh-off-txt)}.sh-off .sh-s{color:var(--sh-off-txt)}
+.sh-absent .sh-t{color:var(--sh-absent-txt)}.sh-absent .sh-s{color:var(--sh-absent-txt)}
+.sh-conge .sh-t{color:var(--sh-conge-txt)}.sh-conge .sh-s{color:var(--sh-conge-txt)}
+.sh-maladie .sh-t{color:var(--sh-maladie-txt)}.sh-maladie .sh-s{color:var(--sh-maladie-txt)}
 .sh-empty .sh-t{color:var(--t4);font-size:18px;font-weight:300}
-.total-h{background:var(--gbg);border:1.5px solid var(--gbdr);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;color:var(--green);display:inline-block}
-.total-0{background:var(--sbg);border:1.5px solid var(--sbdr);color:var(--slate)}
+.total-h{background:var(--sh-work-bg);border:1.5px solid var(--sh-work-bdr);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;color:var(--sh-work-txt);display:inline-block}
+.total-0{background:var(--sh-off-bg);border:1.5px solid var(--sh-off-bdr);color:var(--sh-off-txt)}
+/* color picker modal */
+.color-modal{max-width:520px}
+.color-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);margin-bottom:10px}
+.color-row-left{display:flex;align-items:center;gap:12px}
+.color-preview{width:38px;height:38px;border-radius:8px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;transition:all .2s}
+.color-pickers{display:flex;align-items:center;gap:8px}
+.color-pickers label{font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.8px;font-weight:600;white-space:nowrap}
+.color-pickers input[type=color]{width:36px;height:32px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;background:var(--bg3)}
+.palette-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.palette-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .12s,border-color .12s;flex-shrink:0}
+.palette-dot:hover{transform:scale(1.2);border-color:var(--t2)}
+.palette-dot.sel{border-color:var(--t1);transform:scale(1.15)}
 .week-nav{display:flex;align-items:center;gap:8px}
 .week-label{font-size:13px;font-weight:600;color:var(--t2);padding:0 4px;min-width:140px;text-align:center}
 .presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -242,6 +262,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
             <div class="btn btn-sm" onclick="nextWeek()"><i class="ti ti-chevron-right"></i></div>
           </div>
           <div class="btn" onclick="openShiftTypeModal()"><i class="ti ti-settings"></i> Shifts</div>
+          <div class="btn" onclick="openColorModal()" style="gap:6px"><i class="ti ti-palette"></i> Couleurs</div>
           <div class="btn btn-success" onclick="exportExcel()"><i class="ti ti-table-export"></i> Excel</div>
           <div class="btn btn-danger" onclick="exportPDF()"><i class="ti ti-file-export"></i> PDF</div>
         </div>
@@ -425,6 +446,110 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
     <div class="modal-acts">
       <div class="btn" onclick="closeShiftTypeModal()">Annuler</div>
       <div class="btn btn-primary" onclick="saveShiftTypes()"><i class="ti ti-device-floppy"></i> Enregistrer</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COULEURS -->
+<div class="modal-ov" id="colorModal">
+  <div class="modal color-modal">
+    <div class="modal-title"><i class="ti ti-palette" style="color:var(--acc)"></i> Personnaliser les couleurs</div>
+    <i class="ti ti-x modal-x" onclick="closeColorModal()"></i>
+    <p style="font-size:12px;color:var(--t4);margin-bottom:16px">Choisissez les couleurs pour chaque type de shift dans le planning.</p>
+
+    <!-- TRAVAIL -->
+    <div class="color-row" id="cr-work">
+      <div class="color-row-left">
+        <div class="color-preview" id="prev-work">✓</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--t1)">Travail</div>
+          <div style="font-size:11px;color:var(--t4)">Shifts normaux (horaires)</div>
+        </div>
+      </div>
+      <div>
+        <div class="palette-row" id="pal-work"></div>
+        <div class="color-pickers" style="margin-top:8px">
+          <label>Fond</label><input type="color" id="cp-work-bg" onchange="applyColorPicker('work')"/>
+          <label>Texte</label><input type="color" id="cp-work-txt" onchange="applyColorPicker('work')"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- OFF -->
+    <div class="color-row" id="cr-off">
+      <div class="color-row-left">
+        <div class="color-preview" id="prev-off">OFF</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--t1)">OFF</div>
+          <div style="font-size:11px;color:var(--t4)">Jour de repos</div>
+        </div>
+      </div>
+      <div>
+        <div class="palette-row" id="pal-off"></div>
+        <div class="color-pickers" style="margin-top:8px">
+          <label>Fond</label><input type="color" id="cp-off-bg" onchange="applyColorPicker('off')"/>
+          <label>Texte</label><input type="color" id="cp-off-txt" onchange="applyColorPicker('off')"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABSENT -->
+    <div class="color-row" id="cr-absent">
+      <div class="color-row-left">
+        <div class="color-preview" id="prev-absent">ABS</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--t1)">Absent</div>
+          <div style="font-size:11px;color:var(--t4)">Absence non justifiée</div>
+        </div>
+      </div>
+      <div>
+        <div class="palette-row" id="pal-absent"></div>
+        <div class="color-pickers" style="margin-top:8px">
+          <label>Fond</label><input type="color" id="cp-absent-bg" onchange="applyColorPicker('absent')"/>
+          <label>Texte</label><input type="color" id="cp-absent-txt" onchange="applyColorPicker('absent')"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONGE -->
+    <div class="color-row" id="cr-conge">
+      <div class="color-row-left">
+        <div class="color-preview" id="prev-conge">CON</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--t1)">Congé</div>
+          <div style="font-size:11px;color:var(--t4)">Congé payé</div>
+        </div>
+      </div>
+      <div>
+        <div class="palette-row" id="pal-conge"></div>
+        <div class="color-pickers" style="margin-top:8px">
+          <label>Fond</label><input type="color" id="cp-conge-bg" onchange="applyColorPicker('conge')"/>
+          <label>Texte</label><input type="color" id="cp-conge-txt" onchange="applyColorPicker('conge')"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- MALADIE -->
+    <div class="color-row" id="cr-maladie">
+      <div class="color-row-left">
+        <div class="color-preview" id="prev-maladie">MAL</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--t1)">Maladie</div>
+          <div style="font-size:11px;color:var(--t4)">Arrêt maladie</div>
+        </div>
+      </div>
+      <div>
+        <div class="palette-row" id="pal-maladie"></div>
+        <div class="color-pickers" style="margin-top:8px">
+          <label>Fond</label><input type="color" id="cp-maladie-bg" onchange="applyColorPicker('maladie')"/>
+          <label>Texte</label><input type="color" id="cp-maladie-txt" onchange="applyColorPicker('maladie')"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-acts">
+      <div class="btn" onclick="resetColors()" style="color:var(--red);border-color:var(--rbdr)"><i class="ti ti-refresh"></i> Réinitialiser</div>
+      <div class="btn" onclick="closeColorModal()">Fermer</div>
     </div>
   </div>
 </div>
@@ -1064,6 +1189,189 @@ function showAlert(id,msg,type){
   el.className=`alert alert-${type}`;el.textContent=msg;el.style.display="block";
   setTimeout(()=>el.style.display="none",3500);
 }
+
+// ── COLOR SYSTEM ──
+const COLOR_PALETTES={
+  work:[
+    {bg:"#f0fdf4",bdr:"#86efac",txt:"#16a34a",label:"Vert"},
+    {bg:"#ecfdf5",bdr:"#6ee7b7",txt:"#059669",label:"Émeraude"},
+    {bg:"#eff6ff",bdr:"#93c5fd",txt:"#2563eb",label:"Bleu"},
+    {bg:"#f0f9ff",bdr:"#7dd3fc",txt:"#0284c7",label:"Ciel"},
+    {bg:"#fdf4ff",bdr:"#e879f9",txt:"#a21caf",label:"Fuchsia"},
+    {bg:"#fff7ed",bdr:"#fdba74",txt:"#ea580c",label:"Orange"},
+    {bg:"#fefce8",bdr:"#fde047",txt:"#ca8a04",label:"Jaune"},
+    {bg:"#f8fafc",bdr:"#94a3b8",txt:"#334155",label:"Gris"},
+  ],
+  off:[
+    {bg:"#f1f5f9",bdr:"#cbd5e1",txt:"#475569",label:"Ardoise"},
+    {bg:"#f8fafc",bdr:"#94a3b8",txt:"#334155",label:"Gris foncé"},
+    {bg:"#fafafa",bdr:"#d4d4d4",txt:"#525252",label:"Neutre"},
+    {bg:"#f9fafb",bdr:"#d1d5db",txt:"#4b5563",label:"Gris"},
+    {bg:"#1e1b4b",bdr:"#4338ca",txt:"#c7d2fe",label:"Nuit"},
+    {bg:"#0f172a",bdr:"#334155",txt:"#94a3b8",label:"Sombre"},
+    {bg:"#fef3c7",bdr:"#fbbf24",txt:"#92400e",label:"Ambre"},
+    {bg:"#eff6ff",bdr:"#93c5fd",txt:"#1d4ed8",label:"Bleu"},
+  ],
+  absent:[
+    {bg:"#fef2f2",bdr:"#fca5a5",txt:"#dc2626",label:"Rouge"},
+    {bg:"#fff1f2",bdr:"#fda4af",txt:"#e11d48",label:"Rose vif"},
+    {bg:"#4a0404",bdr:"#dc2626",txt:"#fca5a5",label:"Sombre"},
+    {bg:"#fff7ed",bdr:"#fdba74",txt:"#ea580c",label:"Orange"},
+    {bg:"#fffbeb",bdr:"#fcd34d",txt:"#d97706",label:"Ambre"},
+    {bg:"#fdf2f8",bdr:"#f0abfc",txt:"#c026d3",label:"Fuchsia"},
+    {bg:"#f8fafc",bdr:"#cbd5e1",txt:"#475569",label:"Gris"},
+    {bg:"#ecfdf5",bdr:"#86efac",txt:"#16a34a",label:"Vert"},
+  ],
+  conge:[
+    {bg:"#fffbeb",bdr:"#fcd34d",txt:"#d97706",label:"Ambre"},
+    {bg:"#fff7ed",bdr:"#fdba74",txt:"#ea580c",label:"Orange"},
+    {bg:"#eff6ff",bdr:"#93c5fd",txt:"#2563eb",label:"Bleu"},
+    {bg:"#f0f9ff",bdr:"#7dd3fc",txt:"#0284c7",label:"Ciel"},
+    {bg:"#ecfdf5",bdr:"#6ee7b7",txt:"#059669",label:"Émeraude"},
+    {bg:"#fdf4ff",bdr:"#e879f9",txt:"#a21caf",label:"Fuchsia"},
+    {bg:"#fef2f2",bdr:"#fca5a5",txt:"#dc2626",label:"Rouge"},
+    {bg:"#f1f5f9",bdr:"#cbd5e1",txt:"#475569",label:"Ardoise"},
+  ],
+  maladie:[
+    {bg:"#f5f3ff",bdr:"#c4b5fd",txt:"#7c3aed",label:"Violet"},
+    {bg:"#fdf4ff",bdr:"#e879f9",txt:"#a21caf",label:"Fuchsia"},
+    {bg:"#eff6ff",bdr:"#93c5fd",txt:"#2563eb",label:"Bleu"},
+    {bg:"#f0f9ff",bdr:"#7dd3fc",txt:"#0284c7",label:"Ciel"},
+    {bg:"#fef2f2",bdr:"#fca5a5",txt:"#dc2626",label:"Rouge"},
+    {bg:"#fff1f2",bdr:"#fda4af",txt:"#e11d48",label:"Rose"},
+    {bg:"#fffbeb",bdr:"#fcd34d",txt:"#d97706",label:"Ambre"},
+    {bg:"#f1f5f9",bdr:"#cbd5e1",txt:"#475569",label:"Gris"},
+  ],
+};
+
+const DEFAULT_COLORS={
+  work: {bg:"#f0fdf4",bdr:"#86efac",txt:"#16a34a"},
+  off:  {bg:"#f1f5f9",bdr:"#cbd5e1",txt:"#475569"},
+  absent:{bg:"#fef2f2",bdr:"#fca5a5",txt:"#dc2626"},
+  conge:{bg:"#fffbeb",bdr:"#fcd34d",txt:"#d97706"},
+  maladie:{bg:"#f5f3ff",bdr:"#c4b5fd",txt:"#7c3aed"},
+};
+
+function applyColors(colors){
+  const r=document.documentElement.style;
+  Object.entries(colors).forEach(([type,c])=>{
+    r.setProperty(`--sh-${type}-bg`,c.bg);
+    r.setProperty(`--sh-${type}-bdr`,c.bdr);
+    r.setProperty(`--sh-${type}-txt`,c.txt);
+  });
+}
+
+function loadSavedColors(){
+  try{
+    const saved=localStorage.getItem("opshq-colors");
+    if(saved)applyColors(JSON.parse(saved));
+  }catch(e){}
+}
+
+function saveColors(colors){
+  try{localStorage.setItem("opshq-colors",JSON.stringify(colors));}catch(e){}
+}
+
+function getCurrentColors(){
+  const s=document.documentElement.style;
+  const get=(k)=>s.getPropertyValue(k).trim();
+  const types=["work","off","absent","conge","maladie"];
+  const out={};
+  types.forEach(t=>{
+    out[t]={
+      bg: get(`--sh-${t}-bg`)||DEFAULT_COLORS[t].bg,
+      bdr:get(`--sh-${t}-bdr`)||DEFAULT_COLORS[t].bdr,
+      txt:get(`--sh-${t}-txt`)||DEFAULT_COLORS[t].txt,
+    };
+  });
+  return out;
+}
+
+function updatePreview(type){
+  const c=getCurrentColors()[type];
+  const pr=document.getElementById(`prev-${type}`);
+  if(pr){
+    pr.style.background=c.bg;
+    pr.style.borderColor=c.bdr;
+    pr.style.color=c.txt;
+  }
+  // update color picker values
+  const bgEl=document.getElementById(`cp-${type}-bg`);
+  const txtEl=document.getElementById(`cp-${type}-txt`);
+  if(bgEl)bgEl.value=c.bg;
+  if(txtEl)txtEl.value=c.txt;
+}
+
+function applyColorPicker(type){
+  const bg=document.getElementById(`cp-${type}-bg`).value;
+  const txt=document.getElementById(`cp-${type}-txt`).value;
+  // derive border from bg (slightly darker)
+  const colors=getCurrentColors();
+  colors[type]={bg,bdr:txt+'55',txt};
+  applyColors(colors);
+  saveColors(colors);
+  updatePreview(type);
+  updatePaletteSel(type);
+}
+
+function applyPalette(type,idx){
+  const p=COLOR_PALETTES[type][idx];
+  const colors=getCurrentColors();
+  colors[type]={bg:p.bg,bdr:p.bdr,txt:p.txt};
+  applyColors(colors);
+  saveColors(colors);
+  updatePreview(type);
+  updatePaletteSel(type,idx);
+}
+
+function updatePaletteSel(type,selIdx=null){
+  const row=document.getElementById(`pal-${type}`);
+  if(!row)return;
+  const c=getCurrentColors()[type];
+  row.querySelectorAll(".palette-dot").forEach((dot,i)=>{
+    const p=COLOR_PALETTES[type][i];
+    const match=p.bg===c.bg&&p.txt===c.txt;
+    dot.classList.toggle("sel",selIdx!==null?i===selIdx:match);
+  });
+}
+
+function buildPalettes(){
+  const types=["work","off","absent","conge","maladie"];
+  types.forEach(type=>{
+    const row=document.getElementById(`pal-${type}`);
+    if(!row)return;
+    row.innerHTML="";
+    COLOR_PALETTES[type].forEach((p,i)=>{
+      const dot=document.createElement("div");
+      dot.className="palette-dot";
+      dot.style.background=p.bg;
+      dot.style.border=`2px solid ${p.bdr}`;
+      dot.title=p.label;
+      dot.onclick=()=>applyPalette(type,i);
+      row.appendChild(dot);
+    });
+    updatePaletteSel(type);
+  });
+}
+
+window.openColorModal=()=>{
+  buildPalettes();
+  const types=["work","off","absent","conge","maladie"];
+  types.forEach(t=>updatePreview(t));
+  document.getElementById("colorModal").classList.add("open");
+};
+window.closeColorModal=()=>document.getElementById("colorModal").classList.remove("open");
+window.resetColors=()=>{
+  applyColors(DEFAULT_COLORS);
+  saveColors(DEFAULT_COLORS);
+  const types=["work","off","absent","conge","maladie"];
+  types.forEach(t=>updatePreview(t));
+  buildPalettes();
+  try{localStorage.removeItem("opshq-colors");}catch(e){}
+};
+
+// Load saved colors on start
+loadSavedColors();
 
 document.querySelectorAll(".modal-ov").forEach(ov=>{
   ov.addEventListener("click",e=>{if(e.target===ov)ov.classList.remove("open");});
