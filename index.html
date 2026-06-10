@@ -263,7 +263,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
           </div>
           <div class="btn" onclick="openShiftTypeModal()"><i class="ti ti-settings"></i> Shifts</div>
           <div class="btn" onclick="openColorModal()" style="gap:6px"><i class="ti ti-palette"></i> Couleurs</div>
-          <div class="btn" onclick="importPhotoPlanning()" style="gap:6px;background:#fdf4ff;border-color:#e879f9;color:#a21caf" title="Importer le planning photo (15-21 juin 2026)"><i class="ti ti-photo-import"></i> Import photo</div>
           <div class="btn" onclick="copyPrevWeek()" style="gap:6px;background:var(--accbg);border-color:var(--accbdr);color:var(--acc)"><i class="ti ti-copy"></i> Copier sem. précédente</div>
           <div class="btn btn-success" onclick="exportExcel()"><i class="ti ti-table-export"></i> Excel</div>
           <div class="btn btn-danger" onclick="exportPDF()"><i class="ti ti-file-export"></i> PDF</div>
@@ -946,105 +945,7 @@ const SEED_PLANNING=[
   {agent:"Charaf Loummihi",date:"2026-06-14",val:"10:00-18:00"},
 ];
 
-// PLANNING SEMAINE PHOTO (15-21 juin 2026)
-const PHOTO_PLANNING=[
-  // Achraf Akhlij — RBT
-  {agent:"Achraf Akhlij",    date:"2026-06-15",val:"17:00-00:00"},
-  {agent:"Achraf Akhlij",    date:"2026-06-16",val:"OFF"},
-  {agent:"Achraf Akhlij",    date:"2026-06-17",val:"17:00-00:00"},
-  {agent:"Achraf Akhlij",    date:"2026-06-18",val:"18:00-01:00"},
-  {agent:"Achraf Akhlij",    date:"2026-06-19",val:"17:00-00:00"},
-  {agent:"Achraf Akhlij",    date:"2026-06-20",val:"18:00-02:00"},
-  {agent:"Achraf Akhlij",    date:"2026-06-21",val:"17:00-01:00"},
-  // Youssef Derkaoui — RBT
-  {agent:"Youssef Derkaoui", date:"2026-06-15",val:"10:00-17:00"},
-  {agent:"Youssef Derkaoui", date:"2026-06-16",val:"09:00-16:00"},
-  {agent:"Youssef Derkaoui", date:"2026-06-17",val:"OFF"},
-  {agent:"Youssef Derkaoui", date:"2026-06-18",val:"09:00-16:00"},
-  {agent:"Youssef Derkaoui", date:"2026-06-19",val:"10:00-17:00"},
-  {agent:"Youssef Derkaoui", date:"2026-06-20",val:"09:00-17:00"},
-  {agent:"Youssef Derkaoui", date:"2026-06-21",val:"10:00-18:00"},
-  // Aymane Chlifane — RBT
-  {agent:"Aymane Chlifane",  date:"2026-06-15",val:"17:00-00:00"},
-  {agent:"Aymane Chlifane",  date:"2026-06-16",val:"18:00-01:00"},
-  {agent:"Aymane Chlifane",  date:"2026-06-17",val:"17:00-00:00"},
-  {agent:"Aymane Chlifane",  date:"2026-06-18",val:"OFF"},
-  {agent:"Aymane Chlifane",  date:"2026-06-19",val:"17:00-00:00"},
-  {agent:"Aymane Chlifane",  date:"2026-06-20",val:"18:00-02:00"},
-  {agent:"Aymane Chlifane",  date:"2026-06-21",val:"17:00-01:00"},
-  // Ayoub Abssi — RBT
-  {agent:"Ayoub Abssi",      date:"2026-06-15",val:"OFF"},
-  {agent:"Ayoub Abssi",      date:"2026-06-16",val:"09:00-16:00"},
-  {agent:"Ayoub Abssi",      date:"2026-06-17",val:"10:00-17:00"},
-  {agent:"Ayoub Abssi",      date:"2026-06-18",val:"09:00-16:00"},
-  {agent:"Ayoub Abssi",      date:"2026-06-19",val:"10:00-17:00"},
-  {agent:"Ayoub Abssi",      date:"2026-06-20",val:"09:00-17:00"},
-  {agent:"Ayoub Abssi",      date:"2026-06-21",val:"10:00-18:00"},
-  // Mourad Cherradi — RBT
-  {agent:"Mourad Cherradi",  date:"2026-06-15",val:"17:00-00:00"},
-  {agent:"Mourad Cherradi",  date:"2026-06-16",val:"OFF"},
-  {agent:"Mourad Cherradi",  date:"2026-06-17",val:"17:00-00:00"},
-  {agent:"Mourad Cherradi",  date:"2026-06-18",val:"18:00-01:00"},
-  {agent:"Mourad Cherradi",  date:"2026-06-19",val:"17:00-00:00"},
-  {agent:"Mourad Cherradi",  date:"2026-06-20",val:"18:00-02:00"},
-  {agent:"Mourad Cherradi",  date:"2026-06-21",val:"17:00-01:00"},
-  // Yahya Rhallab — RBT
-  {agent:"Yahya Rhallab",    date:"2026-06-15",val:"10:00-17:00"},
-  {agent:"Yahya Rhallab",    date:"2026-06-16",val:"09:00-16:00"},
-  {agent:"Yahya Rhallab",    date:"2026-06-17",val:"OFF"},
-  {agent:"Yahya Rhallab",    date:"2026-06-18",val:"09:00-16:00"},
-  {agent:"Yahya Rhallab",    date:"2026-06-19",val:"10:00-17:00"},
-  {agent:"Yahya Rhallab",    date:"2026-06-20",val:"09:00-17:00"},
-  {agent:"Yahya Rhallab",    date:"2026-06-21",val:"10:00-18:00"},
-  // Hassan Azgoune — SAL
-  {agent:"Hassan Azgoune",   date:"2026-06-15",val:"17:00-00:00"},
-  {agent:"Hassan Azgoune",   date:"2026-06-16",val:"OFF"},
-  {agent:"Hassan Azgoune",   date:"2026-06-17",val:"17:00-00:00"},
-  {agent:"Hassan Azgoune",   date:"2026-06-18",val:"18:00-01:00"},
-  {agent:"Hassan Azgoune",   date:"2026-06-19",val:"17:00-00:00"},
-  {agent:"Hassan Azgoune",   date:"2026-06-20",val:"18:00-02:00"},
-  {agent:"Hassan Azgoune",   date:"2026-06-21",val:"17:00-01:00"},
-  // Ayoub Ben Malek — SAL
-  {agent:"Ayoub Ben Malek",  date:"2026-06-15",val:"10:00-17:00"},
-  {agent:"Ayoub Ben Malek",  date:"2026-06-16",val:"09:00-16:00"},
-  {agent:"Ayoub Ben Malek",  date:"2026-06-17",val:"OFF"},
-  {agent:"Ayoub Ben Malek",  date:"2026-06-18",val:"09:00-16:00"},
-  {agent:"Ayoub Ben Malek",  date:"2026-06-19",val:"10:00-17:00"},
-  {agent:"Ayoub Ben Malek",  date:"2026-06-20",val:"09:00-17:00"},
-  {agent:"Ayoub Ben Malek",  date:"2026-06-21",val:"10:00-18:00"},
-  // Charaf Loummihi — SAL
-  {agent:"Charaf Loummihi",  date:"2026-06-15",val:"17:00-00:00"},
-  {agent:"Charaf Loummihi",  date:"2026-06-16",val:"18:00-01:00"},
-  {agent:"Charaf Loummihi",  date:"2026-06-17",val:"17:00-00:00"},
-  {agent:"Charaf Loummihi",  date:"2026-06-18",val:"OFF"},
-  {agent:"Charaf Loummihi",  date:"2026-06-19",val:"17:00-00:00"},
-  {agent:"Charaf Loummihi",  date:"2026-06-20",val:"18:00-02:00"},
-  {agent:"Charaf Loummihi",  date:"2026-06-21",val:"17:00-01:00"},
-  // Zakariae Benali — SAL
-  {agent:"Zakariae Benali",  date:"2026-06-15",val:"OFF"},
-  {agent:"Zakariae Benali",  date:"2026-06-16",val:"09:00-16:00"},
-  {agent:"Zakariae Benali",  date:"2026-06-17",val:"10:00-17:00"},
-  {agent:"Zakariae Benali",  date:"2026-06-18",val:"09:00-16:00"},
-  {agent:"Zakariae Benali",  date:"2026-06-19",val:"10:00-17:00"},
-  {agent:"Zakariae Benali",  date:"2026-06-20",val:"09:00-17:00"},
-  {agent:"Zakariae Benali",  date:"2026-06-21",val:"10:00-18:00"},
-  // Islam Elmardi — TEM
-  {agent:"Islam Elmardi",    date:"2026-06-15",val:"17:00-00:00"},
-  {agent:"Islam Elmardi",    date:"2026-06-16",val:"OFF"},
-  {agent:"Islam Elmardi",    date:"2026-06-17",val:"17:00-00:00"},
-  {agent:"Islam Elmardi",    date:"2026-06-18",val:"18:00-01:00"},
-  {agent:"Islam Elmardi",    date:"2026-06-19",val:"17:00-00:00"},
-  {agent:"Islam Elmardi",    date:"2026-06-20",val:"18:00-02:00"},
-  {agent:"Islam Elmardi",    date:"2026-06-21",val:"17:00-01:00"},
-  // Oussama El Atrach — TEM
-  {agent:"Oussama El Atrach",date:"2026-06-15",val:"10:00-17:00"},
-  {agent:"Oussama El Atrach",date:"2026-06-16",val:"09:00-16:00"},
-  {agent:"Oussama El Atrach",date:"2026-06-17",val:"OFF"},
-  {agent:"Oussama El Atrach",date:"2026-06-18",val:"09:00-16:00"},
-  {agent:"Oussama El Atrach",date:"2026-06-19",val:"10:00-17:00"},
-  {agent:"Oussama El Atrach",date:"2026-06-20",val:"09:00-17:00"},
-  {agent:"Oussama El Atrach",date:"2026-06-21",val:"10:00-18:00"},
-];
+
 async function seedPlanningIfEmpty(){
   if(allPlanning.length>0)return;
   const promises=SEED_PLANNING.map(s=>addDoc(collection(db,"planning2"),{...s,seeded:true}));
@@ -1053,22 +954,7 @@ async function seedPlanningIfEmpty(){
   allPlanning=snap.docs.map(d=>({id:d.id,...d.data()}));
 }
 
-window.importPhotoPlanning=async()=>{
-  const photoDates=["2026-06-15","2026-06-16","2026-06-17","2026-06-18","2026-06-19","2026-06-20","2026-06-21"];
-  const existing=allPlanning.filter(p=>photoDates.includes(p.date));
-  if(existing.length>0){
-    if(!confirm("La semaine 15-21/06 contient deja "+existing.length+" shifts. Ecraser ?"))return;
-    showAlert("planAlert","Suppression...","success");
-    await Promise.all(existing.map(p=>deleteDoc(doc(db,"planning2",p.id))));
-  }
-  showAlert("planAlert","Import en cours ("+PHOTO_PLANNING.length+" shifts)...","success");
-  try{
-    await Promise.all(PHOTO_PLANNING.map(s=>addDoc(collection(db,"planning2"),{...s,imported:true,createdAt:serverTimestamp()})));
-    weekStart=new Date("2026-06-15T00:00:00");
-    await loadAll();
-    showAlert("planAlert","OK: "+PHOTO_PLANNING.length+" shifts importes. Semaine 15-21 juin 2026.","success");
-  }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
-};
+
 
 // DASHBOARD
 function renderDashboard(){
