@@ -450,6 +450,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
   </div>
 </div>
 
+<!-- MODAL ZONE -->
+<div class="modal-ov" id="zoneModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title"><i class="ti ti-map-pin" style="color:var(--acc)"></i> Changer la zone</div>
+    <i class="ti ti-x modal-x" onclick="closeZoneModal()"></i>
+    <div id="zAgentName" style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:16px;padding:10px 14px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)"></div>
+    <div class="mfield">
+      <label>Zone actuelle → Nouvelle zone</label>
+      <select id="zoneSelect" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none"></select>
+    </div>
+    <div class="mfield" id="newZoneWrap" style="display:none">
+      <label>Nom de la nouvelle zone</label>
+      <input type="text" id="newZoneName" placeholder="ex: Hassan - Centre" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none"/>
+    </div>
+    <div class="modal-acts">
+      <div class="btn" onclick="closeZoneModal()">Annuler</div>
+      <div class="btn btn-primary" onclick="saveAgentZone()"><i class="ti ti-device-floppy"></i> Enregistrer</div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL COULEURS -->
 <div class="modal-ov" id="colorModal">
   <div class="modal color-modal">
@@ -703,6 +724,14 @@ function getZoneCls(zoneName){
   const z=ZONES.find(x=>x.name===zoneName);return z?z.cls:"z-hay";
 }
 
+function getAgentZone(agName){
+  // Priority: agentSettings in Firebase → fallback to AGENTS default
+  const s=allAgentSettings.find(x=>x.agent===agName);
+  if(s&&s.zone)return s.zone;
+  const ag=AGENTS.find(x=>x.name===agName);
+  return ag?.zone||ZONES[0].name;
+}
+
 function getAgentSetting(agName){
   const s=allAgentSettings.find(x=>x.agent===agName);
   const ag=AGENTS.find(x=>x.name===agName);
@@ -843,7 +872,8 @@ function renderDashboard(){
       const d=new Date(p.date+"T12:00:00");
       return p.agent===ag.name&&d>=weekStart&&d<=addDays(weekStart,6)&&p.val&&!["OFF","ABSENT","CONGE","MALADIE",""].includes(p.val);
     });
-    const zCls=getZoneCls(ag.zone);
+    const agZone=getAgentZone(ag.name);
+    const zCls=getZoneCls(agZone);
     const tr=document.createElement("tr");
     tr.innerHTML=`
       <td><div class="ag-row">
@@ -851,7 +881,7 @@ function renderDashboard(){
         <div class="avatar">${ag.ini}</div>
         <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
       </div></td>
-      <td><span class="zone-badge ${zCls}">${ag.zone}</span></td>
+      <td><span class="zone-badge ${zCls}">${agZone}</span></td>
       <td>${hasShift?'<span class="badge badge-green">✓ Planning actif</span>':'<span class="badge badge-slate">Pas planifié</span>'}</td>
       <td>${abo?`<span class="badge badge-green">${abo.plan}</span>`:'<span class="badge badge-red">Aucun</span>'}</td>
       <td style="color:var(--t3)">${rc}</td>`;
@@ -887,7 +917,8 @@ function renderWeekPlan(){
   AGENTS.forEach(ag=>{
     const tr=document.createElement("tr");
     let totalH=0;
-    const zCls=getZoneCls(ag.zone);
+    const agZone=getAgentZone(ag.name);
+    const zCls=getZoneCls(agZone);
     const setting=getAgentSetting(ag.name);
     let cells=`<td>
       <div class="ag-row">
@@ -907,7 +938,7 @@ function renderWeekPlan(){
     const totalCls=totalH>0?"total-h":"total-h total-0";
     cells+=`<td><span class="${totalCls}">${totalH}h</span></td>`;
     cells+=`<td>${typeHtml(setting.shiftType)}</td>`;
-    cells+=`<td><span class="zone-badge ${zCls}">${ag.zone}</span></td>`;
+    cells+=`<td><span class="zone-badge ${zCls}" style="cursor:pointer" title="Cliquer pour changer la zone" onclick="openZoneModal('${ag.name}')">${agZone} <i class="ti ti-pencil" style="font-size:9px;opacity:.6"></i></span></td>`;
     tr.innerHTML=cells;
     tbody.appendChild(tr);
   });
@@ -969,12 +1000,13 @@ function renderAgents(){
   AGENTS.forEach(ag=>{
     const rc=allRapports.filter(r=>r.agentName===ag.name).length;
     const abo=allAbos.find(a=>a.agent===ag.name);
-    const zCls=getZoneCls(ag.zone);
+    const agZone=getAgentZone(ag.name);
+    const zCls=getZoneCls(agZone);
     const tr=document.createElement("tr");
     tr.innerHTML=`
       <td><div class="ag-row"><div class="avatar">${ag.ini}</div>
         <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span></div></td>
-      <td><span class="zone-badge ${zCls}">${ag.zone}</span></td>
+      <td><span class="zone-badge ${zCls}">${agZone}</span></td>
       <td style="color:var(--t3)">${rc}</td>
       <td>${abo?`<span class="badge badge-green">${abo.plan}</span>`:'<span class="badge badge-red">Aucun</span>'}</td>`;
     tb.appendChild(tr);
@@ -1189,6 +1221,73 @@ function showAlert(id,msg,type){
   el.className=`alert alert-${type}`;el.textContent=msg;el.style.display="block";
   setTimeout(()=>el.style.display="none",3500);
 }
+
+// ── ZONE MODAL ──
+let zCurrentAgent=null;
+
+window.openZoneModal=(agentName)=>{
+  zCurrentAgent=agentName;
+  const curZone=getAgentZone(agentName);
+  document.getElementById("zAgentName").innerHTML=
+    `<i class="ti ti-user" style="margin-right:6px;color:var(--acc)"></i>${agentName} &nbsp;·&nbsp; Zone actuelle : <strong>${curZone}</strong>`;
+
+  const sel=document.getElementById("zoneSelect");
+  sel.innerHTML="";
+  // Add all existing zones
+  ZONES.forEach(z=>{
+    const o=document.createElement("option");
+    o.value=z.name;o.textContent=z.name;
+    if(z.name===curZone)o.selected=true;
+    sel.appendChild(o);
+  });
+  // Option to add new zone
+  const oNew=document.createElement("option");
+  oNew.value="__new__";oNew.textContent="➕ Ajouter une nouvelle zone...";
+  sel.appendChild(oNew);
+
+  sel.onchange=()=>{
+    document.getElementById("newZoneWrap").style.display=sel.value==="__new__"?"block":"none";
+  };
+  document.getElementById("newZoneWrap").style.display="none";
+  document.getElementById("newZoneName").value="";
+  document.getElementById("zoneModal").classList.add("open");
+};
+
+window.closeZoneModal=()=>document.getElementById("zoneModal").classList.remove("open");
+
+window.saveAgentZone=async()=>{
+  if(!zCurrentAgent)return;
+  let newZone=document.getElementById("zoneSelect").value;
+  if(newZone==="__new__"){
+    newZone=document.getElementById("newZoneName").value.trim();
+    if(!newZone){document.getElementById("newZoneName").focus();return;}
+    // Add to ZONES array if not already there
+    if(!ZONES.find(z=>z.name===newZone)){
+      // Generate a unique CSS class
+      const cls="z-custom-"+newZone.toLowerCase().replace(/[^a-z0-9]/g,"-").slice(0,12);
+      ZONES.push({name:newZone,cls});
+      // Inject CSS for new zone
+      const style=document.createElement("style");
+      style.textContent=`.${cls}{background:#f0f4f8;color:#334155;border:1px solid #94a3b8}`;
+      document.head.appendChild(style);
+    }
+  }
+  // Save to Firebase agentSettings
+  const existing=allAgentSettings.find(s=>s.agent===zCurrentAgent);
+  try{
+    if(existing){
+      await updateDoc(doc(db,"agentSettings",existing.id),{agent:zCurrentAgent,zone:newZone});
+      existing.zone=newZone;
+    }else{
+      const setting=getAgentSetting(zCurrentAgent);
+      const ref=await addDoc(collection(db,"agentSettings"),{agent:zCurrentAgent,zone:newZone,shiftType:setting.shiftType});
+      allAgentSettings.push({id:ref.id,agent:zCurrentAgent,zone:newZone,shiftType:setting.shiftType});
+    }
+    closeZoneModal();
+    showAlert("planAlert",`✅ Zone de ${zCurrentAgent} mise à jour : ${newZone}`,"success");
+    await loadAll();
+  }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
+};
 
 // ── COLOR SYSTEM ──
 const COLOR_PALETTES={
