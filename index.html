@@ -600,18 +600,18 @@ const ZONES=[
 ];
 
 const AGENTS=[
-  {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad",             shiftType:"fix_nuit",  horaire:"18:00-01:00"},
-  {name:"Aymane Chlifane",  ini:"AC",  zone:"Hay Riad",             shiftType:"fix_jour",  horaire:"10:00-17:00"},
-  {name:"Yahya Rhallab",    ini:"YR",  zone:"Agdal - Soussi",       shiftType:"fix_nuit",  horaire:"18:00-01:00"},
-  {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi",       shiftType:"fix_jour",  horaire:"10:00-17:00"},
-  {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath", shiftType:"fix_jour",  horaire:"10:00-17:00"},
-  {name:"Islam Elmardi",    ini:"IE",  zone:"Carrousel - Hay Fath", shiftType:"fix_nuit",  horaire:"18:00-01:00"},
-  {name:"Ayoub Abssi",      ini:"ABS", zone:"Temara",               shiftType:"fix_jour",  horaire:"10:00-17:00"},
-  {name:"Mourad Cherradi",  ini:"MC",  zone:"Temara",               shiftType:"fix_nuit",  horaire:"18:00-01:00"},
-  {name:"Ayoub Ben Malek",  ini:"ABM", zone:"Salé - Medina",        shiftType:"fix_nuit",  horaire:"18:00-01:00"},
-  {name:"Hassan Azgoune",   ini:"HA",  zone:"Salé - Medina",        shiftType:"fix_jour",  horaire:"09:00-16:00"},
-  {name:"Zakariae Benali",  ini:"ZB",  zone:"Salé - Medina",        shiftType:"fix_nuit",  horaire:"18:00-01:00"},
-  {name:"Charaf Loummihi",  ini:"CL",  zone:"Salé - Medina",        shiftType:"variable",  horaire:""},
+  {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad",             shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00"},
+  {name:"Aymane Chlifane",  ini:"AC",  zone:"Hay Riad",             shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00"},
+  {name:"Yahya Rhallab",    ini:"YR",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00"},
+  {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00"},
+  {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath", shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00"},
+  {name:"Islam Elmardi",    ini:"IE",  zone:"Carrousel - Hay Fath", shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00"},
+  {name:"Ayoub Abssi",      ini:"ABS", zone:"Temara",               shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00"},
+  {name:"Mourad Cherradi",  ini:"MC",  zone:"Temara",               shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00"},
+  {name:"Ayoub Ben Malek",  ini:"ABM", zone:"Salé - Medina",        shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00"},
+  {name:"Hassan Azgoune",   ini:"HA",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"09:00-16:00", horaireB:"18:00-01:00"},
+  {name:"Zakariae Benali",  ini:"ZB",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00"},
+  {name:"Charaf Loummihi",  ini:"CL",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00"},
 ];
 
 const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
@@ -697,7 +697,23 @@ async function autoFillMissingWeeks(){
   const today=new Date();
   const maxMonday=addDays(getMonday(today),8*7);
 
-  // Only fill weeks that have ZERO shifts - never touch existing data
+  function swapVal(agentName, val, weekIdx){
+    // If OFF/ABSENT/CONGE/MALADIE — keep as is
+    if(!val||["OFF","ABSENT","CONGE","MALADIE"].includes(val))return val;
+    const ag=AGENTS.find(x=>x.name===agentName);
+    if(!ag||ag.shiftType!=="variable")return val;
+    // Week 0 (seed) = horaireA, week 1 = horaireB, week 2 = horaireA...
+    // Find which horaire this val matches
+    const isA=val===ag.horaireA;
+    const isB=val===ag.horaireB;
+    if(!isA&&!isB)return val; // custom value — keep
+    // Odd week → swap
+    if(weekIdx%2===1){
+      return isA?ag.horaireB:ag.horaireA;
+    }
+    return val; // even week = same as seed
+  }
+
   let monday=addDays(seedMonday,7);
   while(monday<=maxMonday){
     const dates=Array.from({length:7},(_,i)=>iso(addDays(monday,i)));
@@ -705,10 +721,12 @@ async function autoFillMissingWeeks(){
     if(weekShifts.length===0){
       const prevDates=Array.from({length:7},(_,i)=>iso(addDays(monday,-7+i)));
       const prevShifts=allPlanning.filter(p=>prevDates.includes(p.date));
+      const weekIdx=Math.round((monday-seedMonday)/(7*24*3600*1000));
       if(prevShifts.length>0){
         const newShifts=prevShifts.map(p=>{
           const dayIdx=prevDates.indexOf(p.date);
-          return{agent:p.agent,date:dates[dayIdx],val:p.val,auto:true};
+          const newVal=swapVal(p.agent,p.val,weekIdx);
+          return{agent:p.agent,date:dates[dayIdx],val:newVal,auto:true};
         });
         const refs=await Promise.all(newShifts.map(s=>addDoc(collection(db,"planning2"),{...s,createdAt:serverTimestamp()})));
         refs.forEach((ref,i)=>allPlanning.push({id:ref.id,...newShifts[i]}));
