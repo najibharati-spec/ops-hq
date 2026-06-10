@@ -696,22 +696,29 @@ async function autoFillMissingWeeks(){
   const today=new Date();
   const seedMonday=new Date("2026-06-08T00:00:00");
   const maxMonday=addDays(getMonday(today),8*7);
+  const expectedCount=AGENTS.length*7; // 12 agents × 7 days = 84
 
-  // First ensure seed week exists in allPlanning (in memory at least)
+  // Ensure seed week is complete in Firebase
   const seedDates=Array.from({length:7},(_,i)=>iso(addDays(seedMonday,i)));
-  const hasSeedInMemory=allPlanning.some(p=>seedDates.includes(p.date));
-  if(!hasSeedInMemory){
-    // Add SEED to Firebase and memory
-    const added=await Promise.all(SEED_PLANNING.map(s=>addDoc(collection(db,"planning2"),{...s,seeded:true,createdAt:serverTimestamp()})));
-    added.forEach((ref,i)=>allPlanning.push({id:ref.id,...SEED_PLANNING[i]}));
+  const seedInDB=allPlanning.filter(p=>seedDates.includes(p.date));
+  if(seedInDB.length<expectedCount){
+    // Delete incomplete seed and re-add
+    await Promise.all(seedInDB.map(p=>deleteDoc(doc(db,"planning2",p.id))));
+    seedInDB.forEach(p=>{const idx=allPlanning.findIndex(x=>x.id===p.id);if(idx>-1)allPlanning.splice(idx,1);});
+    const refs=await Promise.all(SEED_PLANNING.map(s=>addDoc(collection(db,"planning2"),{...s,seeded:true,createdAt:serverTimestamp()})));
+    refs.forEach((ref,i)=>allPlanning.push({id:ref.id,...SEED_PLANNING[i]}));
   }
 
-  // Now fill all weeks from seed+1 up to maxMonday
+  // Fill all subsequent weeks
   let monday=addDays(seedMonday,7);
   while(monday<=maxMonday){
     const dates=Array.from({length:7},(_,i)=>iso(addDays(monday,i)));
-    const hasData=allPlanning.some(p=>dates.includes(p.date));
-    if(!hasData){
+    const weekShifts=allPlanning.filter(p=>dates.includes(p.date));
+    if(weekShifts.length<expectedCount){
+      // Delete partial week if any
+      await Promise.all(weekShifts.map(p=>deleteDoc(doc(db,"planning2",p.id))));
+      weekShifts.forEach(p=>{const idx=allPlanning.findIndex(x=>x.id===p.id);if(idx>-1)allPlanning.splice(idx,1);});
+      // Copy from previous week
       const prevDates=Array.from({length:7},(_,i)=>iso(addDays(monday,-7+i)));
       const prevShifts=allPlanning.filter(p=>prevDates.includes(p.date));
       if(prevShifts.length>0){
