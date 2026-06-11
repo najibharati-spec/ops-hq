@@ -1299,22 +1299,80 @@ window.saveShiftTypes=async()=>{
 // EXPORT EXCEL
 window.exportExcel=()=>{
   const weekLabel=document.getElementById("weekRange").textContent;
-  const headers=["Agent","Zone","Type",...JOURS.map((j,i)=>`${j} ${fmt(addDays(weekStart,i))}`),"Total H"];
+  const jours=["LUN","MAR","MER","JEU","VEN","SAM","DIM"];
+  const headers=["AGENT",...jours.map((j,i)=>`${j} ${fmt(addDays(weekStart,i))}`),"ZONE"];
   const rows=AGENTS.map(ag=>{
-    const setting=getAgentSetting(ag.name);
-    const typeLabel=setting.shiftType==="fix_jour"?"Fix Jour":setting.shiftType==="fix_nuit"?"Fix Nuit":"Variable";
-    const row=[ag.name,ag.zone,typeLabel];
-    let totalH=0;
+    const agZone=FIXED_ZONE_AGENTS.includes(ag.name)?getAgentZone(ag.name):(getAutoZone(ag.name,weekStart)||getAgentZone(ag.name));
+    const row=[ag.name];
     for(let d=0;d<7;d++){
       const dateISO=iso(addDays(weekStart,d));
       const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
-      const v=ps?.val||"";
-      totalH+=calcH(v);row.push(v||"—");
+      row.push(ps?.val||"");
     }
-    row.push(totalH+"h");return row;
+    row.push(agZone);
+    return row;
   });
+
   const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
-  ws["!cols"]=[{wch:22},{wch:20},{wch:10},...Array(7).fill({wch:14}),{wch:8}];
+
+  // Column widths
+  ws["!cols"]=[{wch:22},...Array(7).fill({wch:14}),{wch:22}];
+
+  // Header style — blue background like photo
+  const headerStyle={
+    font:{bold:true,color:{rgb:"FFFFFF"},sz:11},
+    fill:{fgColor:{rgb:"1E3A8A"}},
+    alignment:{horizontal:"center",vertical:"center"},
+    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
+  };
+  // OFF style — orange
+  const offStyle={
+    font:{bold:true,color:{rgb:"EA580C"}},
+    fill:{fgColor:{rgb:"FED7AA"}},
+    alignment:{horizontal:"center",vertical:"center"},
+    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
+  };
+  // Normal shift style
+  const shiftStyle={
+    alignment:{horizontal:"center",vertical:"center"},
+    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
+  };
+  // Agent name style
+  const agentStyle={
+    font:{bold:true},
+    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
+  };
+  // Zone style — dark
+  const zoneStyle={
+    font:{bold:true,color:{rgb:"FFFFFF"}},
+    fill:{fgColor:{rgb:"1E293B"}},
+    alignment:{horizontal:"center",vertical:"center"},
+    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
+  };
+
+  // Apply styles to header row
+  const range=XLSX.utils.decode_range(ws["!ref"]);
+  for(let c=range.s.c;c<=range.e.c;c++){
+    const cell=XLSX.utils.encode_cell({r:0,c});
+    if(ws[cell])ws[cell].s=headerStyle;
+  }
+
+  // Apply styles to data rows
+  for(let r=1;r<=rows.length;r++){
+    for(let c=0;c<=range.e.c;c++){
+      const cell=XLSX.utils.encode_cell({r,c});
+      if(!ws[cell])continue;
+      const val=ws[cell].v;
+      if(c===0)ws[cell].s=agentStyle;
+      else if(c===range.e.c)ws[cell].s=zoneStyle;
+      else if(val==="OFF")ws[cell].s=offStyle;
+      else ws[cell].s=shiftStyle;
+    }
+  }
+
+  // Row height
+  ws["!rows"]=[{hpt:22},...Array(rows.length).fill({hpt:20})];
+
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,`Planning ${weekLabel}`);
   XLSX.writeFile(wb,`Planning_${weekLabel.replace(" — ","-")}.xlsx`);
