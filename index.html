@@ -694,11 +694,13 @@ async function loadAll(){
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
 
     // Auto-reset once: check Firebase flag
-    const flagSnap=await getDoc(doc(db,"config","planningReset_v10"));
+    const flagSnap=await getDoc(doc(db,"config","planningReset_v11"));
     if(!flagSnap.exists()){
-      // Delete ALL existing planning
+      // Fetch ALL planning docs fresh and delete them
       const allSnap=await getDocs(collection(db,"planning2"));
-      await Promise.all(allSnap.docs.map(d=>deleteDoc(doc(db,"planning2",d.id))));
+      const deleteBatches=[];
+      allSnap.docs.forEach(d=>deleteBatches.push(deleteDoc(doc(db,"planning2",d.id))));
+      await Promise.all(deleteBatches);
       allPlanning=[];
 
       const seedMonday=new Date("2026-06-08T00:00:00");
@@ -739,7 +741,7 @@ async function loadAll(){
         refs.forEach((ref,j)=>allPlanning.push({id:ref.id,...batch[j]}));
       }
 
-      await setDoc(doc(db,"config","planningReset_v10"),{done:true,at:serverTimestamp()});
+      await setDoc(doc(db,"config","planningReset_v11"),{done:true,at:serverTimestamp()});
     }
     renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
     const nonLus=allRapports.filter(r=>!r.lu).length;
@@ -827,9 +829,9 @@ function getAgentZone(agName){
 }
 
 function getAgentSetting(agName){
-  const s=allAgentSettings.find(x=>x.agent===agName);
   const ag=AGENTS.find(x=>x.name===agName);
-  return s||{shiftType:ag?.shiftType||"variable",horaire:ag?.horaire||""};
+  // Always use shiftType from AGENTS array (source of truth)
+  return {shiftType:ag?.shiftType||"variable",horaire:ag?.horaireA||""};
 }
 
 function getVarShiftForWeek(agentName, mondayDate){
