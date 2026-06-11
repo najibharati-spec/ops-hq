@@ -694,7 +694,7 @@ async function loadAll(){
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
 
     // Auto-reset once: check Firebase flag
-    const flagSnap=await getDoc(doc(db,"config","planningReset_v9"));
+    const flagSnap=await getDoc(doc(db,"config","planningReset_v10"));
     if(!flagSnap.exists()){
       // Delete ALL existing planning
       const allSnap=await getDocs(collection(db,"planning2"));
@@ -705,15 +705,29 @@ async function loadAll(){
 
       // Build ALL 52 weeks at once
       const allShifts=[];
-      // Week 0 = SEED
+
+      function getVal(ag, weekIdx, dayOfWeek){
+        // dayOfWeek: 0=Lun, 1=Mar, 2=Mer, 3=Jeu, 4=Ven, 5=Sam, 6=Dim
+        if(dayOfWeek===ag.offDay)return "OFF";
+        const isNuit=weekIdx%2===0?ag.horaireA.startsWith("18"):ag.horaireB.startsWith("18");
+        const isWeekend=(dayOfWeek===4||dayOfWeek===5); // Ven ou Sam
+        if(isNuit) return isWeekend?"18:00-02:00":"18:00-01:00";
+        else{
+          // JOUR
+          const h=weekIdx%2===0?ag.horaireA:ag.horaireB;
+          if(h.startsWith("09")) return isWeekend?"09:00-17:00":"09:00-16:00";
+          return isWeekend?"10:00-18:00":"10:00-17:00";
+        }
+      }
+
+      // Week 0 = SEED (already has correct values)
       SEED_PLANNING.forEach(s=>allShifts.push({...s,seeded:true}));
       // Weeks 1-51
       for(let w=1;w<=51;w++){
         const monday=addDays(seedMonday,w*7);
         AGENTS.forEach(ag=>{
-          const horaire=w%2===0?ag.horaireA:ag.horaireB;
           for(let d=0;d<7;d++){
-            allShifts.push({agent:ag.name,date:iso(addDays(monday,d)),val:d===ag.offDay?"OFF":horaire,auto:true});
+            allShifts.push({agent:ag.name,date:iso(addDays(monday,d)),val:getVal(ag,w,d),auto:true});
           }
         });
       }
@@ -725,7 +739,7 @@ async function loadAll(){
         refs.forEach((ref,j)=>allPlanning.push({id:ref.id,...batch[j]}));
       }
 
-      await setDoc(doc(db,"config","planningReset_v9"),{done:true,at:serverTimestamp()});
+      await setDoc(doc(db,"config","planningReset_v10"),{done:true,at:serverTimestamp()});
     }
     renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
     const nonLus=allRapports.filter(r=>!r.lu).length;
@@ -740,13 +754,19 @@ async function autoFillMissingWeeks(){
   const maxMonday=addDays(seedMonday,52*7);
 
   function buildWeekForAgent(ag,monday,weekIdx){
-    const horaire=weekIdx%2===0?ag.horaireA:ag.horaireB;
-    return Array.from({length:7},(_,d)=>({
-      agent:ag.name,
-      date:iso(addDays(monday,d)),
-      val:d===ag.offDay?"OFF":horaire,
-      auto:true
-    }));
+    return Array.from({length:7},(_,d)=>{
+      if(d===ag.offDay)return{agent:ag.name,date:iso(addDays(monday,d)),val:"OFF",auto:true};
+      const isNuit=weekIdx%2===0?ag.horaireA.startsWith("18"):ag.horaireB.startsWith("18");
+      const isWeekend=(d===4||d===5); // Ven ou Sam
+      let val;
+      if(isNuit){val=isWeekend?"18:00-02:00":"18:00-01:00";}
+      else{
+        const h=weekIdx%2===0?ag.horaireA:ag.horaireB;
+        if(h.startsWith("09"))val=isWeekend?"09:00-17:00":"09:00-16:00";
+        else val=isWeekend?"10:00-18:00":"10:00-17:00";
+      }
+      return{agent:ag.name,date:iso(addDays(monday,d)),val,auto:true};
+    });
   }
 
   let monday=addDays(seedMonday,7);
