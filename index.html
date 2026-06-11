@@ -694,7 +694,7 @@ async function loadAll(){
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
 
     // Auto-reset once: check Firebase flag
-    const flagSnap=await getDoc(doc(db,"config","planningReset_v11"));
+    const flagSnap=await getDoc(doc(db,"config","planningReset_v12"));
     if(!flagSnap.exists()){
       // Fetch ALL planning docs fresh and delete them
       const allSnap=await getDocs(collection(db,"planning2"));
@@ -741,7 +741,8 @@ async function loadAll(){
         refs.forEach((ref,j)=>allPlanning.push({id:ref.id,...batch[j]}));
       }
 
-      await setDoc(doc(db,"config","planningReset_v11"),{done:true,at:serverTimestamp()});
+      await setDoc(doc(db,"config","planningReset_v12"),{done:true,at:serverTimestamp()});
+      console.log("✅ RESET v12 DONE - "+allPlanning.length+" shifts created");
     }
     renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
     const nonLus=allRapports.filter(r=>!r.lu).length;
@@ -1097,7 +1098,7 @@ window.resetPlanning=async()=>{
     }
 
     // 5. Save flag so auto-reset doesn't run again
-    await setDoc(doc(db,"config","planningReset_v11"),{done:true,at:serverTimestamp()});
+    await setDoc(doc(db,"config","planningReset_v12"),{done:true,at:serverTimestamp()});
 
     weekStart=new Date("2026-06-08T00:00:00");
     await loadAll();
