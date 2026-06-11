@@ -685,16 +685,39 @@ async function loadAll(){
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
 
     // Auto-reset once: check Firebase flag
-    const flagSnap=await getDoc(doc(db,"config","planningReset_v4"));
+    const flagSnap=await getDoc(doc(db,"config","planningReset_v7"));
     if(!flagSnap.exists()){
-      await Promise.all(allPlanning.map(p=>deleteDoc(doc(db,"planning2",p.id))));
+      // Delete ALL existing planning
+      const allSnap=await getDocs(collection(db,"planning2"));
+      await Promise.all(allSnap.docs.map(d=>deleteDoc(doc(db,"planning2",d.id))));
       allPlanning=[];
-      const refs=await Promise.all(SEED_PLANNING.map(s=>addDoc(collection(db,"planning2"),{...s,seeded:true,createdAt:serverTimestamp()})));
-      refs.forEach((ref,i)=>allPlanning.push({id:ref.id,...SEED_PLANNING[i]}));
-      await setDoc(doc(db,"config","planningReset_v4"),{done:true,at:serverTimestamp()});
-    }
 
-    await autoFillMissingWeeks();
+      const seedMonday=new Date("2026-06-08T00:00:00");
+
+      // Build ALL 52 weeks at once
+      const allShifts=[];
+      // Week 0 = SEED
+      SEED_PLANNING.forEach(s=>allShifts.push({...s,seeded:true}));
+      // Weeks 1-51
+      for(let w=1;w<=51;w++){
+        const monday=addDays(seedMonday,w*7);
+        AGENTS.forEach(ag=>{
+          const horaire=w%2===0?ag.horaireA:ag.horaireB;
+          for(let d=0;d<7;d++){
+            allShifts.push({agent:ag.name,date:iso(addDays(monday,d)),val:d===ag.offDay?"OFF":horaire,auto:true});
+          }
+        });
+      }
+
+      // Insert in batches of 200
+      for(let i=0;i<allShifts.length;i+=200){
+        const batch=allShifts.slice(i,i+200);
+        const refs=await Promise.all(batch.map(s=>addDoc(collection(db,"planning2"),{...s,createdAt:serverTimestamp()})));
+        refs.forEach((ref,j)=>allPlanning.push({id:ref.id,...batch[j]}));
+      }
+
+      await setDoc(doc(db,"config","planningReset_v7"),{done:true,at:serverTimestamp()});
+    }
     renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
     const nonLus=allRapports.filter(r=>!r.lu).length;
     const nb=document.getElementById("navBadgeRap");
