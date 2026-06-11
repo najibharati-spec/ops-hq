@@ -584,7 +584,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import{getFirestore,collection,getDocs,addDoc,updateDoc,deleteDoc,doc,getDoc,query,orderBy,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getFirestore,collection,getDocs,addDoc,updateDoc,deleteDoc,doc,getDoc,setDoc,query,orderBy,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const FC={apiKey:"AIzaSyDdXwRWBvTJ9RffnY16W_r0dHE1WOJj1Rs",authDomain:"ops-hq-cc38c.firebaseapp.com",projectId:"ops-hq-cc38c",storageBucket:"ops-hq-cc38c.firebasestorage.app",messagingSenderId:"909070102010",appId:"1:909070102010:web:5abb7857fe2a557ed68843"};
 const app=initializeApp(FC);
@@ -683,7 +683,18 @@ async function loadAll(){
     allAbos=as.docs.map(d=>({id:d.id,...d.data()}));
     allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
-    await seedPlanningIfEmpty();
+
+    // Auto-reset once: check Firebase flag
+    const flagSnap=await getDoc(doc(db,"config","planningReset_v2"));
+    if(!flagSnap.exists()){
+      // First time: delete all planning and rebuild from SEED
+      await Promise.all(allPlanning.map(p=>deleteDoc(doc(db,"planning2",p.id))));
+      allPlanning=[];
+      const refs=await Promise.all(SEED_PLANNING.map(s=>addDoc(collection(db,"planning2"),{...s,seeded:true,createdAt:serverTimestamp()})));
+      refs.forEach((ref,i)=>allPlanning.push({id:ref.id,...SEED_PLANNING[i]}));
+      await setDoc(doc(db,"config","planningReset_v2"),{done:true,at:serverTimestamp()});
+    }
+
     await autoFillMissingWeeks();
     renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
     const nonLus=allRapports.filter(r=>!r.lu).length;
