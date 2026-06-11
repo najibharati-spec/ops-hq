@@ -600,18 +600,21 @@ const ZONES=[
 ];
 
 const AGENTS=[
+  // VAR — يتبدلو كل أسبوع
   {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad",             shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:1},
   {name:"Aymane Chlifane",  ini:"AC",  zone:"Hay Riad",             shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0},
-  {name:"Yahya Rhallab",    ini:"YR",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:3},
   {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0},
-  {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath", shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:1},
-  {name:"Islam Elmardi",    ini:"IE",  zone:"Carrousel - Hay Fath", shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:2},
-  {name:"Ayoub Abssi",      ini:"ABS", zone:"Temara",               shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:2},
-  {name:"Mourad Cherradi",  ini:"MC",  zone:"Temara",               shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:3},
-  {name:"Ayoub Ben Malek",  ini:"ABM", zone:"Salé - Medina",        shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:3},
-  {name:"Hassan Azgoune",   ini:"HA",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"09:00-16:00", horaireB:"18:00-01:00", offDay:0},
-  {name:"Zakariae Benali",  ini:"ZB",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:1},
   {name:"Charaf Loummihi",  ini:"CL",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:2},
+  // NUIT fix — ما يتبدلوش
+  {name:"Yahya Rhallab",    ini:"YR",  zone:"Agdal - Soussi",       shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:3},
+  {name:"Islam Elmardi",    ini:"IE",  zone:"Carrousel - Hay Fath", shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:2},
+  {name:"Mourad Cherradi",  ini:"MC",  zone:"Temara",               shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:3},
+  {name:"Ayoub Ben Malek",  ini:"ABM", zone:"Salé - Medina",        shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:3},
+  {name:"Zakariae Benali",  ini:"ZB",  zone:"Salé - Medina",        shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:1},
+  // JOUR fix — ما يتبدلوش
+  {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath", shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:1},
+  {name:"Ayoub Abssi",      ini:"ABS", zone:"Temara",               shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:2},
+  {name:"Hassan Azgoune",   ini:"HA",  zone:"Salé - Medina",        shiftType:"fix_jour", horaireA:"09:00-16:00", horaireB:"09:00-16:00", offDay:0},
 ];
 
 const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
@@ -685,7 +688,7 @@ async function loadAll(){
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
 
     // Auto-reset once: check Firebase flag
-    const flagSnap=await getDoc(doc(db,"config","planningReset_v7"));
+    const flagSnap=await getDoc(doc(db,"config","planningReset_v8"));
     if(!flagSnap.exists()){
       // Delete ALL existing planning
       const allSnap=await getDocs(collection(db,"planning2"));
@@ -716,7 +719,7 @@ async function loadAll(){
         refs.forEach((ref,j)=>allPlanning.push({id:ref.id,...batch[j]}));
       }
 
-      await setDoc(doc(db,"config","planningReset_v7"),{done:true,at:serverTimestamp()});
+      await setDoc(doc(db,"config","planningReset_v8"),{done:true,at:serverTimestamp()});
     }
     renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
     const nonLus=allRapports.filter(r=>!r.lu).length;
@@ -819,9 +822,8 @@ function typeHtml(shType){
 }
 
 // PLANNING SEED DATA (semaine 08/06/2026)
-// PLANNING SEED DATA (semaine 08/06/2026)
 const SEED_PLANNING=[
-  // Youssef Derkaoui — Fix Nuit
+  // Youssef Derkaoui — VAR (semaine A = nuit)
   {agent:"Youssef Derkaoui",date:"2026-06-08",val:"18:00-01:00"},
   {agent:"Youssef Derkaoui",date:"2026-06-09",val:"OFF"},
   {agent:"Youssef Derkaoui",date:"2026-06-10",val:"18:00-01:00"},
@@ -829,7 +831,7 @@ const SEED_PLANNING=[
   {agent:"Youssef Derkaoui",date:"2026-06-12",val:"18:00-02:00"},
   {agent:"Youssef Derkaoui",date:"2026-06-13",val:"18:00-02:00"},
   {agent:"Youssef Derkaoui",date:"2026-06-14",val:"18:00-01:00"},
-  // Aymane Chlifane — Fix Jour
+  // Aymane Chlifane — VAR (semaine A = jour)
   {agent:"Aymane Chlifane",date:"2026-06-08",val:"OFF"},
   {agent:"Aymane Chlifane",date:"2026-06-09",val:"10:00-17:00"},
   {agent:"Aymane Chlifane",date:"2026-06-10",val:"10:00-17:00"},
@@ -837,15 +839,7 @@ const SEED_PLANNING=[
   {agent:"Aymane Chlifane",date:"2026-06-12",val:"09:00-17:00"},
   {agent:"Aymane Chlifane",date:"2026-06-13",val:"10:00-18:00"},
   {agent:"Aymane Chlifane",date:"2026-06-14",val:"10:00-17:00"},
-  // Yahya Rhallab — Fix Nuit
-  {agent:"Yahya Rhallab",date:"2026-06-08",val:"18:00-01:00"},
-  {agent:"Yahya Rhallab",date:"2026-06-09",val:"18:00-01:00"},
-  {agent:"Yahya Rhallab",date:"2026-06-10",val:"18:00-01:00"},
-  {agent:"Yahya Rhallab",date:"2026-06-11",val:"OFF"},
-  {agent:"Yahya Rhallab",date:"2026-06-12",val:"18:30-02:30"},
-  {agent:"Yahya Rhallab",date:"2026-06-13",val:"18:00-02:00"},
-  {agent:"Yahya Rhallab",date:"2026-06-14",val:"18:00-01:00"},
-  // Achraf Akhlij — Fix Jour
+  // Achraf Akhlij — VAR (semaine A = jour)
   {agent:"Achraf Akhlij",date:"2026-06-08",val:"OFF"},
   {agent:"Achraf Akhlij",date:"2026-06-09",val:"10:00-17:00"},
   {agent:"Achraf Akhlij",date:"2026-06-10",val:"09:00-17:00"},
@@ -853,63 +847,7 @@ const SEED_PLANNING=[
   {agent:"Achraf Akhlij",date:"2026-06-12",val:"09:00-17:00"},
   {agent:"Achraf Akhlij",date:"2026-06-13",val:"10:00-17:00"},
   {agent:"Achraf Akhlij",date:"2026-06-14",val:"10:00-17:00"},
-  // Oussama El Atrach — Fix Jour
-  {agent:"Oussama El Atrach",date:"2026-06-08",val:"10:00-17:00"},
-  {agent:"Oussama El Atrach",date:"2026-06-09",val:"OFF"},
-  {agent:"Oussama El Atrach",date:"2026-06-10",val:"10:00-17:00"},
-  {agent:"Oussama El Atrach",date:"2026-06-11",val:"10:00-17:00"},
-  {agent:"Oussama El Atrach",date:"2026-06-12",val:"09:00-17:00"},
-  {agent:"Oussama El Atrach",date:"2026-06-13",val:"10:00-18:00"},
-  {agent:"Oussama El Atrach",date:"2026-06-14",val:"10:00-17:00"},
-  // Islam Elmardi — Fix Nuit
-  {agent:"Islam Elmardi",date:"2026-06-08",val:"18:00-01:00"},
-  {agent:"Islam Elmardi",date:"2026-06-09",val:"18:00-01:00"},
-  {agent:"Islam Elmardi",date:"2026-06-10",val:"OFF"},
-  {agent:"Islam Elmardi",date:"2026-06-11",val:"18:00-01:00"},
-  {agent:"Islam Elmardi",date:"2026-06-12",val:"18:30-02:30"},
-  {agent:"Islam Elmardi",date:"2026-06-13",val:"18:30-02:30"},
-  {agent:"Islam Elmardi",date:"2026-06-14",val:"18:00-01:00"},
-  // Ayoub Abssi — Fix Jour
-  {agent:"Ayoub Abssi",date:"2026-06-08",val:"10:00-17:00"},
-  {agent:"Ayoub Abssi",date:"2026-06-09",val:"10:00-17:00"},
-  {agent:"Ayoub Abssi",date:"2026-06-10",val:"OFF"},
-  {agent:"Ayoub Abssi",date:"2026-06-11",val:"10:00-17:00"},
-  {agent:"Ayoub Abssi",date:"2026-06-12",val:"10:00-17:00"},
-  {agent:"Ayoub Abssi",date:"2026-06-13",val:"10:00-18:00"},
-  {agent:"Ayoub Abssi",date:"2026-06-14",val:"10:00-18:00"},
-  // Mourad Cherradi — Fix Nuit
-  {agent:"Mourad Cherradi",date:"2026-06-08",val:"18:00-01:00"},
-  {agent:"Mourad Cherradi",date:"2026-06-09",val:"18:00-01:00"},
-  {agent:"Mourad Cherradi",date:"2026-06-10",val:"18:00-01:00"},
-  {agent:"Mourad Cherradi",date:"2026-06-11",val:"OFF"},
-  {agent:"Mourad Cherradi",date:"2026-06-12",val:"18:30-02:30"},
-  {agent:"Mourad Cherradi",date:"2026-06-13",val:"18:30-02:30"},
-  {agent:"Mourad Cherradi",date:"2026-06-14",val:"18:00-01:00"},
-  // Ayoub Ben Malek — Fix Nuit
-  {agent:"Ayoub Ben Malek",date:"2026-06-08",val:"18:00-01:00"},
-  {agent:"Ayoub Ben Malek",date:"2026-06-09",val:"18:00-01:00"},
-  {agent:"Ayoub Ben Malek",date:"2026-06-10",val:"18:00-01:00"},
-  {agent:"Ayoub Ben Malek",date:"2026-06-11",val:"OFF"},
-  {agent:"Ayoub Ben Malek",date:"2026-06-12",val:"18:00-02:00"},
-  {agent:"Ayoub Ben Malek",date:"2026-06-13",val:"18:00-02:00"},
-  {agent:"Ayoub Ben Malek",date:"2026-06-14",val:"18:00-01:00"},
-  // Hassan Azgoune — Fix Jour
-  {agent:"Hassan Azgoune",date:"2026-06-08",val:"OFF"},
-  {agent:"Hassan Azgoune",date:"2026-06-09",val:"09:00-16:00"},
-  {agent:"Hassan Azgoune",date:"2026-06-10",val:"10:00-17:00"},
-  {agent:"Hassan Azgoune",date:"2026-06-11",val:"09:00-16:00"},
-  {agent:"Hassan Azgoune",date:"2026-06-12",val:"10:00-17:00"},
-  {agent:"Hassan Azgoune",date:"2026-06-13",val:"09:00-17:00"},
-  {agent:"Hassan Azgoune",date:"2026-06-14",val:"10:00-18:00"},
-  // Zakariae Benali — Fix Nuit
-  {agent:"Zakariae Benali",date:"2026-06-08",val:"18:00-01:00"},
-  {agent:"Zakariae Benali",date:"2026-06-09",val:"OFF"},
-  {agent:"Zakariae Benali",date:"2026-06-10",val:"18:00-01:00"},
-  {agent:"Zakariae Benali",date:"2026-06-11",val:"18:00-01:00"},
-  {agent:"Zakariae Benali",date:"2026-06-12",val:"18:00-02:00"},
-  {agent:"Zakariae Benali",date:"2026-06-13",val:"18:00-02:00"},
-  {agent:"Zakariae Benali",date:"2026-06-14",val:"18:00-01:00"},
-  // Charaf Loummihi — Variable
+  // Charaf Loummihi — VAR (semaine A = jour)
   {agent:"Charaf Loummihi",date:"2026-06-08",val:"11:00-18:00"},
   {agent:"Charaf Loummihi",date:"2026-06-09",val:"09:00-16:00"},
   {agent:"Charaf Loummihi",date:"2026-06-10",val:"OFF"},
@@ -917,6 +855,70 @@ const SEED_PLANNING=[
   {agent:"Charaf Loummihi",date:"2026-06-12",val:"10:00-17:00"},
   {agent:"Charaf Loummihi",date:"2026-06-13",val:"09:00-17:00"},
   {agent:"Charaf Loummihi",date:"2026-06-14",val:"10:00-18:00"},
+  // Yahya Rhallab — NUIT FIX
+  {agent:"Yahya Rhallab",date:"2026-06-08",val:"18:00-01:00"},
+  {agent:"Yahya Rhallab",date:"2026-06-09",val:"18:00-01:00"},
+  {agent:"Yahya Rhallab",date:"2026-06-10",val:"18:00-01:00"},
+  {agent:"Yahya Rhallab",date:"2026-06-11",val:"OFF"},
+  {agent:"Yahya Rhallab",date:"2026-06-12",val:"18:30-02:30"},
+  {agent:"Yahya Rhallab",date:"2026-06-13",val:"18:00-02:00"},
+  {agent:"Yahya Rhallab",date:"2026-06-14",val:"18:00-01:00"},
+  // Islam Elmardi — NUIT FIX
+  {agent:"Islam Elmardi",date:"2026-06-08",val:"18:00-01:00"},
+  {agent:"Islam Elmardi",date:"2026-06-09",val:"18:00-01:00"},
+  {agent:"Islam Elmardi",date:"2026-06-10",val:"OFF"},
+  {agent:"Islam Elmardi",date:"2026-06-11",val:"18:00-01:00"},
+  {agent:"Islam Elmardi",date:"2026-06-12",val:"18:30-02:30"},
+  {agent:"Islam Elmardi",date:"2026-06-13",val:"18:30-02:30"},
+  {agent:"Islam Elmardi",date:"2026-06-14",val:"18:00-01:00"},
+  // Mourad Cherradi — NUIT FIX
+  {agent:"Mourad Cherradi",date:"2026-06-08",val:"18:00-01:00"},
+  {agent:"Mourad Cherradi",date:"2026-06-09",val:"18:00-01:00"},
+  {agent:"Mourad Cherradi",date:"2026-06-10",val:"18:00-01:00"},
+  {agent:"Mourad Cherradi",date:"2026-06-11",val:"OFF"},
+  {agent:"Mourad Cherradi",date:"2026-06-12",val:"18:30-02:30"},
+  {agent:"Mourad Cherradi",date:"2026-06-13",val:"18:30-02:30"},
+  {agent:"Mourad Cherradi",date:"2026-06-14",val:"18:00-01:00"},
+  // Ayoub Ben Malek — NUIT FIX
+  {agent:"Ayoub Ben Malek",date:"2026-06-08",val:"18:00-01:00"},
+  {agent:"Ayoub Ben Malek",date:"2026-06-09",val:"18:00-01:00"},
+  {agent:"Ayoub Ben Malek",date:"2026-06-10",val:"18:00-01:00"},
+  {agent:"Ayoub Ben Malek",date:"2026-06-11",val:"OFF"},
+  {agent:"Ayoub Ben Malek",date:"2026-06-12",val:"18:00-02:00"},
+  {agent:"Ayoub Ben Malek",date:"2026-06-13",val:"18:00-02:00"},
+  {agent:"Ayoub Ben Malek",date:"2026-06-14",val:"18:00-01:00"},
+  // Zakariae Benali — NUIT FIX
+  {agent:"Zakariae Benali",date:"2026-06-08",val:"18:00-01:00"},
+  {agent:"Zakariae Benali",date:"2026-06-09",val:"OFF"},
+  {agent:"Zakariae Benali",date:"2026-06-10",val:"18:00-01:00"},
+  {agent:"Zakariae Benali",date:"2026-06-11",val:"18:00-01:00"},
+  {agent:"Zakariae Benali",date:"2026-06-12",val:"18:00-02:00"},
+  {agent:"Zakariae Benali",date:"2026-06-13",val:"18:00-02:00"},
+  {agent:"Zakariae Benali",date:"2026-06-14",val:"18:00-01:00"},
+  // Oussama El Atrach — JOUR FIX
+  {agent:"Oussama El Atrach",date:"2026-06-08",val:"10:00-17:00"},
+  {agent:"Oussama El Atrach",date:"2026-06-09",val:"OFF"},
+  {agent:"Oussama El Atrach",date:"2026-06-10",val:"10:00-17:00"},
+  {agent:"Oussama El Atrach",date:"2026-06-11",val:"10:00-17:00"},
+  {agent:"Oussama El Atrach",date:"2026-06-12",val:"09:00-17:00"},
+  {agent:"Oussama El Atrach",date:"2026-06-13",val:"10:00-18:00"},
+  {agent:"Oussama El Atrach",date:"2026-06-14",val:"10:00-17:00"},
+  // Ayoub Abssi — JOUR FIX
+  {agent:"Ayoub Abssi",date:"2026-06-08",val:"10:00-17:00"},
+  {agent:"Ayoub Abssi",date:"2026-06-09",val:"10:00-17:00"},
+  {agent:"Ayoub Abssi",date:"2026-06-10",val:"OFF"},
+  {agent:"Ayoub Abssi",date:"2026-06-11",val:"10:00-17:00"},
+  {agent:"Ayoub Abssi",date:"2026-06-12",val:"10:00-17:00"},
+  {agent:"Ayoub Abssi",date:"2026-06-13",val:"10:00-18:00"},
+  {agent:"Ayoub Abssi",date:"2026-06-14",val:"10:00-18:00"},
+  // Hassan Azgoune — JOUR FIX
+  {agent:"Hassan Azgoune",date:"2026-06-08",val:"OFF"},
+  {agent:"Hassan Azgoune",date:"2026-06-09",val:"09:00-16:00"},
+  {agent:"Hassan Azgoune",date:"2026-06-10",val:"10:00-17:00"},
+  {agent:"Hassan Azgoune",date:"2026-06-11",val:"09:00-16:00"},
+  {agent:"Hassan Azgoune",date:"2026-06-12",val:"10:00-17:00"},
+  {agent:"Hassan Azgoune",date:"2026-06-13",val:"09:00-17:00"},
+  {agent:"Hassan Azgoune",date:"2026-06-14",val:"10:00-18:00"},
 ];
 
 
