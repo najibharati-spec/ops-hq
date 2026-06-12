@@ -246,14 +246,14 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       </div>
       <div class="stat-grid">
         <div class="stat-card"><div class="slabel">Agents actifs</div><div class="sval" style="color:var(--green)">12</div><div class="ssub">Équipe complète</div></div>
-        <div class="stat-card"><div class="slabel">Shifts cette semaine</div><div class="sval" style="color:var(--acc)" id="dShifts">0</div><div class="ssub">Planning actuel</div></div>
+        <div class="stat-card"><div class="slabel">En service aujourd'hui</div><div class="sval" style="color:var(--acc)" id="dShifts">0</div><div class="ssub">Shifts actifs ou prévus</div></div>
         <div class="stat-card"><div class="slabel">Rapports reçus</div><div class="sval" style="color:var(--amber)" id="dRapports">0</div><div class="ssub" id="dRapSub">—</div></div>
         <div class="stat-card"><div class="slabel">Abonnements actifs</div><div class="sval" style="color:var(--purple)" id="dAbos">0</div></div>
       </div>
       <div class="card">
-        <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Agents — Statut semaine</span></div>
+        <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Agents — Statut du jour</span></div>
         <table class="tbl">
-          <thead><tr><th>Agent</th><th>Zone</th><th>Statut semaine</th><th>Abonnement</th><th>Rapports</th></tr></thead>
+          <thead><tr><th>Agent</th><th>Zone</th><th>Statut aujourd'hui</th><th>Abonnement</th><th>Rapports</th></tr></thead>
           <tbody id="dashAgents"></tbody>
         </table>
       </div>
@@ -874,38 +874,60 @@ const SEED_PLANNING=[
 ];
 // DASHBOARD
 function renderDashboard(){
-  const weekShifts=allPlanning.filter(p=>{
-    const d=new Date(p.date+"T12:00:00");const we=addDays(weekStart,6);
-    return d>=weekStart&&d<=we&&p.val&&!["OFF","ABSENT","CONGE","MALADIE",""].includes(p.val);
-  });
-  document.getElementById("dShifts").textContent=weekShifts.length;
+  const todayISO=iso(new Date());
+  let totalShiftsToday=0;
   document.getElementById("dRapports").textContent=allRapports.length;
   const nonLus=allRapports.filter(r=>!r.lu).length;
   document.getElementById("dRapSub").textContent=nonLus>0?`${nonLus} non lu(s)`:"Tous lus";
   document.getElementById("dAbos").textContent=allAbos.filter(a=>a.statut==="actif").length;
   const tb=document.getElementById("dashAgents");tb.innerHTML="";
+  const now=new Date();
   AGENTS.forEach(ag=>{
     const abo=allAbos.find(a=>a.agent===ag.name);
     const rc=allRapports.filter(r=>r.agentName===ag.name).length;
-    const hasShift=allPlanning.some(p=>{
-      const d=new Date(p.date+"T12:00:00");
-      return p.agent===ag.name&&d>=weekStart&&d<=addDays(weekStart,6)&&p.val&&!["OFF","ABSENT","CONGE","MALADIE",""].includes(p.val);
-    });
+    const {val}=getShiftVal(ag,todayISO);
+    let statusHtml,dotCls;
+    if(!val||["OFF","ABSENT","CONGE","MALADIE"].includes(val)){
+      const labels={OFF:"OFF aujourd'hui",ABSENT:"Absent",CONGE:"En congé",MALADIE:"En arrêt maladie","":"Non planifié"};
+      statusHtml=`<span class="badge badge-slate">${labels[val]||labels[""]}</span>`;
+      dotCls="ag-notstarted";
+    }else{
+      totalShiftsToday++;
+      const [startStr,endStr]=val.split("-");
+      const [sh,sm]=startStr.split(":").map(Number);
+      const [eh,em]=endStr.split(":").map(Number);
+      const startMin=sh*60+sm;
+      let endMin=eh*60+em;
+      if(endMin<=startMin)endMin+=24*60;
+      const nowMin=now.getHours()*60+now.getMinutes();
+      const isWorkingNow=nowMin>=startMin&&nowMin<endMin;
+      if(isWorkingNow){
+        statusHtml=`<span class="badge badge-green">✓ En service · ${startStr}→${endStr}</span>`;
+        dotCls="ag-started";
+      }else if(nowMin<startMin){
+        statusHtml=`<span class="badge badge-blue">À venir · ${startStr}→${endStr}</span>`;
+        dotCls="ag-notstarted";
+      }else{
+        statusHtml=`<span class="badge badge-slate">Terminé · ${startStr}→${endStr}</span>`;
+        dotCls="ag-notstarted";
+      }
+    }
     const agZone=getAgentZone(ag.name);
     const zCls=getZoneCls(agZone);
     const tr=document.createElement("tr");
     tr.innerHTML=`
       <td><div class="ag-row">
-        <div class="ag-status ${hasShift?"ag-started":"ag-notstarted"}"></div>
+        <div class="ag-status ${dotCls}"></div>
         <div class="avatar">${ag.ini}</div>
         <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
       </div></td>
       <td><span class="zone-badge ${zCls}">${agZone}</span></td>
-      <td>${hasShift?'<span class="badge badge-green">✓ Planning actif</span>':'<span class="badge badge-slate">Pas planifié</span>'}</td>
+      <td>${statusHtml}</td>
       <td>${abo?`<span class="badge badge-green">${abo.plan}</span>`:'<span class="badge badge-red">Aucun</span>'}</td>
       <td style="color:var(--t3)">${rc}</td>`;
     tb.appendChild(tr);
   });
+  document.getElementById("dShifts").textContent=totalShiftsToday;
   const rc2=document.getElementById("dashRapports");
   if(!allRapports.length){rc2.innerHTML='<div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport.</p></div>';return;}
   rc2.innerHTML="";
