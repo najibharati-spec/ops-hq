@@ -1021,8 +1021,8 @@ function computeShiftVal(ag, dateISO){
 // Get the shift value for agent/date: Firebase override if exists, else computed
 function getShiftVal(ag, dateISO){
   const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
-  if(ps)return{val:ps.val||"",id:ps.id};
-  return{val:computeShiftVal(ag,dateISO),id:""};
+  if(ps&&ps.val)return{val:ps.val,id:ps.id};
+  return{val:computeShiftVal(ag,dateISO),id:ps?ps.id:""};
 }
 
 function renderWeekPlan(){
