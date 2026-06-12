@@ -711,7 +711,7 @@ async function loadAll(){
 
 function getMonday(d){const c=new Date(d);const day=c.getDay();c.setDate(c.getDate()-day+(day===0?-6:1));c.setHours(0,0,0,0);return c;}
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
-function iso(d){return d.toISOString().split("T")[0];}
+function iso(d){const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,"0");const day=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${day}`;}
 function fmt(d){return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});}
 function fmtFull(d){return d.toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"long"});}
 
