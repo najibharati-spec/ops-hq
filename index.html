@@ -334,7 +334,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       <div class="card">
         <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Liste des agents</span></div>
         <table class="tbl">
-          <thead><tr><th>Agent</th><th>Zone</th><th>Rapports</th><th>Abonnement</th></tr></thead>
+          <thead><tr><th>Agent</th><th>Zone</th><th>Code PIN</th><th>Rapports</th><th>Abonnement</th></tr></thead>
           <tbody id="agentsBody"></tbody>
         </table>
       </div>
@@ -436,6 +436,21 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
     <div class="modal-acts">
       <div class="btn" onclick="closeRapModal()">Fermer</div>
       <div class="btn btn-success" id="btnMarquerLu"><i class="ti ti-check"></i> Marquer lu</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PIN -->
+<div class="modal-ov" id="pinModal">
+  <div class="modal" style="max-width:340px">
+    <div class="modal-title"><i class="ti ti-lock" style="color:var(--acc)"></i><span id="pinModalAgent"></span></div>
+    <i class="ti ti-x modal-x" onclick="closePinModal()"></i>
+    <div class="mfield"><label>Code PIN (4 chiffres)</label>
+      <input type="text" id="pinModalInput" maxlength="4" inputmode="numeric" style="font-family:monospace;letter-spacing:4px;font-size:18px;text-align:center"/>
+    </div>
+    <div class="modal-acts">
+      <div class="btn" onclick="closePinModal()">Annuler</div>
+      <div class="btn btn-primary" onclick="savePinModal()"><i class="ti ti-check"></i> Enregistrer</div>
     </div>
   </div>
 </div>
@@ -707,6 +722,7 @@ let weekStart=getMonday(new Date());
 let pmAgent2=null,pmDate3=null,pmId=null,curRapId=null;
 let pmStatus="WORK";
 let selectedProfile=null; // "admin" or agent name, during login flow
+let pinModalAgent=null;
 
 const ADMIN_PROFILE={name:"Najib",ini:"NH",role:"Lead On-Field Agent"};
 
@@ -785,7 +801,7 @@ window.doLogin=async()=>{
     }
   }else{
     const ag=AGENTS.find(a=>a.name===selectedProfile);
-    if(ag&&ag.pin===pin){
+    if(ag&&getAgentPin(ag.name)===pin){
       userRole="agent";myAgent=ag;userDisplayName=ag.name;
       sessionStorage.setItem("opshq_agent",ag.name);
       showApp();
@@ -808,6 +824,14 @@ document.getElementById("eyeBtn").onclick=()=>{
   document.getElementById("eyeBtn").className=inp.type==="password"?"ti ti-eye eye":"ti ti-eye-off eye";
 };
 document.getElementById("loginPin").addEventListener("keydown",e=>{if(e.key==="Enter")window.doLogin();});
+
+// Load agent PIN overrides early so login PIN checks work before full loadAll
+(async()=>{
+  try{
+    const ss=await getDocs(collection(db,"agentSettings"));
+    allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){console.error(e);}
+})();
 
 onAuthStateChanged(auth,async u=>{
   if(u){
@@ -1235,6 +1259,31 @@ function computeShiftVal(ag, dateISO){
 }
 
 // Get the shift value for agent/date: Firebase override if exists, else computed
+window.openPinModal=(agentName)=>{
+  pinModalAgent=agentName;
+  document.getElementById("pinModalAgent").textContent=agentName;
+  document.getElementById("pinModalInput").value=getAgentPin(agentName);
+  document.getElementById("pinModal").classList.add("open");
+  setTimeout(()=>document.getElementById("pinModalInput").focus(),100);
+};
+window.closePinModal=()=>document.getElementById("pinModal").classList.remove("open");
+window.savePinModal=async()=>{
+  const pin=document.getElementById("pinModalInput").value.trim();
+  if(!/^\d{4}$/.test(pin)){showAlert("planAlert","Le code PIN doit contenir 4 chiffres.","error");return;}
+  try{
+    const existing=allAgentSettings.find(x=>x.agent===pinModalAgent);
+    if(existing){
+      await updateDoc(doc(db,"agentSettings",existing.id),{pin});
+      existing.pin=pin;
+    }else{
+      const ref=await addDoc(collection(db,"agentSettings"),{agent:pinModalAgent,pin});
+      allAgentSettings.push({id:ref.id,agent:pinModalAgent,pin});
+    }
+    closePinModal();
+    renderAgents();
+  }catch(e){console.error(e);}
+};
+
 function getShiftVal(ag, dateISO){
   const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
   if(ps&&ps.val)return{val:ps.val,id:ps.id};
@@ -1460,6 +1509,12 @@ window.deletePlanShift=async()=>{
 };
 
 // AGENTS
+function getAgentPin(agName){
+  const s=allAgentSettings.find(x=>x.agent===agName);
+  if(s&&s.pin)return s.pin;
+  return AGENTS.find(a=>a.name===agName)?.pin||"";
+}
+
 function renderAgents(){
   const tb=document.getElementById("agentsBody");tb.innerHTML="";
   AGENTS.forEach(ag=>{
@@ -1467,11 +1522,14 @@ function renderAgents(){
     const abo=allAbos.find(a=>a.agent===ag.name);
     const agZone=getAgentZone(ag.name);
     const zCls=getZoneCls(agZone);
+    const pin=getAgentPin(ag.name);
     const tr=document.createElement("tr");
     tr.innerHTML=`
       <td><div class="ag-row"><div class="avatar">${ag.ini}</div>
         <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span></div></td>
       <td><span class="zone-badge ${zCls}">${agZone}</span></td>
+      <td><span class="plan-input" style="display:inline-block;width:auto;padding:4px 10px;font-weight:700;letter-spacing:2px">${pin}</span>
+        <span class="btn btn-sm" style="margin-left:6px" onclick="openPinModal('${ag.name}')"><i class="ti ti-edit"></i></span></td>
       <td style="color:var(--t3)">${rc}</td>
       <td>${abo?`<span class="badge badge-green">${abo.plan}</span>`:'<span class="badge badge-red">Aucun</span>'}</td>`;
     tb.appendChild(tr);
