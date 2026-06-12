@@ -255,8 +255,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
         </div>
         <div class="btn btn-sm" style="margin-left:auto" onclick="backToProfiles()"><i class="ti ti-arrow-left"></i></div>
       </div>
-      <div class="field"><label>Code d'accès (PIN)</label>
-        <div class="inp-wrap"><i class="ti ti-lock"></i><input type="password" id="loginPin" placeholder="••••" inputmode="numeric" maxlength="4"/>
+      <div class="field"><label>Mot de passe</label>
+        <div class="inp-wrap"><i class="ti ti-lock"></i><input type="password" id="loginPin" placeholder="••••••" maxlength="20"/>
           <i class="ti ti-eye eye" id="eyeBtn"></i></div>
       </div>
       <div class="err" id="loginErr"></div>
@@ -402,7 +402,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       <div class="card">
         <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Liste des agents</span></div>
         <table class="tbl">
-          <thead><tr><th>Agent</th><th>Zone</th><th>Code PIN</th><th>Rapports</th><th>Abonnement</th></tr></thead>
+          <thead><tr><th>Agent</th><th>Zone</th><th>Mot de passe</th><th>Rapports</th><th>Abonnement</th></tr></thead>
           <tbody id="agentsBody"></tbody>
         </table>
       </div>
@@ -516,8 +516,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
   <div class="modal" style="max-width:340px">
     <div class="modal-title"><i class="ti ti-lock" style="color:var(--acc)"></i><span id="pinModalAgent"></span></div>
     <i class="ti ti-x modal-x" onclick="closePinModal()"></i>
-    <div class="mfield"><label>Code PIN (4 chiffres)</label>
-      <input type="text" id="pinModalInput" maxlength="4" inputmode="numeric" style="font-family:monospace;letter-spacing:4px;font-size:18px;text-align:center"/>
+    <div class="mfield"><label>Mot de passe (4-20 caractères)</label>
+      <input type="text" id="pinModalInput" maxlength="20" style="font-family:monospace;letter-spacing:3px;font-size:18px;text-align:center"/>
     </div>
     <div class="modal-acts">
       <div class="btn" onclick="closePinModal()">Annuler</div>
@@ -877,7 +877,7 @@ window.doLogin=async()=>{
       sessionStorage.setItem("opshq_agent",ag.name);
       showApp();
     }else{
-      err.textContent="Code PIN incorrect.";err.style.display="block";
+      err.textContent="Mot de passe incorrect.";err.style.display="block";
     }
   }
 };
@@ -1425,7 +1425,7 @@ window.openPinModal=(agentName)=>{
 window.closePinModal=()=>document.getElementById("pinModal").classList.remove("open");
 window.savePinModal=async()=>{
   const pin=document.getElementById("pinModalInput").value.trim();
-  if(!/^\d{4}$/.test(pin)){showAlert("planAlert","Le code PIN doit contenir 4 chiffres.","error");return;}
+  if(!/^[A-Za-z0-9]{4,20}$/.test(pin)){showAlert("planAlert","Le mot de passe doit contenir 4 à 20 lettres/chiffres.","error");return;}
   try{
     const existing=allAgentSettings.find(x=>x.agent===pinModalAgent);
     if(existing){
