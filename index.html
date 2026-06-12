@@ -693,98 +693,11 @@ async function loadAll(){
     allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
 
-    // Auto-reset once: check Firebase flag
-    const flagSnap=await getDoc(doc(db,"config","planningReset_v14"));
-    if(!flagSnap.exists()){
-      // Fetch ALL planning docs fresh and delete them
-      const allSnap=await getDocs(collection(db,"planning2"));
-      const deleteBatches=[];
-      allSnap.docs.forEach(d=>deleteBatches.push(deleteDoc(doc(db,"planning2",d.id))));
-      await Promise.all(deleteBatches);
-      allPlanning=[];
-
-      const seedMonday=new Date("2026-06-08T00:00:00");
-
-      // Build ALL 52 weeks at once
-      const allShifts=[];
-
-      function getVal(ag, weekIdx, dayOfWeek){
-        // dayOfWeek: 0=Lun, 1=Mar, 2=Mer, 3=Jeu, 4=Ven, 5=Sam, 6=Dim
-        if(dayOfWeek===ag.offDay)return "OFF";
-        const isNuit=weekIdx%2===0?ag.horaireA.startsWith("18"):ag.horaireB.startsWith("18");
-        const isWeekend=(dayOfWeek===4||dayOfWeek===5); // Ven ou Sam
-        if(isNuit) return isWeekend?"18:00-02:00":"18:00-01:00";
-        else{
-          // JOUR
-          const h=weekIdx%2===0?ag.horaireA:ag.horaireB;
-          if(h.startsWith("09")) return isWeekend?"09:00-17:00":"09:00-16:00";
-          return isWeekend?"10:00-18:00":"10:00-17:00";
-        }
-      }
-
-      // Week 0 = SEED (already has correct values)
-      SEED_PLANNING.forEach(s=>allShifts.push({...s,seeded:true}));
-      // Weeks 1-51
-      for(let w=1;w<=7;w++){
-        const monday=addDays(seedMonday,w*7);
-        AGENTS.forEach(ag=>{
-          for(let d=0;d<7;d++){
-            allShifts.push({agent:ag.name,date:iso(addDays(monday,d)),val:getVal(ag,w,d),auto:true});
-          }
-        });
-      }
-
-      // Insert in batches of 40 with delay to avoid quota errors
-      for(let i=0;i<allShifts.length;i+=40){
-        const batch=allShifts.slice(i,i+40);
-        const refs=await Promise.all(batch.map(s=>addDoc(collection(db,"planning2"),{...s,createdAt:serverTimestamp()})));
-        refs.forEach((ref,j)=>allPlanning.push({id:ref.id,...batch[j]}));
-        await new Promise(r=>setTimeout(r,300));
-      }
-
-      await setDoc(doc(db,"config","planningReset_v14"),{done:true,at:serverTimestamp()});
-      console.log("✅ RESET v14 DONE - "+allPlanning.length+" shifts created");
-    }
     renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
     const nonLus=allRapports.filter(r=>!r.lu).length;
     const nb=document.getElementById("navBadgeRap");
     if(nonLus>0){nb.textContent=nonLus;nb.style.display="inline-block";}else{nb.style.display="none";}
   }catch(e){console.error(e);}
-}
-
-async function autoFillMissingWeeks(){
-  const seedMonday=new Date("2026-06-08T00:00:00");
-  // Always fill 52 weeks ahead from seed (1 full year)
-  const maxMonday=addDays(seedMonday,52*7);
-
-  function buildWeekForAgent(ag,monday,weekIdx){
-    return Array.from({length:7},(_,d)=>{
-      if(d===ag.offDay)return{agent:ag.name,date:iso(addDays(monday,d)),val:"OFF",auto:true};
-      const isNuit=weekIdx%2===0?ag.horaireA.startsWith("18"):ag.horaireB.startsWith("18");
-      const isWeekend=(d===4||d===5); // Ven ou Sam
-      let val;
-      if(isNuit){val=isWeekend?"18:00-02:00":"18:00-01:00";}
-      else{
-        const h=weekIdx%2===0?ag.horaireA:ag.horaireB;
-        if(h.startsWith("09"))val=isWeekend?"09:00-17:00":"09:00-16:00";
-        else val=isWeekend?"10:00-18:00":"10:00-17:00";
-      }
-      return{agent:ag.name,date:iso(addDays(monday,d)),val,auto:true};
-    });
-  }
-
-  let monday=addDays(seedMonday,7);
-  while(monday<=maxMonday){
-    const dates=Array.from({length:7},(_,i)=>iso(addDays(monday,i)));
-    const weekShifts=allPlanning.filter(p=>dates.includes(p.date));
-    if(weekShifts.length===0){
-      const weekIdx=Math.round((monday-seedMonday)/(7*24*3600*1000));
-      const newShifts=AGENTS.flatMap(ag=>buildWeekForAgent(ag,monday,weekIdx));
-      const refs=await Promise.all(newShifts.map(s=>addDoc(collection(db,"planning2"),{...s,createdAt:serverTimestamp()})));
-      refs.forEach((ref,i)=>allPlanning.push({id:ref.id,...newShifts[i]}));
-    }
-    monday=addDays(monday,7);
-  }
 }
 
 function getMonday(d){const c=new Date(d);const day=c.getDay();c.setDate(c.getDate()-day+(day===0?-6:1));c.setHours(0,0,0,0);return c;}
@@ -950,20 +863,6 @@ const SEED_PLANNING=[
   {agent:"Hassan Azgoune",date:"2026-06-13",val:"09:00-17:00"},
   {agent:"Hassan Azgoune",date:"2026-06-14",val:"10:00-18:00"},
 ];
-
-
-async function seedPlanningIfEmpty(){
-  const seedDates=["2026-06-08","2026-06-09","2026-06-10","2026-06-11","2026-06-12","2026-06-13","2026-06-14"];
-  const hasSeedWeek=allPlanning.some(p=>seedDates.includes(p.date));
-  if(hasSeedWeek)return;
-  const promises=SEED_PLANNING.map(s=>addDoc(collection(db,"planning2"),{...s,seeded:true}));
-  await Promise.all(promises);
-  const snap=await getDocs(collection(db,"planning2"));
-  allPlanning=snap.docs.map(d=>({id:d.id,...d.data()}));
-}
-
-
-
 // DASHBOARD
 function renderDashboard(){
   const weekShifts=allPlanning.filter(p=>{
@@ -1015,97 +914,50 @@ function renderDashboard(){
 window.prevWeek=()=>{weekStart=addDays(weekStart,-7);renderWeekPlan();}
 window.nextWeek=()=>{weekStart=addDays(weekStart,7);renderWeekPlan();}
 
-window.copyPrevWeek=async()=>{
-  // Check if current week already has data
-  const currentDates=Array.from({length:7},(_,i)=>iso(addDays(weekStart,i)));
-  const hasCurrentData=allPlanning.some(p=>currentDates.includes(p.date));
-  if(hasCurrentData){
-    if(!confirm("⚠️ La semaine actuelle contient déjà des données. Voulez-vous quand même écraser avec la semaine précédente ?"))return;
-  }
-  const prevStart=addDays(weekStart,-7);
-  const prevDates=Array.from({length:7},(_,i)=>iso(addDays(prevStart,i)));
-  const prevShifts=allPlanning.filter(p=>prevDates.includes(p.date));
-  if(!prevShifts.length){
-    showAlert("planAlert","❌ Aucune donnée dans la semaine précédente.","error");
-    return;
-  }
-  showAlert("planAlert","⏳ Copie en cours...","success");
+// Reset: remove ALL manual overrides from Firebase, fall back to pure computed planning
+window.resetPlanning=async()=>{
+  if(!confirm("⚠️ Supprimer TOUTES les modifications manuelles et revenir au planning automatique ?"))return;
+  showAlert("planAlert","⏳ Réinitialisation en cours...","success");
   try{
-    // Delete existing current week data
-    const toDelete=allPlanning.filter(p=>currentDates.includes(p.date));
-    await Promise.all(toDelete.map(p=>deleteDoc(doc(db,"planning2",p.id))));
-    // Add copied data with new dates
-    const toAdd=prevShifts.map(p=>{
-      const dayIndex=prevDates.indexOf(p.date);
-      return{agent:p.agent,date:currentDates[dayIndex],val:p.val};
-    });
-    await Promise.all(toAdd.map(p=>addDoc(collection(db,"planning2"),{...p,createdAt:serverTimestamp()})));
-    await loadAll();
-    showAlert("planAlert",`✅ ${toAdd.length} shifts copiés depuis la semaine précédente !`,"success");
+    const snap=await getDocs(collection(db,"planning2"));
+    const ids=snap.docs.map(d=>d.id);
+    for(let i=0;i<ids.length;i+=40){
+      const batch=ids.slice(i,i+40);
+      await Promise.all(batch.map(id=>deleteDoc(doc(db,"planning2",id))));
+      await new Promise(r=>setTimeout(r,200));
+    }
+    allPlanning=[];
+    renderWeekPlan();renderDashboard();
+    showAlert("planAlert","✅ Planning réinitialisé (mode automatique) !","success");
   }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
 };
 
-function renderWeekPlan(){
-  document.getElementById("weekRange").textContent=fmt(weekStart)+" — "+fmt(addDays(weekStart,6));
-  for(let d=0;d<7;d++){
-    const dd=addDays(weekStart,d);
-    const isToday=iso(dd)===iso(new Date());
-    document.getElementById("ph"+d).innerHTML=
-      `<span style="display:block;${isToday?"color:var(--acc);font-weight:700":""}">${JOURS[d].toUpperCase()}</span>
-       <span style="font-size:13px;font-weight:700;color:${isToday?"var(--acc)":"var(--t2)"}">${fmt(dd)}</span>`;
-  }
-window.resetPlanning=async()=>{
-  if(!confirm("⚠️ Supprimer TOUT le planning et recommencer depuis 08/06 ?"))return;
-  showAlert("planAlert","⏳ Suppression en cours...","success");
+window.copyPrevWeek=async()=>{
+  if(!confirm("Copier la semaine précédente vers la semaine actuelle ? (écrase les modifications manuelles de cette semaine)"))return;
+  showAlert("planAlert","⏳ Copie en cours...","success");
   try{
-    // 1. Delete ALL config flags
-    const configSnap=await getDocs(collection(db,"config"));
-    await Promise.all(configSnap.docs.map(d=>deleteDoc(doc(db,"config",d.id))));
+    const currentDates=Array.from({length:7},(_,i)=>iso(addDays(weekStart,i)));
+    const prevStart=addDays(weekStart,-7);
+    const prevDates=Array.from({length:7},(_,i)=>iso(addDays(prevStart,i)));
 
-    // 2. Delete ALL planning
-    const planSnap=await getDocs(collection(db,"planning2"));
-    await Promise.all(planSnap.docs.map(d=>deleteDoc(doc(db,"planning2",d.id))));
-    allPlanning=[];
+    // Delete existing overrides for current week
+    const toDelete=allPlanning.filter(p=>currentDates.includes(p.date));
+    await Promise.all(toDelete.map(p=>deleteDoc(doc(db,"planning2",p.id))));
+    toDelete.forEach(p=>{const idx=allPlanning.findIndex(x=>x.id===p.id);if(idx>-1)allPlanning.splice(idx,1);});
 
-    // 3. Build 52 weeks
-    const seedMonday=new Date("2026-06-08T00:00:00");
-    const allShifts=[];
+    // Create overrides from prev week's displayed values
+    const newDocs=[];
+    AGENTS.forEach(ag=>{
+      for(let i=0;i<7;i++){
+        const {val}=getShiftVal(ag,prevDates[i]);
+        newDocs.push({agent:ag.name,date:currentDates[i],val,override:true});
+      }
+    });
+    const refs=await Promise.all(newDocs.map(s=>addDoc(collection(db,"planning2"),{...s,createdAt:serverTimestamp()})));
+    refs.forEach((ref,i)=>allPlanning.push({id:ref.id,...newDocs[i]}));
 
-    function getVal(ag,weekIdx,d){
-      if(d===ag.offDay)return"OFF";
-      const isNuit=weekIdx%2===0?ag.horaireA.startsWith("18"):ag.horaireB.startsWith("18");
-      const isWeekend=(d===4||d===5);
-      if(isNuit)return isWeekend?"18:00-02:00":"18:00-01:00";
-      const h=weekIdx%2===0?ag.horaireA:ag.horaireB;
-      if(h.startsWith("09"))return isWeekend?"09:00-17:00":"09:00-16:00";
-      return isWeekend?"10:00-18:00":"10:00-17:00";
-    }
-
-    SEED_PLANNING.forEach(s=>allShifts.push({...s,seeded:true}));
-    for(let w=1;w<=7;w++){
-      const monday=addDays(seedMonday,w*7);
-      AGENTS.forEach(ag=>{
-        for(let d=0;d<7;d++){
-          allShifts.push({agent:ag.name,date:iso(addDays(monday,d)),val:getVal(ag,w,d),auto:true});
-        }
-      });
-    }
-
-    // 4. Insert in batches of 40 with delay to avoid quota errors
-    showAlert("planAlert","⏳ Création de "+allShifts.length+" shifts...","success");
-    for(let i=0;i<allShifts.length;i+=40){
-      const batch=allShifts.slice(i,i+40);
-      const refs=await Promise.all(batch.map(s=>addDoc(collection(db,"planning2"),{...s,createdAt:serverTimestamp()})));
-      refs.forEach((ref,j)=>allPlanning.push({id:ref.id,...batch[j]}));
-      await new Promise(r=>setTimeout(r,300));
-    }
-
-    // 5. Save flag so auto-reset doesn't run again
-    await setDoc(doc(db,"config","planningReset_v14"),{done:true,at:serverTimestamp()});
-
-    weekStart=new Date("2026-06-08T00:00:00");
-    await loadAll();
-    showAlert("planAlert",`✅ Planning réinitialisé ! ${allShifts.length} shifts créés.`,"success");
+    renderWeekPlan();renderDashboard();
+    showAlert("planAlert",`✅ ${newDocs.length} shifts copiés depuis la semaine précédente !`,"success");
   }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
 };
 
@@ -1134,6 +986,46 @@ function getAutoZone(agentName, mondayDate){
   return ZONE_ROTATION[(rotIdx+ZONE_ROTATION.length)%ZONE_ROTATION.length];
 }
 
+// Compute the shift value for any agent/date on the fly (no Firebase needed for future weeks)
+function computeShiftVal(ag, dateISO){
+  const date=new Date(dateISO+"T00:00:00");
+  const monday=getMonday(date);
+  const weekIdx=getWeekIndex(monday);
+  const d=date.getDay()===0?6:date.getDay()-1; // 0=Lun..6=Dim
+
+  if(weekIdx<0)return ""; // before seed week — no data
+  if(weekIdx===0){
+    // Week 0 = exact SEED data
+    const s=SEED_PLANNING.find(x=>x.agent===ag.name&&x.date===dateISO);
+    return s?s.val:"";
+  }
+  // Computed weeks
+  if(d===ag.offDay)return"OFF";
+  const isNuit=weekIdx%2===0?ag.horaireA.startsWith("18"):ag.horaireB.startsWith("18");
+  const isWeekend=(d===4||d===5); // Ven ou Sam
+  if(isNuit)return isWeekend?"18:00-02:00":"18:00-01:00";
+  const h=weekIdx%2===0?ag.horaireA:ag.horaireB;
+  if(h.startsWith("09"))return isWeekend?"09:00-17:00":"09:00-16:00";
+  return isWeekend?"10:00-18:00":"10:00-17:00";
+}
+
+// Get the shift value for agent/date: Firebase override if exists, else computed
+function getShiftVal(ag, dateISO){
+  const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
+  if(ps)return{val:ps.val||"",id:ps.id};
+  return{val:computeShiftVal(ag,dateISO),id:""};
+}
+
+function renderWeekPlan(){
+  document.getElementById("weekRange").textContent=fmt(weekStart)+" — "+fmt(addDays(weekStart,6));
+  for(let d=0;d<7;d++){
+    const dd=addDays(weekStart,d);
+    const isToday=iso(dd)===iso(new Date());
+    document.getElementById("ph"+d).innerHTML=
+      `<span style="display:block;${isToday?"color:var(--acc);font-weight:700":""}">${JOURS[d].toUpperCase()}</span>
+       <span style="font-size:13px;font-weight:700;color:${isToday?"var(--acc)":"var(--t2)"}">${fmt(dd)}</span>`;
+  }
+
   const tbody=document.getElementById("planBody");tbody.innerHTML="";
   AGENTS.forEach(ag=>{
     const tr=document.createElement("tr");
@@ -1157,11 +1049,10 @@ function getAutoZone(agentName, mondayDate){
     </td>`;
     for(let d=0;d<7;d++){
       const dateISO=iso(addDays(weekStart,d));
-      const ps=allPlanning.find(x=>x.agent===ag.name&&x.date===dateISO);
-      const v=ps?.val||"";
+      const {val:v,id:shiftId}=getShiftVal(ag,dateISO);
       totalH+=calcH(v);
       const cls=shiftCls(v);
-      cells+=`<td><span class="shift-cell ${cls}" onclick="openPlanModal('${ag.name}','${dateISO}','${ps?.id||''}','${v.replace(/'/g,"\\'")}')">
+      cells+=`<td><span class="shift-cell ${cls}" onclick="openPlanModal('${ag.name}','${dateISO}','${shiftId}','${v.replace(/'/g,"\\'")}')">
         ${shiftHtml(v)}</span></td>`;
     }
     // ZONE after DIM
@@ -1219,36 +1110,56 @@ window.savePlanShift=async()=>{
   const data={agent:pmAgent2,date:pmDate3,val};
 
   try{
-    // Save current shift
+    // Save current shift (create override or update existing)
     if(pmId){await updateDoc(doc(db,"planning2",pmId),data);}
-    else{data.createdAt=serverTimestamp();await addDoc(collection(db,"planning2"),data);}
+    else{data.createdAt=serverTimestamp();const ref=await addDoc(collection(db,"planning2"),data);allPlanning.push({id:ref.id,...data});}
 
-    // Apply to all future weeks if checked
+    // Apply to all future weeks (same day-of-week) if checked
     if(applyAll){
       const baseDate=new Date(pmDate3+"T00:00:00");
-      const futureShifts=allPlanning.filter(p=>
-        p.agent===pmAgent2 &&
-        p.date>pmDate3 &&
-        // same day of week
-        new Date(p.date+"T00:00:00").getDay()===baseDate.getDay()
-      );
-      await Promise.all(futureShifts.map(p=>
-        updateDoc(doc(db,"planning2",p.id),{val})
-      ));
-      futureShifts.forEach(p=>p.val=val);
-      showAlert("planAlert",`✅ Modifié pour ${futureShifts.length+1} semaines !`,"success");
+      const dow=baseDate.getDay();
+      const seedMonday=new Date("2026-06-08T00:00:00");
+      const maxMonday=addDays(seedMonday,52*7);
+      let count=1;
+      let d=addDays(baseDate,7);
+      const newDocs=[];
+      while(d<=maxMonday){
+        const dISO=iso(d);
+        const existing=allPlanning.find(p=>p.agent===pmAgent2&&p.date===dISO);
+        if(existing){
+          await updateDoc(doc(db,"planning2",existing.id),{val});
+          existing.val=val;
+        }else{
+          newDocs.push({agent:pmAgent2,date:dISO,val,override:true});
+        }
+        count++;
+        d=addDays(d,7);
+      }
+      // Batch insert new override docs
+      for(let i=0;i<newDocs.length;i+=40){
+        const batch=newDocs.slice(i,i+40);
+        const refs=await Promise.all(batch.map(s=>addDoc(collection(db,"planning2"),{...s,createdAt:serverTimestamp()})));
+        refs.forEach((ref,j)=>allPlanning.push({id:ref.id,...batch[j]}));
+      }
+      showAlert("planAlert",`✅ Modifié pour ${count} semaines !`,"success");
     }else{
       showAlert("planAlert","✅ Enregistré !","success");
     }
 
     closePlanModal();
-    await loadAll();
+    renderWeekPlan();renderDashboard();
   }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
 };
 
 window.deletePlanShift=async()=>{
   if(pmId){
-    try{await deleteDoc(doc(db,"planning2",pmId));closePlanModal();showAlert("planAlert","Supprimé.","success");await loadAll();}
+    try{
+      await deleteDoc(doc(db,"planning2",pmId));
+      const idx=allPlanning.findIndex(p=>p.id===pmId);
+      if(idx>-1)allPlanning.splice(idx,1);
+      closePlanModal();showAlert("planAlert","Supprimé.","success");
+      renderWeekPlan();renderDashboard();
+    }
     catch(e){showAlert("planAlert","Erreur.","error");}
   }
 };
