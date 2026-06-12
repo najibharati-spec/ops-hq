@@ -189,6 +189,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
 .type-j{font-size:10px;font-weight:700;background:var(--energybg);border:1px solid var(--energybdr);color:#92400E;padding:2px 8px;border-radius:10px;white-space:nowrap}
 .type-n{font-size:10px;font-weight:700;background:#0E2A47;border:1px solid var(--acc);color:#BEE3FB;padding:2px 8px;border-radius:10px;white-space:nowrap}
 .type-v{font-size:10px;font-weight:700;background:var(--pbg);border:1px solid var(--pbdr);color:var(--purple);padding:2px 8px;border-radius:10px;white-space:nowrap}
+.profile-card{border:1.5px solid var(--border);border-radius:10px;padding:14px 8px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg3)}
+.profile-card:hover{border-color:var(--acc);background:var(--accbg);transform:translateY(-2px);box-shadow:var(--shadow-md)}
 </style>
 </head>
 <body>
@@ -196,18 +198,34 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
 <!-- LOGIN -->
 <div class="page login-page active" id="loginPage">
   <div class="tracking-line"></div>
-  <div class="login-card">
+  <div class="login-card" id="loginCard" style="max-width:460px">
     <span class="logo-text">OPS HQ</span>
     <span class="logo-sub">Field Management System</span>
-    <div class="field"><label>Identifiant</label>
-      <div class="inp-wrap"><i class="ti ti-user"></i><input type="text" id="loginEmail" placeholder="email@opshq.ma"/></div>
+
+    <!-- STEP 1: profile grid -->
+    <div id="loginStepGrid">
+      <div style="font-size:11px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;font-weight:600;text-align:center">Choisissez votre profil</div>
+      <div id="profileGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"></div>
     </div>
-    <div class="field"><label>Mot de passe</label>
-      <div class="inp-wrap"><i class="ti ti-lock"></i><input type="password" id="loginPassword" placeholder="••••••••"/>
-        <i class="ti ti-eye eye" id="eyeBtn"></i></div>
+
+    <!-- STEP 2: PIN entry -->
+    <div id="loginStepPin" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:10px 12px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+        <div class="avatar" id="pinAvatar" style="width:42px;height:42px;font-size:13px"></div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--t1)" id="pinName"></div>
+          <div style="font-size:11px;color:var(--t4)" id="pinRole"></div>
+        </div>
+        <div class="btn btn-sm" style="margin-left:auto" onclick="backToProfiles()"><i class="ti ti-arrow-left"></i></div>
+      </div>
+      <div class="field"><label>Code d'accès (PIN)</label>
+        <div class="inp-wrap"><i class="ti ti-lock"></i><input type="password" id="loginPin" placeholder="••••" inputmode="numeric" maxlength="4"/>
+          <i class="ti ti-eye eye" id="eyeBtn"></i></div>
+      </div>
+      <div class="err" id="loginErr"></div>
+      <button class="btn-login" onclick="doLogin()"><span id="loginTxt">Déverrouiller</span><i class="ti ti-arrow-right"></i></button>
     </div>
-    <div class="err" id="loginErr"></div>
-    <button class="btn-login" onclick="doLogin()"><span id="loginTxt">Se connecter</span><i class="ti ti-arrow-right"></i></button>
+
     <div class="login-foot">Système réservé aux membres autorisés</div>
   </div>
 </div>
@@ -219,17 +237,20 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       <span class="logo-text">OPS HQ</span>
       <span class="logo-sub">Field Management</span>
     </div>
-    <span class="nav-sec">Principal</span>
-    <div class="nav-item active" onclick="go('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
-    <div class="nav-item" onclick="go('planning',this)"><i class="ti ti-calendar"></i> Planning</div>
-    <div class="nav-item" onclick="go('agents',this)"><i class="ti ti-users"></i> Agents</div>
-    <span class="nav-sec">Gestion</span>
-    <div class="nav-item" onclick="go('rapports',this)"><i class="ti ti-file-text"></i> Rapports <span id="navBadgeRap" style="margin-left:auto;display:none" class="badge badge-blue">0</span></div>
-    <div class="nav-item" onclick="go('abonnements',this)"><i class="ti ti-credit-card"></i> Abonnements</div>
+    <span class="nav-sec admin-only">Principal</span>
+    <div class="nav-item admin-only active" onclick="go('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+    <div class="nav-item admin-only" onclick="go('planning',this)"><i class="ti ti-calendar"></i> Planning</div>
+    <div class="nav-item admin-only" onclick="go('agents',this)"><i class="ti ti-users"></i> Agents</div>
+    <span class="nav-sec admin-only">Gestion</span>
+    <div class="nav-item admin-only" onclick="go('rapports',this)"><i class="ti ti-file-text"></i> Rapports <span id="navBadgeRap" style="margin-left:auto;display:none" class="badge badge-blue">0</span></div>
+    <div class="nav-item admin-only" onclick="go('abonnements',this)"><i class="ti ti-credit-card"></i> Abonnements</div>
+    <span class="nav-sec agent-only" style="display:none">Principal</span>
+    <div class="nav-item agent-only active" style="display:none" onclick="go('monplanning',this)"><i class="ti ti-calendar"></i> Mon Planning</div>
+    <div class="nav-item agent-only" style="display:none" onclick="go('mesrapports',this)"><i class="ti ti-file-text"></i> Mes Rapports</div>
     <div class="sb-user">
       <div class="uname" id="sbName">—</div>
-      <div class="urole">Lead On-Field Agent</div>
-      <span class="badge badge-blue">ADMIN</span><br/><br/>
+      <div class="urole" id="sbRole">Lead On-Field Agent</div>
+      <span class="badge badge-blue" id="sbBadge">ADMIN</span><br/><br/>
       <div class="btn btn-sm" onclick="doLogout()" style="cursor:pointer;display:inline-flex;"><i class="ti ti-logout"></i> Déconnexion</div>
     </div>
   </aside>
@@ -319,7 +340,48 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       </div>
     </div>
 
-    <!-- RAPPORTS -->
+    <!-- AGENT VIEW: MON PLANNING -->
+    <div class="section" id="sec-monplanning">
+      <div class="topbar">
+        <div><div class="ptitle">Mon Planning</div><div class="psub" id="agentPlanWeekLabel">Semaine en cours</div></div>
+        <div class="btns">
+          <div class="week-nav">
+            <div class="btn btn-sm" onclick="prevWeek()"><i class="ti ti-chevron-left"></i></div>
+            <span class="week-label" id="agentWeekRange">—</span>
+            <div class="btn btn-sm" onclick="nextWeek()"><i class="ti ti-chevron-right"></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-map-pin" style="margin-right:6px"></i>Zone</span><span class="zone-badge" id="agentZoneBadge"></span></div>
+        <div id="agentPlanGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px"></div>
+        <div style="margin-top:16px;text-align:right">
+          <span class="total-h" id="agentWeekTotal">0h</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- AGENT VIEW: MES RAPPORTS -->
+    <div class="section" id="sec-mesrapports">
+      <div class="topbar">
+        <div><div class="ptitle">Mes Rapports</div><div class="psub">Envoyer un rapport à l'équipe</div></div>
+      </div>
+      <div class="alert" id="myRapAlert"></div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-edit" style="margin-right:6px"></i>Nouveau rapport</span></div>
+        <div class="mfield"><label>Titre</label><input type="text" id="myRapTitre" placeholder="ex: Incident client, Fin de tournée..."/></div>
+        <div class="mfield"><label>Contenu</label><textarea id="myRapContenu" placeholder="Décrivez la situation..." style="min-height:140px"></textarea></div>
+        <div class="modal-acts" style="margin-top:0">
+          <div class="btn btn-primary" onclick="sendMyRapport()"><i class="ti ti-send"></i> Envoyer le rapport</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-history" style="margin-right:6px"></i>Mes rapports envoyés</span></div>
+        <div id="myRapList"><div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport envoyé.</p></div></div>
+      </div>
+    </div>
+
+
     <div class="section" id="sec-rapports">
       <div class="topbar">
         <div><div class="ptitle">Rapports</div><div class="psub">Soumis par les agents</div></div>
@@ -617,68 +679,194 @@ const ZONES=[
 
 const AGENTS=[
   // Hay Riad
-  {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad",             shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:1},
-  {name:"Aymane Chlifane",  ini:"AC",  zone:"Hay Riad",             shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0},
+  {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad",             shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:1, pin:"1234"},
+  {name:"Aymane Chlifane",  ini:"AC",  zone:"Hay Riad",             shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0, pin:"2345"},
   // Agdal - Soussi
-  {name:"Yahya Rhallab",    ini:"YR",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:3},
-  {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0},
+  {name:"Yahya Rhallab",    ini:"YR",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:3, pin:"3456"},
+  {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0, pin:"4567"},
   // Carrousel - Hay Fath
-  {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath", shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:1},
-  {name:"Islam Elmardi",    ini:"IE",  zone:"Carrousel - Hay Fath", shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:2},
+  {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath", shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:1, pin:"5678"},
+  {name:"Islam Elmardi",    ini:"IE",  zone:"Carrousel - Hay Fath", shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:2, pin:"6789"},
   // Temara
-  {name:"Ayoub Abssi",      ini:"ABS", zone:"Temara",               shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:2},
-  {name:"Mourad Cherradi",  ini:"MC",  zone:"Temara",               shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:3},
+  {name:"Ayoub Abssi",      ini:"ABS", zone:"Temara",               shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:2, pin:"7890"},
+  {name:"Mourad Cherradi",  ini:"MC",  zone:"Temara",               shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:3, pin:"8901"},
   // Salé - Medina
-  {name:"Ayoub Ben Malek",  ini:"ABM", zone:"Salé - Medina",        shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:3},
-  {name:"Hassan Azgoune",   ini:"HA",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"09:00-16:00", horaireB:"18:00-01:00", offDay:0},
-  {name:"Zakariae Benali",  ini:"ZB",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:1},
-  {name:"Charaf Loummihi",  ini:"CL",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:2},
+  {name:"Ayoub Ben Malek",  ini:"ABM", zone:"Salé - Medina",        shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:3, pin:"9012"},
+  {name:"Hassan Azgoune",   ini:"HA",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"09:00-16:00", horaireB:"18:00-01:00", offDay:0, pin:"0123"},
+  {name:"Zakariae Benali",  ini:"ZB",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:1, pin:"1357"},
+  {name:"Charaf Loummihi",  ini:"CL",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:2, pin:"2468"},
 ];
 
 const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 
 let currentUser=null,userDisplayName="";
+let userRole="guest"; // "admin" | "agent"
+let myAgent=null; // for agent role: the AGENTS object
 let allRapports=[],allAbos=[],allPlanning=[],allAgentSettings=[];
 let weekStart=getMonday(new Date());
 let pmAgent2=null,pmDate3=null,pmId=null,curRapId=null;
 let pmStatus="WORK";
+let selectedProfile=null; // "admin" or agent name, during login flow
 
-onAuthStateChanged(auth,async u=>{
-  if(u){currentUser=u;userDisplayName=u.email.split("@")[0];showApp();}
-  else{showLogin();}
-});
+const ADMIN_PROFILE={name:"Najib",ini:"NH",role:"Lead On-Field Agent"};
+
+// Build the profile grid on the login page
+function buildProfileGrid(){
+  const grid=document.getElementById("profileGrid");
+  grid.innerHTML="";
+  // Admin card first
+  const adminCard=document.createElement("div");
+  adminCard.className="profile-card";
+  adminCard.innerHTML=`<div class="avatar" style="width:40px;height:40px;font-size:13px;margin:0 auto 6px;background:var(--energybg);border-color:var(--energybdr);color:var(--energy)">${ADMIN_PROFILE.ini}</div>
+    <div style="font-size:12px;font-weight:700;color:var(--t1)">${ADMIN_PROFILE.name}</div>
+    <div style="font-size:10px;color:var(--t4);margin-top:2px">Admin</div>`;
+  adminCard.onclick=()=>selectProfile("admin");
+  grid.appendChild(adminCard);
+
+  AGENTS.forEach(ag=>{
+    const card=document.createElement("div");
+    card.className="profile-card";
+    const first=ag.name.split(" ")[0];
+    card.innerHTML=`<div class="avatar" style="width:40px;height:40px;font-size:13px;margin:0 auto 6px">${ag.ini}</div>
+      <div style="font-size:12px;font-weight:700;color:var(--t1)">${first}</div>
+      <div style="font-size:10px;color:var(--t4);margin-top:2px">${ag.zone}</div>`;
+    card.onclick=()=>selectProfile(ag.name);
+    grid.appendChild(card);
+  });
+}
+
+window.selectProfile=(profile)=>{
+  selectedProfile=profile;
+  document.getElementById("loginStepGrid").style.display="none";
+  document.getElementById("loginStepPin").style.display="block";
+  document.getElementById("loginErr").style.display="none";
+  if(profile==="admin"){
+    document.getElementById("pinAvatar").textContent=ADMIN_PROFILE.ini;
+    document.getElementById("pinAvatar").style.background="var(--energybg)";
+    document.getElementById("pinAvatar").style.borderColor="var(--energybdr)";
+    document.getElementById("pinAvatar").style.color="var(--energy)";
+    document.getElementById("pinName").textContent=ADMIN_PROFILE.name;
+    document.getElementById("pinRole").textContent=ADMIN_PROFILE.role;
+    document.getElementById("loginPin").placeholder="Mot de passe admin";
+    document.getElementById("loginPin").type="password";
+  }else{
+    const ag=AGENTS.find(a=>a.name===profile);
+    document.getElementById("pinAvatar").textContent=ag.ini;
+    document.getElementById("pinAvatar").style.background="var(--accbg)";
+    document.getElementById("pinAvatar").style.borderColor="var(--accbdr)";
+    document.getElementById("pinAvatar").style.color="var(--acc)";
+    document.getElementById("pinName").textContent=ag.name;
+    document.getElementById("pinRole").textContent=ag.zone+" · On-Field Agent";
+    document.getElementById("loginPin").placeholder="••••";
+    document.getElementById("loginPin").type="password";
+  }
+  document.getElementById("loginPin").value="";
+  setTimeout(()=>document.getElementById("loginPin").focus(),100);
+};
+
+window.backToProfiles=()=>{
+  selectedProfile=null;
+  document.getElementById("loginStepPin").style.display="none";
+  document.getElementById("loginStepGrid").style.display="block";
+};
 
 window.doLogin=async()=>{
-  const email=document.getElementById("loginEmail").value.trim();
-  const pw=document.getElementById("loginPassword").value;
+  const pin=document.getElementById("loginPin").value.trim();
   const err=document.getElementById("loginErr");
   const txt=document.getElementById("loginTxt");
-  err.style.display="none";txt.textContent="Connexion...";
-  try{await signInWithEmailAndPassword(auth,email,pw);}
-  catch(e){err.textContent="Identifiant ou mot de passe incorrect.";err.style.display="block";txt.textContent="Se connecter";}
+  err.style.display="none";
+
+  if(selectedProfile==="admin"){
+    txt.textContent="Connexion...";
+    try{
+      await signInWithEmailAndPassword(auth,"najib@opshq.ma",pin);
+    }catch(e){
+      err.textContent="Mot de passe incorrect.";err.style.display="block";txt.textContent="Déverrouiller";
+    }
+  }else{
+    const ag=AGENTS.find(a=>a.name===selectedProfile);
+    if(ag&&ag.pin===pin){
+      userRole="agent";myAgent=ag;userDisplayName=ag.name;
+      sessionStorage.setItem("opshq_agent",ag.name);
+      showApp();
+    }else{
+      err.textContent="Code PIN incorrect.";err.style.display="block";
+    }
+  }
 };
-window.doLogout=async()=>{await signOut(auth);};
+
+window.doLogout=async()=>{
+  if(userRole==="admin")await signOut(auth);
+  sessionStorage.removeItem("opshq_agent");
+  userRole="guest";myAgent=null;currentUser=null;
+  showLogin();
+};
+
 document.getElementById("eyeBtn").onclick=()=>{
-  const inp=document.getElementById("loginPassword");
+  const inp=document.getElementById("loginPin");
   inp.type=inp.type==="password"?"text":"password";
   document.getElementById("eyeBtn").className=inp.type==="password"?"ti ti-eye eye":"ti ti-eye-off eye";
 };
-document.getElementById("loginPassword").addEventListener("keydown",e=>{if(e.key==="Enter")window.doLogin();});
+document.getElementById("loginPin").addEventListener("keydown",e=>{if(e.key==="Enter")window.doLogin();});
 
-function showLogin(){document.getElementById("loginPage").classList.add("active");document.getElementById("appPage").classList.remove("active");}
+onAuthStateChanged(auth,async u=>{
+  if(u){
+    userRole="admin";currentUser=u;userDisplayName="Najib Harati";
+    showApp();
+  }else if(sessionStorage.getItem("opshq_agent")){
+    const agName=sessionStorage.getItem("opshq_agent");
+    const ag=AGENTS.find(a=>a.name===agName);
+    if(ag){userRole="agent";myAgent=ag;userDisplayName=ag.name;showApp();}
+    else{showLogin();}
+  }else{
+    showLogin();
+  }
+});
+
+function showLogin(){
+  document.getElementById("loginPage").classList.add("active");
+  document.getElementById("appPage").classList.remove("active");
+  buildProfileGrid();
+  document.getElementById("loginStepGrid").style.display="block";
+  document.getElementById("loginStepPin").style.display="none";
+}
+
 function showApp(){
   document.getElementById("loginPage").classList.remove("active");
   document.getElementById("appPage").classList.add("active");
   document.getElementById("sbName").textContent=userDisplayName;
   document.getElementById("dateStr").textContent=new Date().toLocaleDateString("fr-FR",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
-  AGENTS.forEach(ag=>{
-    ["aAgent","rfAgent"].forEach(id=>{
-      const o=document.createElement("option");
-      o.value=ag.name;o.textContent=ag.name;
-      document.getElementById(id).appendChild(o);
+
+  const adminEls=document.querySelectorAll(".admin-only");
+  const agentEls=document.querySelectorAll(".agent-only");
+  const roleEl=document.getElementById("sbRole");
+
+  if(userRole==="admin"){
+    adminEls.forEach(el=>el.style.display="");
+    agentEls.forEach(el=>el.style.display="none");
+    if(roleEl)roleEl.textContent="Lead On-Field Agent";
+    document.getElementById("sbBadge").textContent="ADMIN";
+    document.getElementById("sbBadge").className="badge badge-blue";
+    AGENTS.forEach(ag=>{
+      ["aAgent","rfAgent"].forEach(id=>{
+        const sel=document.getElementById(id);
+        if(sel&&!sel.querySelector(`option[value="${ag.name}"]`)){
+          const o=document.createElement("option");
+          o.value=ag.name;o.textContent=ag.name;
+          sel.appendChild(o);
+        }
+      });
     });
-  });
-  loadAll();renderWeekPlan();
+    go("dashboard",document.querySelector(".nav-item.admin-only"));
+  }else{
+    adminEls.forEach(el=>el.style.display="none");
+    agentEls.forEach(el=>el.style.display="");
+    if(roleEl)roleEl.textContent=myAgent.zone+" · On-Field Agent";
+    document.getElementById("sbBadge").textContent="AGENT";
+    document.getElementById("sbBadge").className="badge badge-green";
+    go("monplanning",document.querySelector(".nav-item.agent-only"));
+  }
+  loadAll();
 }
 
 window.go=(id,el)=>{
@@ -687,6 +875,8 @@ window.go=(id,el)=>{
   document.getElementById("sec-"+id).classList.add("active");
   if(el)el.classList.add("active");
   if(id==="planning")renderWeekPlan();
+  if(id==="monplanning")renderMyPlanning();
+  if(id==="mesrapports")renderMyRapports();
 };
 
 async function loadAll(){
@@ -702,10 +892,14 @@ async function loadAll(){
     allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
 
-    renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
-    const nonLus=allRapports.filter(r=>!r.lu).length;
-    const nb=document.getElementById("navBadgeRap");
-    if(nonLus>0){nb.textContent=nonLus;nb.style.display="inline-block";}else{nb.style.display="none";}
+    if(userRole==="admin"){
+      renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
+      const nonLus=allRapports.filter(r=>!r.lu).length;
+      const nb=document.getElementById("navBadgeRap");
+      if(nonLus>0){nb.textContent=nonLus;nb.style.display="inline-block";}else{nb.style.display="none";}
+    }else if(userRole==="agent"){
+      renderMyPlanning();renderMyRapports();
+    }
   }catch(e){console.error(e);}
 }
 
@@ -942,8 +1136,8 @@ function renderDashboard(){
 }
 
 // PLANNING
-window.prevWeek=()=>{weekStart=addDays(weekStart,-7);renderWeekPlan();}
-window.nextWeek=()=>{weekStart=addDays(weekStart,7);renderWeekPlan();}
+window.prevWeek=()=>{weekStart=addDays(weekStart,-7);if(userRole==="admin")renderWeekPlan();else renderMyPlanning();}
+window.nextWeek=()=>{weekStart=addDays(weekStart,7);if(userRole==="admin")renderWeekPlan();else renderMyPlanning();}
 
 // Reset: remove ALL manual overrides from Firebase, fall back to pure computed planning
 window.resetPlanning=async()=>{
@@ -1046,6 +1240,76 @@ function getShiftVal(ag, dateISO){
   if(ps&&ps.val)return{val:ps.val,id:ps.id};
   return{val:computeShiftVal(ag,dateISO),id:ps?ps.id:""};
 }
+
+// ===== AGENT VIEW: MON PLANNING =====
+function renderMyPlanning(){
+  if(!myAgent)return;
+  document.getElementById("agentWeekRange").textContent=fmt(weekStart)+" — "+fmt(addDays(weekStart,6));
+  let agZone;
+  if(FIXED_ZONE_AGENTS.includes(myAgent.name)){agZone=getAgentZone(myAgent.name);}
+  else{agZone=getAutoZone(myAgent.name,weekStart)||getAgentZone(myAgent.name);}
+  const zCls=getZoneCls(agZone);
+  document.getElementById("agentZoneBadge").className="zone-badge "+zCls;
+  document.getElementById("agentZoneBadge").textContent=agZone;
+
+  const grid=document.getElementById("agentPlanGrid");
+  grid.innerHTML="";
+  let totalH=0;
+  const todayISO=iso(new Date());
+  for(let d=0;d<7;d++){
+    const dd=addDays(weekStart,d);
+    const dateISO=iso(dd);
+    const {val}=getShiftVal(myAgent,dateISO);
+    totalH+=calcH(val);
+    const cls=shiftCls(val);
+    const isToday=dateISO===todayISO;
+    const card=document.createElement("div");
+    card.style.cssText=`border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;${isToday?"border-color:var(--acc);background:var(--accbg)":"background:var(--bg3)"}`;
+    card.innerHTML=`
+      <div style="font-size:10px;color:${isToday?"var(--acc)":"var(--t4)"};font-weight:700;letter-spacing:.5px;text-transform:uppercase">${JOURS[d]}</div>
+      <div style="font-size:12px;font-weight:700;color:${isToday?"var(--acc)":"var(--t2)"};margin-bottom:8px">${fmt(dd)}</div>
+      <span class="shift-cell ${cls}" style="width:100%;cursor:default">${shiftHtml(val)}</span>`;
+    grid.appendChild(card);
+  }
+  document.getElementById("agentWeekTotal").textContent=totalH+"h";
+}
+
+// ===== AGENT VIEW: MES RAPPORTS =====
+function renderMyRapports(){
+  if(!myAgent)return;
+  const list=allRapports.filter(r=>r.agentName===myAgent.name);
+  const cont=document.getElementById("myRapList");
+  if(!list.length){cont.innerHTML='<div class="empty"><i class="ti ti-file-off"></i><p>Aucun rapport envoyé.</p></div>';return;}
+  cont.innerHTML="";
+  list.forEach(r=>{
+    const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"—";
+    const d=document.createElement("div");
+    d.style.cssText="padding:12px 0;border-bottom:1px solid var(--border)";
+    d.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:13px;color:var(--t1);font-weight:600">${r.titre||"Rapport"}</span>
+        <span class="badge ${r.lu?"badge-green":"badge-blue"}">${r.lu?"Lu":"En attente"}</span>
+      </div>
+      <div style="font-size:11px;color:var(--t4);margin-bottom:6px">${dt}</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.6;white-space:pre-wrap">${r.contenu||""}</div>`;
+    cont.appendChild(d);
+  });
+}
+
+window.sendMyRapport=async()=>{
+  if(!myAgent)return;
+  const titre=document.getElementById("myRapTitre").value.trim();
+  const contenu=document.getElementById("myRapContenu").value.trim();
+  if(!titre||!contenu){showAlert("myRapAlert","Veuillez remplir le titre et le contenu.","error");return;}
+  try{
+    await addDoc(collection(db,"rapports"),{agentName:myAgent.name,titre,contenu,lu:false,createdAt:serverTimestamp()});
+    document.getElementById("myRapTitre").value="";
+    document.getElementById("myRapContenu").value="";
+    showAlert("myRapAlert","✅ Rapport envoyé !","success");
+    await loadAll();
+  }catch(e){showAlert("myRapAlert","Erreur: "+e.message,"error");}
+};
+
 
 function renderWeekPlan(){
   document.getElementById("weekRange").textContent=fmt(weekStart)+" — "+fmt(addDays(weekStart,6));
