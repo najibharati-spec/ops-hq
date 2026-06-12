@@ -590,7 +590,7 @@ import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-ap
 import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import{getFirestore,collection,getDocs,addDoc,updateDoc,deleteDoc,doc,getDoc,setDoc,query,orderBy,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const FC={apiKey:"AIzaSyDdXwRWBvTJ9RffnY16W_r0dHE1WOJj1Rs",authDomain:"ops-hq-cc38c.firebaseapp.com",projectId:"ops-hq-cc38c",storageBucket:"ops-hq-cc38c.firebasestorage.app",messagingSenderId:"909070102010",appId:"1:909070102010:web:5abb7857fe2a557ed68843"};
+const FC={apiKey:"AIzaSyDWL5H3OcGVRUpdpKu1T-8_P-5ieCtALBQ",authDomain:"ops-hq-v2.firebaseapp.com",projectId:"ops-hq-v2",storageBucket:"ops-hq-v2.firebasestorage.app",messagingSenderId:"651634935763",appId:"1:651634935763:web:57299286c5d0464d3ad126"};
 const app=initializeApp(FC);
 const auth=getAuth(app);
 const db=getFirestore(app);
@@ -632,11 +632,8 @@ let pmAgent2=null,pmDate3=null,pmId=null,curRapId=null;
 let pmStatus="WORK";
 
 onAuthStateChanged(auth,async u=>{
-  if(u){
-    const snap=await getDoc(doc(db,"users",u.uid));
-    if(snap.exists()){currentUser=u;userDisplayName=snap.data().displayName||u.email;showApp();}
-    else{await signOut(auth);}
-  }else{showLogin();}
+  if(u){currentUser=u;userDisplayName=u.email.split("@")[0];showApp();}
+  else{showLogin();}
 });
 
 window.doLogin=async()=>{
