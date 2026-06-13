@@ -367,6 +367,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
           <div class="btn" onclick="resetPlanning()" style="gap:6px;background:#fef2f2;border-color:#fca5a5;color:#dc2626"><i class="ti ti-trash"></i> Reset Planning</div>
           <div class="btn" onclick="copyPrevWeek()" style="gap:6px;background:var(--accbg);border-color:var(--accbdr);color:var(--acc)"><i class="ti ti-copy"></i> Copier sem. précédente</div>
           <div class="btn btn-success" onclick="exportExcel()"><i class="ti ti-table-export"></i> Excel</div>
+          <div class="btn" style="background:#FEF3E2;border-color:#FBD49C;color:#D9750A" onclick="openSalaireModal()"><i class="ti ti-cash"></i> Salaires</div>
           <div class="btn btn-danger" onclick="exportPDF()"><i class="ti ti-file-export"></i> PDF</div>
         </div>
       </div>
@@ -637,7 +638,36 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
   </div>
 </div>
 
-<!-- MODAL COULEURS -->
+<!-- MODAL SALAIRES -->
+<div class="modal-ov" id="salaireModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title"><i class="ti ti-cash" style="color:var(--amber)"></i> Export Salaires</div>
+    <i class="ti ti-x modal-x" onclick="closeSalaireModal()"></i>
+    <div class="grid2">
+      <div class="mfield">
+        <label>Mois</label>
+        <select id="salMois" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none">
+          <option value="0">Janvier</option><option value="1">Février</option><option value="2">Mars</option>
+          <option value="3">Avril</option><option value="4">Mai</option><option value="5">Juin</option>
+          <option value="6">Juillet</option><option value="7">Août</option><option value="8">Septembre</option>
+          <option value="9">Octobre</option><option value="10">Novembre</option><option value="11">Décembre</option>
+        </select>
+      </div>
+      <div class="mfield">
+        <label>Année</label>
+        <input type="number" id="salAnnee" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none" value="2026"/>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--t4);line-height:1.6;background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:6px">
+      <i class="ti ti-info-circle"></i> Salaire calculé sur base de ${SALAIRE_BASE_JOURS} jours/mois.
+      Jours travaillés un jour OFF habituel = payés double.
+    </div>
+    <div class="modal-acts">
+      <div class="btn" onclick="closeSalaireModal()">Annuler</div>
+      <div class="btn btn-primary" style="background:var(--amber);border-color:var(--amber)" onclick="exportSalaires()"><i class="ti ti-table-export"></i> Télécharger Excel</div>
+    </div>
+  </div>
+</div>
 <div class="modal-ov" id="colorModal">
   <div class="modal color-modal">
     <div class="modal-title"><i class="ti ti-palette" style="color:var(--acc)"></i> Personnaliser les couleurs</div>
@@ -765,23 +795,28 @@ const ZONES=[
 
 const AGENTS=[
   // Hay Riad
-  {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad",             shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:1, pin:"1234"},
-  {name:"Aymane Chlifane",  ini:"AC",  zone:"Hay Riad",             shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0, pin:"2345"},
+  {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad",             shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:1, pin:"1234", salaire:5000},
+  {name:"Aymane Chlifane",  ini:"AC",  zone:"Hay Riad",             shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0, pin:"2345", salaire:5000},
   // Agdal - Soussi
-  {name:"Yahya Rhallab",    ini:"YR",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:3, pin:"3456"},
-  {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0, pin:"4567"},
+  {name:"Yahya Rhallab",    ini:"YR",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:3, pin:"3456", salaire:5000},
+  {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0, pin:"4567", salaire:5000},
   // Carrousel - Hay Fath
-  {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath", shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:1, pin:"5678"},
-  {name:"Islam Elmardi",    ini:"IE",  zone:"Carrousel - Hay Fath", shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:2, pin:"6789"},
+  {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath", shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:1, pin:"5678", salaire:5000},
+  {name:"Islam Elmardi",    ini:"IE",  zone:"Carrousel - Hay Fath", shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:2, pin:"6789", salaire:5000},
   // Temara
-  {name:"Ayoub Abssi",      ini:"ABS", zone:"Temara",               shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:2, pin:"7890"},
-  {name:"Mourad Cherradi",  ini:"MC",  zone:"Temara",               shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:3, pin:"8901"},
+  {name:"Ayoub Abssi",      ini:"ABS", zone:"Temara",               shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:2, pin:"7890", salaire:5000},
+  {name:"Mourad Cherradi",  ini:"MC",  zone:"Temara",               shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:3, pin:"8901", salaire:5000},
   // Salé - Medina
-  {name:"Ayoub Ben Malek",  ini:"ABM", zone:"Salé - Medina",        shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:3, pin:"9012"},
-  {name:"Hassan Azgoune",   ini:"HA",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"09:00-16:00", horaireB:"18:00-01:00", offDay:0, pin:"0123"},
-  {name:"Zakariae Benali",  ini:"ZB",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:1, pin:"1357"},
-  {name:"Charaf Loummihi",  ini:"CL",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:2, pin:"2468"},
+  {name:"Ayoub Ben Malek",  ini:"ABM", zone:"Salé - Medina",        shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:3, pin:"9012", salaire:5000},
+  {name:"Hassan Azgoune",   ini:"HA",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"09:00-16:00", horaireB:"18:00-01:00", offDay:0, pin:"0123", salaire:5000},
+  {name:"Zakariae Benali",  ini:"ZB",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:1, pin:"1357", salaire:5000},
+  {name:"Charaf Loummihi",  ini:"CL",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:2, pin:"2468", salaire:5000},
 ];
+
+// Salaire admin/manager (Najib Harati)
+const ADMIN_SALAIRE=7000;
+const ADMIN_NAME="Najib Harati";
+const SALAIRE_BASE_JOURS=26;
 
 const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 
@@ -1946,6 +1981,119 @@ window.exportExcel=()=>{
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,`Planning ${weekLabel}`);
   XLSX.writeFile(wb,`Planning_${weekLabel.replace(" — ","-")}.xlsx`);
+};
+
+// ===== SALAIRES =====
+const MOIS_FR=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+
+window.openSalaireModal=()=>{
+  const now=new Date();
+  document.getElementById("salMois").value=String(now.getMonth());
+  document.getElementById("salAnnee").value=now.getFullYear();
+  document.getElementById("salaireModal").classList.add("open");
+};
+window.closeSalaireModal=()=>document.getElementById("salaireModal").classList.remove("open");
+
+function daysInMonth(year,month){return new Date(year,month+1,0).getDate();}
+
+// Compute salary breakdown for one agent over a given month
+function computeAgentSalaire(ag, year, month, salaireBase){
+  const nbJours=daysInMonth(year,month);
+  const rate=salaireBase/SALAIRE_BASE_JOURS;
+  let joursNormaux=0, joursDouble=0;
+  for(let d=1;d<=nbJours;d++){
+    const dateObj=new Date(year,month,d);
+    const dateISO=iso(dateObj);
+    const {val}=getShiftVal(ag,dateISO);
+    if(!val||["OFF","ABSENT","CONGE","MALADIE",""].includes(val))continue;
+    // worked this day
+    const dow=dateObj.getDay(); // 0=Dim..6=Sam
+    const dIdx=dow===0?6:dow-1; // convert to Lun=0..Dim=6 (matches offDay convention)
+    if(dIdx===ag.offDay)joursDouble++;
+    else joursNormaux++;
+  }
+  const total=Math.round((joursNormaux*rate + joursDouble*rate*2)*100)/100;
+  return {joursNormaux,joursDouble,joursTravailles:joursNormaux+joursDouble,rate:Math.round(rate*100)/100,total};
+}
+
+window.exportSalaires=()=>{
+  const month=parseInt(document.getElementById("salMois").value,10);
+  const year=parseInt(document.getElementById("salAnnee").value,10);
+  const label=`${MOIS_FR[month]} ${year}`;
+
+  const headers=["AGENT","ZONE","JOUR OFF HABITUEL","JOURS TRAVAILLÉS","JOURS NORMAUX","JOURS DOUBLE (OFF travaillé)","TAUX/JOUR (DH)","SALAIRE TOTAL (DH)"];
+  const rows=[];
+
+  // Agents
+  AGENTS.forEach(ag=>{
+    const r=computeAgentSalaire(ag,year,month,ag.salaire||5000);
+    const agZone=FIXED_ZONE_AGENTS.includes(ag.name)?getAgentZone(ag.name):(getAutoZone(ag.name,weekStart)||getAgentZone(ag.name));
+    rows.push([ag.name,agZone,JOURS[ag.offDay],r.joursTravailles,r.joursNormaux,r.joursDouble,r.rate,r.total]);
+  });
+
+  // Admin/Manager — fixed salary, no daily computation (works full month, offDay=Dim by convention)
+  const adminRate=Math.round((ADMIN_SALAIRE/SALAIRE_BASE_JOURS)*100)/100;
+  rows.push([ADMIN_NAME,"Direction","Dim",SALAIRE_BASE_JOURS,SALAIRE_BASE_JOURS,0,adminRate,ADMIN_SALAIRE]);
+
+  // Total row
+  const totalGen=rows.reduce((s,r)=>s+r[7],0);
+  rows.push(["","","","","","","TOTAL GÉNÉRAL",totalGen]);
+
+  const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+  ws["!cols"]=[{wch:22},{wch:20},{wch:16},{wch:16},{wch:14},{wch:22},{wch:14},{wch:16}];
+
+  const headerStyle={
+    font:{bold:true,color:{rgb:"FFFFFF"},sz:11},
+    fill:{fgColor:{rgb:"D9750A"}},
+    alignment:{horizontal:"center",vertical:"center"},
+    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
+  };
+  const cellStyle={
+    alignment:{horizontal:"center",vertical:"center"},
+    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
+  };
+  const nameStyle={
+    font:{bold:true},
+    alignment:{horizontal:"left",vertical:"center"},
+    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
+  };
+  const doubleStyle={
+    font:{bold:true,color:{rgb:"D64550"}},
+    fill:{fgColor:{rgb:"FDEEEF"}},
+    alignment:{horizontal:"center",vertical:"center"},
+    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
+  };
+  const totalStyle={
+    font:{bold:true,color:{rgb:"FFFFFF"},sz:12},
+    fill:{fgColor:{rgb:"1E3A8A"}},
+    alignment:{horizontal:"center",vertical:"center"},
+    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
+  };
+
+  const range=XLSX.utils.decode_range(ws["!ref"]);
+  // header row
+  for(let c=range.s.c;c<=range.e.c;c++){
+    const cell=XLSX.utils.encode_cell({r:0,c});
+    if(ws[cell])ws[cell].s=headerStyle;
+  }
+  // data rows
+  for(let r=1;r<=rows.length;r++){
+    const isLastRow=(r===rows.length);
+    for(let c=0;c<=range.e.c;c++){
+      const cell=XLSX.utils.encode_cell({r,c});
+      if(!ws[cell])continue;
+      if(isLastRow){ws[cell].s=totalStyle;continue;}
+      if(c===0){ws[cell].s=nameStyle;continue;}
+      if(c===5&&ws[cell].v>0){ws[cell].s=doubleStyle;continue;}
+      ws[cell].s=cellStyle;
+    }
+  }
+  ws["!rows"]=[{hpt:24},...Array(rows.length).fill({hpt:20})];
+
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,`Salaires ${label}`);
+  XLSX.writeFile(wb,`Salaires_${label.replace(" ","_")}.xlsx`);
+  closeSalaireModal();
 };
 
 // EXPORT PDF
