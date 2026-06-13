@@ -132,12 +132,14 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
   --sh-absent-bg:#FDEEEF;--sh-absent-bdr:#F3B7BC;--sh-absent-txt:#D64550;
   --sh-conge-bg:#FEF3E2; --sh-conge-bdr:#FBD49C; --sh-conge-txt:#D9750A;
   --sh-maladie-bg:#F2EEFB;--sh-maladie-bdr:#D3C5F0;--sh-maladie-txt:#7C5CBF;
+  --sh-double-bg:#FFF7E0;  --sh-double-bdr:#FFD166;  --sh-double-txt:#B07800;
 }
 .sh-work{background:var(--sh-work-bg);border:1.5px solid var(--sh-work-bdr)}
 .sh-off{background:var(--sh-off-bg);border:1.5px solid var(--sh-off-bdr)}
 .sh-absent{background:var(--sh-absent-bg);border:1.5px solid var(--sh-absent-bdr)}
 .sh-conge{background:var(--sh-conge-bg);border:1.5px solid var(--sh-conge-bdr)}
 .sh-maladie{background:var(--sh-maladie-bg);border:1.5px solid var(--sh-maladie-bdr)}
+.sh-double{background:var(--sh-double-bg);border:1.5px solid var(--sh-double-bdr)}
 .sh-empty{background:var(--bg);border:1.5px dashed var(--border)}
 .sh-t{font-size:12px;font-weight:700;font-family:var(--font-display)}
 .sh-s{font-size:10px;opacity:.75;margin-top:1px;font-weight:500}
@@ -146,6 +148,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
 .sh-absent .sh-t{color:var(--sh-absent-txt)}.sh-absent .sh-s{color:var(--sh-absent-txt)}
 .sh-conge .sh-t{color:var(--sh-conge-txt)}.sh-conge .sh-s{color:var(--sh-conge-txt)}
 .sh-maladie .sh-t{color:var(--sh-maladie-txt)}.sh-maladie .sh-s{color:var(--sh-maladie-txt)}
+.sh-double .sh-t{color:var(--sh-double-txt);font-weight:700}.sh-double .sh-s{color:var(--sh-double-txt)}
 .sh-empty .sh-t{color:var(--t4);font-size:18px;font-weight:300}
 .total-h{background:var(--sh-work-bg);border:1.5px solid var(--sh-work-bdr);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;color:var(--sh-work-txt);display:inline-block;font-family:var(--font-display)}
 .total-0{background:var(--sh-off-bg);border:1.5px solid var(--sh-off-bdr);color:var(--sh-off-txt)}
@@ -177,6 +180,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
 .sp-absent{background:var(--rbg);border-color:var(--rbdr);color:var(--red)}
 .sp-conge{background:var(--abg);border-color:var(--abdr);color:var(--amber)}
 .sp-maladie{background:var(--pbg);border-color:var(--pbdr);color:var(--purple)}
+.sp-double{background:var(--sh-double-bg);border-color:var(--sh-double-bdr);color:var(--sh-double-txt)}
 .ag-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .ag-started{background:var(--green)}
 .ag-notstarted{background:var(--border)}
@@ -559,6 +563,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       <label>Statut</label>
       <div class="status-row">
         <span class="status-pill sp-work" onclick="selectStatus('WORK')" id="pill-WORK">✓ Travail</span>
+        <span class="status-pill sp-double" onclick="selectStatus('DOUBLE')" id="pill-DOUBLE">💰 DOUBLE</span>
         <span class="status-pill sp-off" onclick="selectStatus('OFF')" id="pill-OFF">OFF</span>
         <span class="status-pill sp-absent" onclick="selectStatus('ABSENT')" id="pill-ABSENT">ABSENT</span>
         <span class="status-pill sp-conge" onclick="selectStatus('CONGE')" id="pill-CONGE">CONGÉ</span>
@@ -1028,7 +1033,7 @@ function fmt(d){return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digi
 function fmtFull(d){return d.toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"long"});}
 
 function calcH(v){
-  if(!v||["OFF","ABSENT","CONGE","MALADIE",""].includes(v))return 0;
+  if(!v||["OFF","ABSENT","CONGE","MALADIE","DOUBLE",""].includes(v))return 0;
   const p=v.split("-");if(p.length<2)return 0;
   let[dh,dm]=p[0].split(":").map(Number);
   let[fh,fm]=p[1].split(":").map(Number);
@@ -1042,12 +1047,14 @@ function shiftCls(v){
   if(v==="ABSENT")return"sh-absent";
   if(v==="CONGE")return"sh-conge";
   if(v==="MALADIE")return"sh-maladie";
+  if(v==="DOUBLE")return"sh-double";
   return"sh-work";
 }
 
 function shiftHtml(v){
   if(!v)return`<span class="sh-t" style="font-size:20px;font-weight:200;color:var(--border)">+</span>`;
   if(["OFF","ABSENT","CONGE","MALADIE"].includes(v))return`<span class="sh-t">${v==="CONGE"?"CONGÉ":v}</span>`;
+  if(v==="DOUBLE")return`<span class="sh-t">💰 DOUBLE</span>`;
   const h=calcH(v);const parts=v.split("-");
   return`<span class="sh-t">${parts[0]}→${parts[1]}</span><span class="sh-s">${h}h</span>`;
 }
@@ -1601,7 +1608,7 @@ window.openPlanModal=(agent,date,shiftId,val)=>{
   document.getElementById("pmDel").style.display=shiftId?"inline-flex":"none";
   let initStatus="",initHoraire="";
   if(!val||val===""){initStatus="";}
-  else if(["OFF","ABSENT","CONGE","MALADIE"].includes(val)){initStatus=val;}
+  else if(["OFF","ABSENT","CONGE","MALADIE","DOUBLE"].includes(val)){initStatus=val;}
   else{initStatus="WORK";initHoraire=val;}
   document.getElementById("pmInput").value=initHoraire;
   selectStatus(initStatus||"WORK");
@@ -1611,7 +1618,7 @@ window.openPlanModal=(agent,date,shiftId,val)=>{
 
 window.selectStatus=(s)=>{
   pmStatus=s;
-  ["WORK","OFF","ABSENT","CONGE","MALADIE"].forEach(x=>{
+  ["WORK","DOUBLE","OFF","ABSENT","CONGE","MALADIE"].forEach(x=>{
     const el=document.getElementById("pill-"+x);
     if(el)el.classList.toggle("sel",x===s);
   });
@@ -2015,8 +2022,11 @@ function computeAgentSalaire(ag, startISO, endISO, salaireBase){
     const dateISO=iso(d);
     const {val}=getShiftVal(ag,dateISO);
     if(!val||["OFF","ABSENT","CONGE","MALADIE",""].includes(val))continue;
-    const dow=d.getDay(); // 0=Dim..6=Sam
-    const dIdx=dow===0?6:dow-1; // convert to Lun=0..Dim=6 (matches offDay convention)
+    // DOUBLE pill = explicitly marked as double pay day
+    if(val==="DOUBLE"){joursDouble++;continue;}
+    // worked this day - check if it's their off day
+    const dow=d.getDay();
+    const dIdx=dow===0?6:dow-1;
     if(dIdx===ag.offDay)joursDouble++;
     else joursNormaux++;
   }
@@ -2036,78 +2046,164 @@ window.exportSalaires=()=>{
   const debut=document.getElementById("salDebut").value;
   const fin=document.getElementById("salFin").value;
   if(!debut||!fin||fin<debut){showAlert("aboAlert","Veuillez choisir une période valide.","error");return;}
-  const safeLabel=`${fmt(new Date(debut+"T12:00:00")).replace(/\//g,"-")}_au_${fmt(new Date(fin+"T12:00:00")).replace(/\//g,"-")}`;
 
-  const headers=["AGENT","JOURS TRAVAILLÉS","ÉCART vs 26j","JOURS DOUBLE (off travaillé)","JOURS ABSENCE","TAUX/JOUR (DH)","AJUSTEMENT (DH)","DÉDUCTION ABSENCE (DH)","SALAIRE NET (DH)"];
-  const rows=[];
+  const debutFmt=fmt(new Date(debut+"T12:00:00"));
+  const finFmt=fmt(new Date(fin+"T12:00:00"));
+  const safeLabel=`${debutFmt.replace(/\//g,"-")}_au_${finFmt.replace(/\//g,"-")}`;
+  const periodLabel=`TABLEAU DE SUIVI DE PRÉSENCE ET SALAIRES — PÉRIODE ${debutFmt} AU ${finFmt}`;
+
+  // Collect per-agent data
+  const agentRows=[];
+  const debutD=new Date(debut+"T00:00:00");
+  const finD=new Date(fin+"T00:00:00");
+
+  // Helper: format date as DD/MM/YYYY
+  function fmtDate(d){
+    return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"});
+  }
+  function fmtDateShort(d){
+    return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});
+  }
 
   AGENTS.forEach(ag=>{
-    const r=computeAgentSalaire(ag,debut,fin,ag.salaire||5000);
-    const absInfo=computeAbsenceDeduction(ag.name,debut,fin,r.rate);
-    const net=Math.round((r.total-absInfo.deduction)*100)/100;
-    const ajustementTotal=Math.round((r.ajustementJours+r.doubleAmount)*100)/100;
-    const ecartStr=(r.ecart>0?"+":"")+r.ecart;
-    rows.push([ag.name,r.joursTravailles,ecartStr,r.joursDouble,absInfo.joursAbs,r.rate,ajustementTotal,absInfo.deduction,net]);
+    const sal=ag.salaire||5000;
+    const absNonJustDates=[];
+    const joursDoubleDates=[];
+
+    // Collect absence dates for this agent in period
+    allAbsences.filter(a=>a.agent===ag.name).forEach(a=>{
+      const ds=new Date(a.debut+"T00:00:00");
+      const de=new Date((a.fin||a.debut)+"T00:00:00");
+      const start=ds<debutD?debutD:ds;
+      const end=de>finD?finD:de;
+      for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+        absNonJustDates.push(fmtDateShort(new Date(d)));
+      }
+    });
+
+    // Collect DOUBLE days from planning in period
+    for(let d=new Date(debutD);d<=finD;d.setDate(d.getDate()+1)){
+      const dateISO=iso(d);
+      const {val}=getShiftVal(ag,dateISO);
+      if(val==="DOUBLE") joursDoubleDates.push(fmtDateShort(new Date(d)));
+    }
+
+    // Also auto-detect off-day worked (not marked DOUBLE but khdam f jour off)
+    for(let d=new Date(debutD);d<=finD;d.setDate(d.getDate()+1)){
+      const dateISO=iso(d);
+      const {val}=getShiftVal(ag,dateISO);
+      if(!val||["OFF","ABSENT","CONGE","MALADIE","DOUBLE",""].includes(val))continue;
+      const dow=d.getDay();
+      const dIdx=dow===0?6:dow-1;
+      if(dIdx===ag.offDay){
+        const ds=fmtDateShort(new Date(d));
+        if(!joursDoubleDates.includes(ds)) joursDoubleDates.push(ds);
+      }
+    }
+
+    agentRows.push({
+      nom: ag.name,
+      sal,
+      absNonJust: absNonJustDates.join(", "),
+      joursDouble: joursDoubleDates.join(", "),
+    });
+  });
+
+  // Build XLSX using SheetJS with full styling (b7al openpyxl)
+  const DARK_BLUE="1F4E78";
+  const HDR_GREEN="D9EAD3";
+  const ALT_ROW  ="EAF3FB";
+  const RED_L    ="FDDEDE";
+  const AMBER_L  ="FFF3CC";
+  const GREEN_L  ="DFF5E1";
+  const WHITE    ="FFFFFF";
+
+  function s(fill,font,align,border){
+    const brd={top:{style:"thin",color:{rgb:"AAAAAA"}},bottom:{style:"thin",color:{rgb:"AAAAAA"}},left:{style:"thin",color:{rgb:"AAAAAA"}},right:{style:"thin",color:{rgb:"AAAAAA"}}};
+    const mbrd={top:{style:"medium",color:{rgb:DARK_BLUE}},bottom:{style:"medium",color:{rgb:DARK_BLUE}},left:{style:"medium",color:{rgb:DARK_BLUE}},right:{style:"medium",color:{rgb:DARK_BLUE}}};
+    return{
+      fill:{patternType:"solid",fgColor:{rgb:fill||WHITE}},
+      font:{name:"Arial",sz:font?.sz||10,bold:!!font?.bold,color:{rgb:font?.color||"1A1A2E"},italic:!!font?.italic},
+      alignment:{horizontal:align?.h||"center",vertical:"center",wrapText:true},
+      border:border==="thick"?mbrd:brd
+    };
+  }
+
+  const wb=XLSX.utils.book_new();
+  const ws={};
+
+  // Merge helper
+  const merges=[];
+  function setCell(addr,v,style){
+    ws[addr]={v,s:style};
+    if(typeof v==="string"&&v.startsWith("="))ws[addr].f=v.slice(1),ws[addr].v=0;
+  }
+
+  // Row 1-2: Title (merged A1:I2)
+  merges.push({s:{r:0,c:0},e:{r:1,c:8}});
+  setCell("A1",periodLabel,s(DARK_BLUE,{sz:14,bold:true,color:"FFD700"},{h:"center"}));
+
+  // Row 3: spacer
+  // Row 4: headers
+  const headers=["Nom & Prénom","Salaire\n(DH)","Présence\n(Jours)","Absence Justifiée\n(Dates)","Absence Non Justifiée\n(Dates)","Jour Férié Travaillé\n(Dates)","Retenue\n(DH)","Prime JF\n(DH)","Salaire Final\n(DH)"];
+  "ABCDEFGHI".split("").forEach((col,i)=>{
+    setCell(`${col}4`,headers[i],s(HDR_GREEN,{sz:11,bold:true,color:"1A1A2E"},{h:"center"}));
+  });
+
+  // Data rows start at row 5 (index 4)
+  agentRows.forEach((ag,idx)=>{
+    const r=idx+5; // Excel row (1-based)
+    const ri=idx+4; // 0-based index for SheetJS
+    const isAlt=idx%2===0;
+    const rowBg=isAlt?ALT_ROW:WHITE;
+
+    // A: Nom
+    setCell(`A${r}`,ag.nom,s(rowBg,{sz:12,bold:true,color:"1A1A2E"},{h:"left"}));
+    // B: Salaire base
+    setCell(`B${r}`,ag.sal,s(rowBg,{sz:11,bold:true},{h:"center"}));
+    // C: Présence (formula)
+    const cF=`26-(IF(E${r}="",0,LEN(E${r})-LEN(SUBSTITUTE(E${r},",",""))+1))+(IF(F${r}="",0,LEN(F${r})-LEN(SUBSTITUTE(F${r},",",""))+1))`;
+    ws[`C${r}`]={f:cF,v:0,s:s(rowBg,{sz:11,bold:true},{h:"center"})};
+    // D: Abs justifiée (vide)
+    setCell(`D${r}`,"",s(rowBg,{sz:11},{h:"left"}));
+    // E: Abs non justifiée
+    setCell(`E${r}`,ag.absNonJust||"",s(ag.absNonJust?RED_L:rowBg,{sz:10},{h:"left"}));
+    // F: Jours fériés / Double
+    setCell(`F${r}`,ag.joursDouble||"",s(ag.joursDouble?AMBER_L:rowBg,{sz:10},{h:"left"}));
+    // G: Retenue (formula)
+    const gF=`(IF(E${r}="",0,LEN(E${r})-LEN(SUBSTITUTE(E${r},",",""))+1))*(B${r}/26)`;
+    ws[`G${r}`]={f:gF,v:0,s:s(RED_L,{sz:11,bold:true,color:"C00000"},{h:"center"})};
+    ws[`G${r}`].z='#,##0.00 "DH"';
+    // H: Prime JF (formula)
+    const hF=`(IF(F${r}="",0,LEN(F${r})-LEN(SUBSTITUTE(F${r},",",""))+1))*(B${r}/26)`;
+    ws[`H${r}`]={f:hF,v:0,s:s(AMBER_L,{sz:11,bold:true,color:"7F6000"},{h:"center"})};
+    ws[`H${r}`].z='#,##0.00 "DH"';
+    // I: Salaire final (formula)
+    ws[`I${r}`]={f:`B${r}-G${r}+H${r}`,v:0,s:s(GREEN_L,{sz:12,bold:true,color:"1A5C2A"},{h:"center"})};
+    ws[`I${r}`].z='#,##0.00 "DH"';
+    // Format B
+    ws[`B${r}`].z='#,##0 "DH"';
   });
 
   // Total row
-  const totalGen=rows.reduce((s,r)=>s+r[8],0);
-  rows.push(["TOTAL GÉNÉRAL","","","","","","","",totalGen]);
+  const totalR=agentRows.length+5;
+  merges.push({s:{r:totalR-1,c:0},e:{r:totalR-1,c:5}});
+  setCell(`A${totalR}`,"TOTAL MASSE SALARIALE",s(DARK_BLUE,{sz:12,bold:true,color:"FFD700"},{h:"center"},"thick"));
+  "BCDEF".split("").forEach(c=>setCell(`${c}${totalR}`,"",s(DARK_BLUE,{},{h:"center"},"thick")));
+  ws[`G${totalR}`]={f:`SUM(G5:G${totalR-1})`,v:0,s:s(DARK_BLUE,{sz:12,bold:true,color:"FF9999"},{h:"center"},"thick"),z:'#,##0.00 "DH"'};
+  ws[`H${totalR}`]={f:`SUM(H5:H${totalR-1})`,v:0,s:s(DARK_BLUE,{sz:12,bold:true,color:"FFD700"},{h:"center"},"thick"),z:'#,##0.00 "DH"'};
+  ws[`I${totalR}`]={f:`SUM(I5:I${totalR-1})`,v:0,s:s(DARK_BLUE,{sz:13,bold:true,color:"FFD700"},{h:"center"},"thick"),z:'#,##0.00 "DH"'};
 
-  const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
-  ws["!cols"]=[{wch:24},{wch:16},{wch:14},{wch:18},{wch:14},{wch:14},{wch:16},{wch:18},{wch:16}];
+  // Sheet range
+  ws["!ref"]=`A1:I${totalR}`;
+  ws["!merges"]=merges;
+  ws["!cols"]=[{wch:30},{wch:12},{wch:12},{wch:18},{wch:38},{wch:28},{wch:14},{wch:13},{wch:18}];
+  ws["!rows"]=[{hpt:20},{hpt:20},{hpt:6},{hpt:45},
+    ...Array(agentRows.length).fill({hpt:30}),
+    {hpt:34}];
 
-  const headerStyle={
-    font:{bold:true,color:{rgb:"FFFFFF"},sz:11},
-    fill:{fgColor:{rgb:"D9750A"}},
-    alignment:{horizontal:"center",vertical:"center"},
-    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
-  };
-  const cellStyle={
-    alignment:{horizontal:"center",vertical:"center"},
-    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
-  };
-  const nameStyle={
-    font:{bold:true},
-    alignment:{horizontal:"left",vertical:"center"},
-    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
-  };
-  const doubleStyle={
-    font:{bold:true,color:{rgb:"D64550"}},
-    fill:{fgColor:{rgb:"FDEEEF"}},
-    alignment:{horizontal:"center",vertical:"center"},
-    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
-  };
-  const totalStyle={
-    font:{bold:true,color:{rgb:"FFFFFF"},sz:12},
-    fill:{fgColor:{rgb:"1E3A8A"}},
-    alignment:{horizontal:"center",vertical:"center"},
-    border:{top:{style:"thin"},bottom:{style:"thin"},left:{style:"thin"},right:{style:"thin"}}
-  };
-
-  const range=XLSX.utils.decode_range(ws["!ref"]);
-  // header row
-  for(let c=range.s.c;c<=range.e.c;c++){
-    const cell=XLSX.utils.encode_cell({r:0,c});
-    if(ws[cell])ws[cell].s=headerStyle;
-  }
-  // data rows
-  for(let r=1;r<=rows.length;r++){
-    const isLastRow=(r===rows.length);
-    for(let c=0;c<=range.e.c;c++){
-      const cell=XLSX.utils.encode_cell({r,c});
-      if(!ws[cell])continue;
-      if(isLastRow){ws[cell].s=totalStyle;continue;}
-      if(c===0){ws[cell].s=nameStyle;continue;}
-      if((c===3||c===4||c===7)&&ws[cell].v>0){ws[cell].s=doubleStyle;continue;}
-      ws[cell].s=cellStyle;
-    }
-  }
-  ws["!rows"]=[{hpt:24},...Array(rows.length).fill({hpt:20})];
-
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,`Salaires`);
-  XLSX.writeFile(wb,`Salaires_${safeLabel}.xlsx`);
+  XLSX.utils.book_append_sheet(wb,ws,"Suivi Présence");
+  XLSX.writeFile(wb,`Tableau_Presence_${safeLabel}.xlsx`);
   closeSalaireModal();
 };
 
