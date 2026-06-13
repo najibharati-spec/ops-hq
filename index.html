@@ -367,7 +367,6 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
           <div class="btn" onclick="resetPlanning()" style="gap:6px;background:#fef2f2;border-color:#fca5a5;color:#dc2626"><i class="ti ti-trash"></i> Reset Planning</div>
           <div class="btn" onclick="copyPrevWeek()" style="gap:6px;background:var(--accbg);border-color:var(--accbdr);color:var(--acc)"><i class="ti ti-copy"></i> Copier sem. précédente</div>
           <div class="btn btn-success" onclick="exportExcel()"><i class="ti ti-table-export"></i> Excel</div>
-          <div class="btn" style="background:#FEF3E2;border-color:#FBD49C;color:#D9750A" onclick="openSalaireModal()"><i class="ti ti-cash"></i> Salaires</div>
           <div class="btn btn-danger" onclick="exportPDF()"><i class="ti ti-file-export"></i> PDF</div>
         </div>
       </div>
@@ -475,7 +474,10 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
     <div class="section" id="sec-abonnements">
       <div class="topbar">
         <div><div class="ptitle">Abonnements</div><div class="psub">Gestion des accès</div></div>
-        <div class="btns"><div class="btn btn-primary" onclick="openAboModal()"><i class="ti ti-plus"></i> Ajouter</div></div>
+        <div class="btns">
+          <div class="btn" style="background:#FEF3E2;border-color:#FBD49C;color:#D9750A" onclick="openSalaireModal()"><i class="ti ti-cash"></i> Export Salaires</div>
+          <div class="btn btn-primary" onclick="openAboModal()"><i class="ti ti-plus"></i> Ajouter</div>
+        </div>
       </div>
       <div class="alert" id="aboAlert"></div>
       <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
