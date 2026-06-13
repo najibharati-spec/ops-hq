@@ -2034,28 +2034,22 @@ window.exportSalaires=()=>{
   const year=parseInt(document.getElementById("salAnnee").value,10);
   const label=`${MOIS_FR[month]} ${year}`;
 
-  const headers=["AGENT","ZONE","JOUR OFF HABITUEL","JOURS TRAVAILLÉS","JOURS NORMAUX","JOURS DOUBLE (OFF travaillé)","TAUX/JOUR (DH)","JOURS ABSENCE","DÉDUCTION ABSENCE (DH)","SALAIRE NET (DH)"];
+  const headers=["AGENT","JOURS TRAVAILLÉS","JOURS NORMAUX","JOURS DOUBLE (off travaillé)","JOURS ABSENCE","TAUX/JOUR (DH)","SALAIRE BASE (DH)","DÉDUCTION ABSENCE (DH)","SALAIRE NET (DH)"];
   const rows=[];
 
-  // Agents
   AGENTS.forEach(ag=>{
     const r=computeAgentSalaire(ag,year,month,ag.salaire||5000);
     const absInfo=computeAbsenceDeduction(ag.name,year,month,r.rate);
     const net=Math.round((r.total-absInfo.deduction)*100)/100;
-    const agZone=FIXED_ZONE_AGENTS.includes(ag.name)?getAgentZone(ag.name):(getAutoZone(ag.name,weekStart)||getAgentZone(ag.name));
-    rows.push([ag.name,agZone,JOURS[ag.offDay],r.joursTravailles,r.joursNormaux,r.joursDouble,r.rate,absInfo.joursAbs,absInfo.deduction,net]);
+    rows.push([ag.name,r.joursTravailles,r.joursNormaux,r.joursDouble,absInfo.joursAbs,r.rate,r.total,absInfo.deduction,net]);
   });
 
-  // Admin/Manager — fixed salary, no daily computation (works full month, offDay=Dim by convention)
-  const adminRate=Math.round((ADMIN_SALAIRE/SALAIRE_BASE_JOURS)*100)/100;
-  rows.push([ADMIN_NAME,"Direction","Dim",SALAIRE_BASE_JOURS,SALAIRE_BASE_JOURS,0,adminRate,0,0,ADMIN_SALAIRE]);
-
   // Total row
-  const totalGen=rows.reduce((s,r)=>s+r[9],0);
-  rows.push(["","","","","","","","","TOTAL GÉNÉRAL",totalGen]);
+  const totalGen=rows.reduce((s,r)=>s+r[8],0);
+  rows.push(["TOTAL GÉNÉRAL","","","","","","","",totalGen]);
 
   const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
-  ws["!cols"]=[{wch:22},{wch:20},{wch:16},{wch:16},{wch:14},{wch:22},{wch:14},{wch:14},{wch:20},{wch:16}];
+  ws["!cols"]=[{wch:24},{wch:16},{wch:14},{wch:18},{wch:14},{wch:14},{wch:16},{wch:18},{wch:16}];
 
   const headerStyle={
     font:{bold:true,color:{rgb:"FFFFFF"},sz:11},
@@ -2099,7 +2093,7 @@ window.exportSalaires=()=>{
       if(!ws[cell])continue;
       if(isLastRow){ws[cell].s=totalStyle;continue;}
       if(c===0){ws[cell].s=nameStyle;continue;}
-      if((c===5||c===8)&&ws[cell].v>0){ws[cell].s=doubleStyle;continue;}
+      if((c===3||c===4||c===7)&&ws[cell].v>0){ws[cell].s=doubleStyle;continue;}
       ws[cell].s=cellStyle;
     }
   }
