@@ -638,22 +638,17 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
     <i class="ti ti-x modal-x" onclick="closeSalaireModal()"></i>
     <div class="grid2">
       <div class="mfield">
-        <label>Mois</label>
-        <select id="salMois" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none">
-          <option value="0">Janvier</option><option value="1">Février</option><option value="2">Mars</option>
-          <option value="3">Avril</option><option value="4">Mai</option><option value="5">Juin</option>
-          <option value="6">Juillet</option><option value="7">Août</option><option value="8">Septembre</option>
-          <option value="9">Octobre</option><option value="10">Novembre</option><option value="11">Décembre</option>
-        </select>
+        <label>Date début</label>
+        <input type="date" id="salDebut" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none"/>
       </div>
       <div class="mfield">
-        <label>Année</label>
-        <input type="number" id="salAnnee" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none" value="2026"/>
+        <label>Date fin</label>
+        <input type="date" id="salFin" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none"/>
       </div>
     </div>
     <div style="font-size:11px;color:var(--t4);line-height:1.6;background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:6px">
-      <i class="ti ti-info-circle"></i> Salaire calculé sur base de ${SALAIRE_BASE_JOURS} jours/mois.
-      Jours travaillés un jour OFF habituel = payés double.
+      <i class="ti ti-info-circle"></i> Salaire de base calculé sur ${SALAIRE_BASE_JOURS} jours pour la période.
+      Jour travaillé un jour OFF habituel = payé double. Jours en plus/en moins par rapport à ${SALAIRE_BASE_JOURS} sont ajustés.
     </div>
     <div class="modal-acts">
       <div class="btn" onclick="closeSalaireModal()">Annuler</div>
@@ -1984,64 +1979,75 @@ window.exportExcel=()=>{
 const MOIS_FR=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 
 window.openSalaireModal=()=>{
+  // Default: 21 of previous month -> 22 of current month
   const now=new Date();
-  document.getElementById("salMois").value=String(now.getMonth());
-  document.getElementById("salAnnee").value=now.getFullYear();
+  const debut=new Date(now.getFullYear(),now.getMonth()-1,21);
+  const fin=new Date(now.getFullYear(),now.getMonth(),22);
+  document.getElementById("salDebut").value=iso(debut);
+  document.getElementById("salFin").value=iso(fin);
   document.getElementById("salaireModal").classList.add("open");
 };
 window.closeSalaireModal=()=>document.getElementById("salaireModal").classList.remove("open");
 
-function daysInMonth(year,month){return new Date(year,month+1,0).getDate();}
-
-// Compute absence deduction for an agent within a given month
-function computeAbsenceDeduction(agentName,year,month,rate){
-  const monthStart=new Date(year,month,1);
-  const monthEnd=new Date(year,month+1,0);
+// Compute absence deduction for an agent within a date range [start,end] inclusive (ISO strings)
+function computeAbsenceDeduction(agentName,startISO,endISO,rate){
+  const rangeStart=new Date(startISO+"T00:00:00");
+  const rangeEnd=new Date(endISO+"T00:00:00");
   let joursAbs=0;
   allAbsences.filter(a=>a.agent===agentName).forEach(a=>{
     const ds=new Date(a.debut+"T00:00:00");
     const de=new Date((a.fin||a.debut)+"T00:00:00");
-    const start=ds<monthStart?monthStart:ds;
-    const end=de>monthEnd?monthEnd:de;
+    const start=ds<rangeStart?rangeStart:ds;
+    const end=de>rangeEnd?rangeEnd:de;
     if(start>end)return;
     joursAbs+=Math.round((end-start)/86400000)+1;
   });
   return {joursAbs,deduction:Math.round(joursAbs*rate*100)/100};
 }
 
-// Compute salary breakdown for one agent over a given month
-function computeAgentSalaire(ag, year, month, salaireBase){
-  const nbJours=daysInMonth(year,month);
+// Compute salary breakdown for one agent over a date range [start,end] inclusive (ISO strings)
+function computeAgentSalaire(ag, startISO, endISO, salaireBase){
   const rate=salaireBase/SALAIRE_BASE_JOURS;
   let joursNormaux=0, joursDouble=0;
-  for(let d=1;d<=nbJours;d++){
-    const dateObj=new Date(year,month,d);
-    const dateISO=iso(dateObj);
+  const start=new Date(startISO+"T00:00:00");
+  const end=new Date(endISO+"T00:00:00");
+  for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
+    const dateISO=iso(d);
     const {val}=getShiftVal(ag,dateISO);
     if(!val||["OFF","ABSENT","CONGE","MALADIE",""].includes(val))continue;
-    // worked this day
-    const dow=dateObj.getDay(); // 0=Dim..6=Sam
+    const dow=d.getDay(); // 0=Dim..6=Sam
     const dIdx=dow===0?6:dow-1; // convert to Lun=0..Dim=6 (matches offDay convention)
     if(dIdx===ag.offDay)joursDouble++;
     else joursNormaux++;
   }
-  const total=Math.round((joursNormaux*rate + joursDouble*rate*2)*100)/100;
-  return {joursNormaux,joursDouble,joursTravailles:joursNormaux+joursDouble,rate:Math.round(rate*100)/100,total};
+  const joursTravailles=joursNormaux+joursDouble;
+  const ecart=joursTravailles-SALAIRE_BASE_JOURS; // + = jours en plus, - = jours en moins
+  // Base pay for SALAIRE_BASE_JOURS days = salaireBase (capped at normal days, rest at rate)
+  const joursNormauxBase=Math.min(joursNormaux,SALAIRE_BASE_JOURS);
+  const joursNormauxSupp=Math.max(0,joursNormaux-SALAIRE_BASE_JOURS);
+  const baseAmount=joursNormauxBase*rate;
+  const ajustementJours=Math.round((joursNormauxSupp*rate - Math.max(0,(SALAIRE_BASE_JOURS-joursTravailles))*rate)*100)/100;
+  const doubleAmount=Math.round(joursDouble*rate*2*100)/100;
+  const total=Math.round((baseAmount+ajustementJours+doubleAmount)*100)/100;
+  return {joursNormaux,joursDouble,joursTravailles,ecart,rate:Math.round(rate*100)/100,ajustementJours,doubleAmount,total};
 }
 
 window.exportSalaires=()=>{
-  const month=parseInt(document.getElementById("salMois").value,10);
-  const year=parseInt(document.getElementById("salAnnee").value,10);
-  const label=`${MOIS_FR[month]} ${year}`;
+  const debut=document.getElementById("salDebut").value;
+  const fin=document.getElementById("salFin").value;
+  if(!debut||!fin||fin<debut){showAlert("aboAlert","Veuillez choisir une période valide.","error");return;}
+  const safeLabel=`${fmt(new Date(debut+"T12:00:00")).replace(/\//g,"-")}_au_${fmt(new Date(fin+"T12:00:00")).replace(/\//g,"-")}`;
 
-  const headers=["AGENT","JOURS TRAVAILLÉS","JOURS NORMAUX","JOURS DOUBLE (off travaillé)","JOURS ABSENCE","TAUX/JOUR (DH)","SALAIRE BASE (DH)","DÉDUCTION ABSENCE (DH)","SALAIRE NET (DH)"];
+  const headers=["AGENT","JOURS TRAVAILLÉS","ÉCART vs 26j","JOURS DOUBLE (off travaillé)","JOURS ABSENCE","TAUX/JOUR (DH)","AJUSTEMENT (DH)","DÉDUCTION ABSENCE (DH)","SALAIRE NET (DH)"];
   const rows=[];
 
   AGENTS.forEach(ag=>{
-    const r=computeAgentSalaire(ag,year,month,ag.salaire||5000);
-    const absInfo=computeAbsenceDeduction(ag.name,year,month,r.rate);
+    const r=computeAgentSalaire(ag,debut,fin,ag.salaire||5000);
+    const absInfo=computeAbsenceDeduction(ag.name,debut,fin,r.rate);
     const net=Math.round((r.total-absInfo.deduction)*100)/100;
-    rows.push([ag.name,r.joursTravailles,r.joursNormaux,r.joursDouble,absInfo.joursAbs,r.rate,r.total,absInfo.deduction,net]);
+    const ajustementTotal=Math.round((r.ajustementJours+r.doubleAmount)*100)/100;
+    const ecartStr=(r.ecart>0?"+":"")+r.ecart;
+    rows.push([ag.name,r.joursTravailles,ecartStr,r.joursDouble,absInfo.joursAbs,r.rate,ajustementTotal,absInfo.deduction,net]);
   });
 
   // Total row
@@ -2100,8 +2106,8 @@ window.exportSalaires=()=>{
   ws["!rows"]=[{hpt:24},...Array(rows.length).fill({hpt:20})];
 
   const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,`Salaires ${label}`);
-  XLSX.writeFile(wb,`Salaires_${label.replace(" ","_")}.xlsx`);
+  XLSX.utils.book_append_sheet(wb,ws,`Salaires`);
+  XLSX.writeFile(wb,`Salaires_${safeLabel}.xlsx`);
   closeSalaireModal();
 };
 
