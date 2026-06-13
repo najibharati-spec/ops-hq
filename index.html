@@ -280,7 +280,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
     <div class="nav-item admin-only" onclick="go('agents',this)"><i class="ti ti-users"></i> Agents</div>
     <span class="nav-sec admin-only">Gestion</span>
     <div class="nav-item admin-only" onclick="go('rapports',this)"><i class="ti ti-file-text"></i> Rapports <span id="navBadgeRap" style="margin-left:auto;display:none" class="badge badge-blue">0</span></div>
-    <div class="nav-item admin-only" onclick="go('abonnements',this)"><i class="ti ti-credit-card"></i> Abonnements</div>
+    <div class="nav-item admin-only" onclick="go('abonnements',this)"><i class="ti ti-calendar-x"></i> Absences</div>
     <span class="nav-sec agent-only" style="display:none">Principal</span>
     <div class="nav-item agent-only active" style="display:none" onclick="go('monplanning',this)"><i class="ti ti-calendar"></i> Mon Planning</div>
     <div class="nav-item agent-only" style="display:none" onclick="go('mesrapports',this)"><i class="ti ti-file-text"></i> Mes Rapports</div>
@@ -402,7 +402,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       <div class="card">
         <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Liste des agents</span></div>
         <table class="tbl">
-          <thead><tr><th>Agent</th><th>Zone</th><th>Mot de passe</th><th>Rapports</th><th>Abonnement</th></tr></thead>
+          <thead><tr><th>Agent</th><th>Zone</th><th>Mot de passe</th><th>Rapports</th><th>Absences</th></tr></thead>
           <tbody id="agentsBody"></tbody>
         </table>
       </div>
@@ -473,24 +473,38 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
     <!-- ABONNEMENTS -->
     <div class="section" id="sec-abonnements">
       <div class="topbar">
-        <div><div class="ptitle">Abonnements</div><div class="psub">Gestion des accès</div></div>
+        <div><div class="ptitle">Absences</div><div class="psub">Suivi des absences injustifiées</div></div>
         <div class="btns">
           <div class="btn" style="background:#FEF3E2;border-color:#FBD49C;color:#D9750A" onclick="openSalaireModal()"><i class="ti ti-cash"></i> Export Salaires</div>
-          <div class="btn btn-primary" onclick="openAboModal()"><i class="ti ti-plus"></i> Ajouter</div>
         </div>
       </div>
       <div class="alert" id="aboAlert"></div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-calendar-x" style="margin-right:6px"></i>Déclarer une absence</span></div>
+        <div class="grid2">
+          <div class="mfield"><label>Agent</label><select id="aAgent"></select></div>
+          <div class="mfield"><label>Type</label>
+            <select id="aType"><option value="injustifiee">Absence injustifiée</option></select>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="mfield"><label>Date début</label><input type="date" id="aDebut"/></div>
+          <div class="mfield"><label>Date fin</label><input type="date" id="aExpire"/></div>
+        </div>
+        <div class="btn btn-danger" onclick="saveAbo()" style="margin-top:4px"><i class="ti ti-device-floppy"></i> Enregistrer Absence</div>
+      </div>
       <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
-        <div class="stat-card"><div class="slabel">Total</div><div class="sval" style="color:var(--acc)" id="aTotal">0</div></div>
-        <div class="stat-card"><div class="slabel">Actifs</div><div class="sval" style="color:var(--green)" id="aActifs">0</div></div>
-        <div class="stat-card"><div class="slabel">Inactifs</div><div class="sval" style="color:var(--red)" id="aInactifs">0</div></div>
+        <div class="stat-card"><div class="slabel">Total absences</div><div class="sval" style="color:var(--acc)" id="aTotal">0</div></div>
+        <div class="stat-card"><div class="slabel">Jours cumulés</div><div class="sval" style="color:var(--amber)" id="aJours">0</div></div>
+        <div class="stat-card"><div class="slabel">Déductions cumulées</div><div class="sval" style="color:var(--red)" id="aDeduit">0 DH</div></div>
       </div>
       <div class="card">
-        <div class="card-title"><span><i class="ti ti-credit-card" style="margin-right:6px"></i>Liste des abonnements</span></div>
+        <div class="card-title"><span><i class="ti ti-history" style="margin-right:6px"></i>Historique</span></div>
         <table class="tbl">
-          <thead><tr><th>Agent</th><th>Plan</th><th>Début</th><th>Expiration</th><th>Statut</th><th>Action</th></tr></thead>
+          <thead><tr><th>Agent</th><th>Type</th><th>Début</th><th>Fin</th><th>Jours</th><th>Déduction</th><th>Action</th></tr></thead>
           <tbody id="aboBody"></tbody>
         </table>
+        <div class="empty" id="aboEmpty" style="display:none"><i class="ti ti-file-off"></i><p>Aucune absence enregistrée.</p></div>
       </div>
     </div>
 
@@ -529,29 +543,6 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
   </div>
 </div>
 
-<!-- MODAL ABONNEMENT -->
-<div class="modal-ov" id="aboModal">
-  <div class="modal">
-    <div class="modal-title"><i class="ti ti-credit-card" style="color:var(--acc)"></i><span id="aModalTitle">Nouvel abonnement</span></div>
-    <i class="ti ti-x modal-x" onclick="closeAboModal()"></i>
-    <input type="hidden" id="aEditId"/>
-    <div class="mfield"><label>Agent</label><select id="aAgent"></select></div>
-    <div class="mfield"><label>Plan</label>
-      <select id="aPlan"><option>Mensuel</option><option>Trimestriel</option><option>Annuel</option><option>Accès total</option></select>
-    </div>
-    <div class="grid2">
-      <div class="mfield"><label>Date début</label><input type="date" id="aDebut"/></div>
-      <div class="mfield"><label>Expiration</label><input type="date" id="aExpire"/></div>
-    </div>
-    <div class="mfield"><label>Statut</label>
-      <select id="aStatut"><option value="actif">Actif</option><option value="suspendu">Suspendu</option><option value="expiré">Expiré</option></select>
-    </div>
-    <div class="modal-acts">
-      <div class="btn" onclick="closeAboModal()">Annuler</div>
-      <div class="btn btn-primary" onclick="saveAbo()"><i class="ti ti-device-floppy"></i> Enregistrer</div>
-    </div>
-  </div>
-</div>
 
 <!-- MODAL PLANNING SHIFT -->
 <div class="modal-ov" id="planModal">
@@ -825,7 +816,7 @@ const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 let currentUser=null,userDisplayName="";
 let userRole="guest"; // "admin" | "agent"
 let myAgent=null; // for agent role: the AGENTS object
-let allRapports=[],allAbos=[],allPlanning=[],allAgentSettings=[];
+let allRapports=[],allAbsences=[],allPlanning=[],allAgentSettings=[];
 let weekStart=getMonday(new Date());
 let pmAgent2=null,pmDate3=null,pmId=null,curRapId=null;
 let pmStatus="WORK";
@@ -1015,12 +1006,12 @@ async function loadAll(){
   try{
     const[rs,as,ps,ss]=await Promise.all([
       getDocs(query(collection(db,"rapports"),orderBy("createdAt","desc"))),
-      getDocs(collection(db,"abonnements")),
+      getDocs(collection(db,"absences")),
       getDocs(collection(db,"planning2")),
       getDocs(collection(db,"agentSettings"))
     ]);
     allRapports=rs.docs.map(d=>({id:d.id,...d.data()}));
-    allAbos=as.docs.map(d=>({id:d.id,...d.data()}));
+    allAbsences=as.docs.map(d=>({id:d.id,...d.data()}));
     allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
 
@@ -1712,7 +1703,7 @@ function renderAgents(){
   const tb=document.getElementById("agentsBody");tb.innerHTML="";
   AGENTS.forEach(ag=>{
     const rc=allRapports.filter(r=>r.agentName===ag.name).length;
-    const abo=allAbos.find(a=>a.agent===ag.name);
+    const aboCount=allAbsences.filter(a=>a.agent===ag.name).length;
     const agZone=getAgentZone(ag.name);
     const zCls=getZoneCls(agZone);
     const pin=getAgentPin(ag.name);
@@ -1724,7 +1715,7 @@ function renderAgents(){
       <td><span class="plan-input" style="display:inline-block;width:auto;padding:4px 10px;font-weight:700;letter-spacing:2px">${pin}</span>
         <span class="btn btn-sm" style="margin-left:6px" onclick="openPinModal('${ag.name}')"><i class="ti ti-edit"></i></span></td>
       <td style="color:var(--t3)">${rc}</td>
-      <td>${abo?`<span class="badge badge-green">${abo.plan}</span>`:'<span class="badge badge-red">Aucun</span>'}</td>`;
+      <td>${aboCount>0?`<span class="badge badge-red">${aboCount}</span>`:'<span class="badge badge-green">0</span>'}</td>`;
     tb.appendChild(tr);
   });
 }
@@ -1812,54 +1803,58 @@ document.getElementById("btnMarquerLu").onclick=async()=>{
 };
 
 // ABONNEMENTS
+function diffDaysInclusive(d1,d2){
+  const a=new Date(d1+"T00:00:00"),b=new Date(d2+"T00:00:00");
+  return Math.round((b-a)/86400000)+1;
+}
+
 function renderAbos(){
-  document.getElementById("aTotal").textContent=allAbos.length;
-  document.getElementById("aActifs").textContent=allAbos.filter(a=>a.statut==="actif").length;
-  document.getElementById("aInactifs").textContent=allAbos.filter(a=>a.statut!=="actif").length;
+  const list=allAbsences.slice().sort((a,b)=>(b.debut||"").localeCompare(a.debut||""));
+  let totalJours=0,totalDeduit=0;
   const tb=document.getElementById("aboBody");tb.innerHTML="";
-  allAbos.forEach(a=>{
-    const ini=AGENTS.find(ag=>ag.name===a.agent)?.ini||"??";
-    const stB=a.statut==="actif"?"badge-green":a.statut==="suspendu"?"badge-amber":"badge-red";
+  list.forEach(a=>{
+    const ag=AGENTS.find(x=>x.name===a.agent);
+    const ini=ag?.ini||"??";
+    const rate=(ag?.salaire||5000)/SALAIRE_BASE_JOURS;
+    const jours=diffDaysInclusive(a.debut,a.fin||a.debut);
+    const deduction=Math.round(jours*rate*100)/100;
+    totalJours+=jours;totalDeduit+=deduction;
     const tr=document.createElement("tr");
     tr.innerHTML=`
       <td><div class="ag-row"><div class="avatar">${ini}</div>
         <span style="font-size:13px;color:var(--t1);font-weight:600">${a.agent}</span></div></td>
-      <td><span class="badge badge-purple">${a.plan}</span></td>
+      <td><span class="badge badge-red">Injustifiée</span></td>
       <td style="color:var(--t3)">${a.debut||"—"}</td>
-      <td style="color:var(--t3)">${a.expire||"—"}</td>
-      <td><span class="badge ${stB}">${a.statut}</span></td>
-      <td style="display:flex;gap:6px">
-        <div class="btn btn-sm" onclick="editAbo('${a.id}')"><i class="ti ti-edit"></i></div>
-        <div class="btn btn-sm btn-danger" onclick="deleteAbo('${a.id}')"><i class="ti ti-trash"></i></div>
-      </td>`;
+      <td style="color:var(--t3)">${a.fin||a.debut||"—"}</td>
+      <td style="font-weight:700">${jours}</td>
+      <td style="color:var(--red);font-weight:700">-${deduction} DH</td>
+      <td><div class="btn btn-sm btn-danger" onclick="deleteAbo('${a.id}')"><i class="ti ti-trash"></i></div></td>`;
     tb.appendChild(tr);
   });
+  document.getElementById("aTotal").textContent=list.length;
+  document.getElementById("aJours").textContent=totalJours;
+  document.getElementById("aDeduit").textContent=Math.round(totalDeduit*100)/100+" DH";
+  document.getElementById("aboEmpty").style.display=list.length?"none":"block";
 }
 
-window.openAboModal=(data=null)=>{
-  document.getElementById("aEditId").value=data?.id||"";
-  document.getElementById("aModalTitle").textContent=data?"Modifier abonnement":"Nouvel abonnement";
-  document.getElementById("aAgent").value=data?.agent||AGENTS[0].name;
-  document.getElementById("aPlan").value=data?.plan||"Mensuel";
-  document.getElementById("aDebut").value=data?.debut||"";
-  document.getElementById("aExpire").value=data?.expire||"";
-  document.getElementById("aStatut").value=data?.statut||"actif";
-  document.getElementById("aboModal").classList.add("open");
-};
-window.closeAboModal=()=>document.getElementById("aboModal").classList.remove("open");
 window.saveAbo=async()=>{
-  const id=document.getElementById("aEditId").value;
-  const data={agent:document.getElementById("aAgent").value,plan:document.getElementById("aPlan").value,debut:document.getElementById("aDebut").value,expire:document.getElementById("aExpire").value,statut:document.getElementById("aStatut").value};
+  const agent=document.getElementById("aAgent").value;
+  const debut=document.getElementById("aDebut").value;
+  const fin=document.getElementById("aExpire").value||debut;
+  if(!agent||!debut){showAlert("aboAlert","Veuillez remplir agent et date début.","error");return;}
+  if(fin<debut){showAlert("aboAlert","La date de fin doit être après la date de début.","error");return;}
+  const data={agent,type:"injustifiee",debut,fin,createdAt:serverTimestamp()};
   try{
-    if(id){await updateDoc(doc(db,"abonnements",id),data);showAlert("aboAlert","✅ Mis à jour.","success");}
-    else{data.createdAt=serverTimestamp();await addDoc(collection(db,"abonnements"),data);showAlert("aboAlert","✅ Créé.","success");}
-    closeAboModal();await loadAll();
-  }catch(e){showAlert("aboAlert","Erreur.","error");}
+    await addDoc(collection(db,"absences"),data);
+    document.getElementById("aDebut").value="";
+    document.getElementById("aExpire").value="";
+    showAlert("aboAlert","✅ Absence enregistrée.","success");
+    await loadAll();
+  }catch(e){showAlert("aboAlert","Erreur: "+e.message,"error");}
 };
-window.editAbo=id=>{const a=allAbos.find(x=>x.id===id);if(a)openAboModal(a);};
 window.deleteAbo=async id=>{
-  if(!confirm("Supprimer cet abonnement ?"))return;
-  try{await deleteDoc(doc(db,"abonnements",id));showAlert("aboAlert","Supprimé.","success");await loadAll();}
+  if(!confirm("Supprimer cette absence ?"))return;
+  try{await deleteDoc(doc(db,"absences",id));showAlert("aboAlert","Supprimé.","success");await loadAll();}
   catch(e){showAlert("aboAlert","Erreur.","error");}
 };
 
@@ -1998,6 +1993,22 @@ window.closeSalaireModal=()=>document.getElementById("salaireModal").classList.r
 
 function daysInMonth(year,month){return new Date(year,month+1,0).getDate();}
 
+// Compute absence deduction for an agent within a given month
+function computeAbsenceDeduction(agentName,year,month,rate){
+  const monthStart=new Date(year,month,1);
+  const monthEnd=new Date(year,month+1,0);
+  let joursAbs=0;
+  allAbsences.filter(a=>a.agent===agentName).forEach(a=>{
+    const ds=new Date(a.debut+"T00:00:00");
+    const de=new Date((a.fin||a.debut)+"T00:00:00");
+    const start=ds<monthStart?monthStart:ds;
+    const end=de>monthEnd?monthEnd:de;
+    if(start>end)return;
+    joursAbs+=Math.round((end-start)/86400000)+1;
+  });
+  return {joursAbs,deduction:Math.round(joursAbs*rate*100)/100};
+}
+
 // Compute salary breakdown for one agent over a given month
 function computeAgentSalaire(ag, year, month, salaireBase){
   const nbJours=daysInMonth(year,month);
@@ -2023,26 +2034,28 @@ window.exportSalaires=()=>{
   const year=parseInt(document.getElementById("salAnnee").value,10);
   const label=`${MOIS_FR[month]} ${year}`;
 
-  const headers=["AGENT","ZONE","JOUR OFF HABITUEL","JOURS TRAVAILLÉS","JOURS NORMAUX","JOURS DOUBLE (OFF travaillé)","TAUX/JOUR (DH)","SALAIRE TOTAL (DH)"];
+  const headers=["AGENT","ZONE","JOUR OFF HABITUEL","JOURS TRAVAILLÉS","JOURS NORMAUX","JOURS DOUBLE (OFF travaillé)","TAUX/JOUR (DH)","JOURS ABSENCE","DÉDUCTION ABSENCE (DH)","SALAIRE NET (DH)"];
   const rows=[];
 
   // Agents
   AGENTS.forEach(ag=>{
     const r=computeAgentSalaire(ag,year,month,ag.salaire||5000);
+    const absInfo=computeAbsenceDeduction(ag.name,year,month,r.rate);
+    const net=Math.round((r.total-absInfo.deduction)*100)/100;
     const agZone=FIXED_ZONE_AGENTS.includes(ag.name)?getAgentZone(ag.name):(getAutoZone(ag.name,weekStart)||getAgentZone(ag.name));
-    rows.push([ag.name,agZone,JOURS[ag.offDay],r.joursTravailles,r.joursNormaux,r.joursDouble,r.rate,r.total]);
+    rows.push([ag.name,agZone,JOURS[ag.offDay],r.joursTravailles,r.joursNormaux,r.joursDouble,r.rate,absInfo.joursAbs,absInfo.deduction,net]);
   });
 
   // Admin/Manager — fixed salary, no daily computation (works full month, offDay=Dim by convention)
   const adminRate=Math.round((ADMIN_SALAIRE/SALAIRE_BASE_JOURS)*100)/100;
-  rows.push([ADMIN_NAME,"Direction","Dim",SALAIRE_BASE_JOURS,SALAIRE_BASE_JOURS,0,adminRate,ADMIN_SALAIRE]);
+  rows.push([ADMIN_NAME,"Direction","Dim",SALAIRE_BASE_JOURS,SALAIRE_BASE_JOURS,0,adminRate,0,0,ADMIN_SALAIRE]);
 
   // Total row
-  const totalGen=rows.reduce((s,r)=>s+r[7],0);
-  rows.push(["","","","","","","TOTAL GÉNÉRAL",totalGen]);
+  const totalGen=rows.reduce((s,r)=>s+r[9],0);
+  rows.push(["","","","","","","","","TOTAL GÉNÉRAL",totalGen]);
 
   const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
-  ws["!cols"]=[{wch:22},{wch:20},{wch:16},{wch:16},{wch:14},{wch:22},{wch:14},{wch:16}];
+  ws["!cols"]=[{wch:22},{wch:20},{wch:16},{wch:16},{wch:14},{wch:22},{wch:14},{wch:14},{wch:20},{wch:16}];
 
   const headerStyle={
     font:{bold:true,color:{rgb:"FFFFFF"},sz:11},
@@ -2086,7 +2099,7 @@ window.exportSalaires=()=>{
       if(!ws[cell])continue;
       if(isLastRow){ws[cell].s=totalStyle;continue;}
       if(c===0){ws[cell].s=nameStyle;continue;}
-      if(c===5&&ws[cell].v>0){ws[cell].s=doubleStyle;continue;}
+      if((c===5||c===8)&&ws[cell].v>0){ws[cell].s=doubleStyle;continue;}
       ws[cell].s=cellStyle;
     }
   }
