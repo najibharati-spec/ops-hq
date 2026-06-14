@@ -2052,155 +2052,112 @@ window.exportSalaires=()=>{
   const safeLabel=`${debutFmt.replace(/\//g,"-")}_au_${finFmt.replace(/\//g,"-")}`;
   const periodLabel=`TABLEAU DE SUIVI DE PRÉSENCE ET SALAIRES — PÉRIODE ${debutFmt} AU ${finFmt}`;
 
-  // Collect per-agent data
-  const agentRows=[];
   const debutD=new Date(debut+"T00:00:00");
   const finD=new Date(fin+"T00:00:00");
 
-  // Helper: format date as DD/MM/YYYY
-  function fmtDate(d){
-    return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"});
-  }
-  function fmtDateShort(d){
-    return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});
-  }
+  function fmtShort(d){return new Date(d).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});}
 
+  // Collect data per agent
+  const agentRows=[];
   AGENTS.forEach(ag=>{
     const sal=ag.salaire||5000;
-    const absNonJustDates=[];
-    const joursDoubleDates=[];
+    const absDates=[];
+    const doubleDates=[];
 
-    // Collect absence dates for this agent in period
+    // Absences depuis Firebase
     allAbsences.filter(a=>a.agent===ag.name).forEach(a=>{
       const ds=new Date(a.debut+"T00:00:00");
       const de=new Date((a.fin||a.debut)+"T00:00:00");
       const start=ds<debutD?debutD:ds;
       const end=de>finD?finD:de;
-      for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
-        absNonJustDates.push(fmtDateShort(new Date(d)));
-      }
+      for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1))
+        absDates.push(fmtShort(d));
     });
 
-    // Collect DOUBLE days from planning in period
+    // Jours Double: marqué DOUBLE dans planning OU khdam f jour off
     for(let d=new Date(debutD);d<=finD;d.setDate(d.getDate()+1)){
       const dateISO=iso(d);
       const {val}=getShiftVal(ag,dateISO);
-      if(val==="DOUBLE") joursDoubleDates.push(fmtDateShort(new Date(d)));
-    }
-
-    // Also auto-detect off-day worked (not marked DOUBLE but khdam f jour off)
-    for(let d=new Date(debutD);d<=finD;d.setDate(d.getDate()+1)){
-      const dateISO=iso(d);
-      const {val}=getShiftVal(ag,dateISO);
-      if(!val||["OFF","ABSENT","CONGE","MALADIE","DOUBLE",""].includes(val))continue;
-      const dow=d.getDay();
-      const dIdx=dow===0?6:dow-1;
-      if(dIdx===ag.offDay){
-        const ds=fmtDateShort(new Date(d));
-        if(!joursDoubleDates.includes(ds)) joursDoubleDates.push(ds);
+      if(!val||val==="")continue;
+      const isDouble=val==="DOUBLE";
+      const isWorked=!["OFF","ABSENT","CONGE","MALADIE","DOUBLE",""].includes(val);
+      const dow=d.getDay();const dIdx=dow===0?6:dow-1;
+      const isOffDay=dIdx===ag.offDay;
+      if(isDouble||(isWorked&&isOffDay)){
+        const ds=fmtShort(d);
+        if(!doubleDates.includes(ds))doubleDates.push(ds);
       }
     }
 
-    agentRows.push({
-      nom: ag.name,
-      sal,
-      absNonJust: absNonJustDates.join(", "),
-      joursDouble: joursDoubleDates.join(", "),
-    });
+    agentRows.push({nom:ag.name,sal,abs:absDates.join(", "),dbl:doubleDates.join(", ")});
   });
 
-  // Build XLSX using SheetJS with full styling (b7al openpyxl)
-  const DARK_BLUE="1F4E78";
-  const HDR_GREEN="D9EAD3";
-  const ALT_ROW  ="EAF3FB";
-  const RED_L    ="FDDEDE";
-  const AMBER_L  ="FFF3CC";
-  const GREEN_L  ="DFF5E1";
-  const WHITE    ="FFFFFF";
-
-  function s(fill,font,align,border){
-    const brd={top:{style:"thin",color:{rgb:"AAAAAA"}},bottom:{style:"thin",color:{rgb:"AAAAAA"}},left:{style:"thin",color:{rgb:"AAAAAA"}},right:{style:"thin",color:{rgb:"AAAAAA"}}};
-    const mbrd={top:{style:"medium",color:{rgb:DARK_BLUE}},bottom:{style:"medium",color:{rgb:DARK_BLUE}},left:{style:"medium",color:{rgb:DARK_BLUE}},right:{style:"medium",color:{rgb:DARK_BLUE}}};
-    return{
-      fill:{patternType:"solid",fgColor:{rgb:fill||WHITE}},
-      font:{name:"Arial",sz:font?.sz||10,bold:!!font?.bold,color:{rgb:font?.color||"1A1A2E"},italic:!!font?.italic},
-      alignment:{horizontal:align?.h||"center",vertical:"center",wrapText:true},
-      border:border==="thick"?mbrd:brd
-    };
-  }
+  // Styles
+  const DB="1F4E78",GR="D9EAD3",ALT="EAF3FB",RL="FDDEDE",AL="FFF3CC",GL="DFF5E1",WH="FFFFFF";
+  const thin={style:"thin",color:{rgb:"AAAAAA"}};
+  const med={style:"medium",color:{rgb:DB}};
+  function brd(t){const b=t==="thick"?med:thin;return{top:b,bottom:b,left:b,right:b};}
+  function st(bg,fnt,h,thick){return{
+    fill:{patternType:"solid",fgColor:{rgb:bg||WH}},
+    font:{name:"Arial",sz:fnt?.sz||10,bold:!!fnt?.bold,color:{rgb:fnt?.color||"1A1A2E"}},
+    alignment:{horizontal:h||"center",vertical:"center",wrapText:true},
+    border:brd(thick?"thick":null)
+  };}
 
   const wb=XLSX.utils.book_new();
   const ws={};
-
-  // Merge helper
   const merges=[];
-  function setCell(addr,v,style){
+  function c(addr,v,style,fmt2){
     ws[addr]={v,s:style};
+    if(fmt2)ws[addr].z=fmt2;
     if(typeof v==="string"&&v.startsWith("="))ws[addr].f=v.slice(1),ws[addr].v=0;
   }
 
-  // Row 1-2: Title (merged A1:I2)
-  merges.push({s:{r:0,c:0},e:{r:1,c:8}});
-  setCell("A1",periodLabel,s(DARK_BLUE,{sz:14,bold:true,color:"FFD700"},{h:"center"}));
+  // Row 1-2: Titre
+  merges.push({s:{r:0,c:0},e:{r:1,c:7}});
+  c("A1",periodLabel,st(DB,{sz:13,bold:true,color:"FFD700"},"center"));
 
-  // Row 3: spacer
-  // Row 4: headers
-  const headers=["Nom & Prénom","Salaire\n(DH)","Présence\n(Jours)","Absence Justifiée\n(Dates)","Absence Non Justifiée\n(Dates)","Jour Férié Travaillé\n(Dates)","Retenue\n(DH)","Prime JF\n(DH)","Salaire Final\n(DH)"];
-  "ABCDEFGHI".split("").forEach((col,i)=>{
-    setCell(`${col}4`,headers[i],s(HDR_GREEN,{sz:11,bold:true,color:"1A1A2E"},{h:"center"}));
-  });
+  // Row 3: spacer vide
+  // Row 4: Headers (8 colonnes A→H)
+  const hdrs=["Nom & Prénom","Salaire\nBase (DH)","Jours\nPrésence","Jours Double\n(Dates)","Jours Absence\n(Dates)","Prime Double\n(DH)","Retenue Absence\n(DH)","Salaire\nFinal (DH)"];
+  "ABCDEFGH".split("").forEach((col,i)=>c(`${col}4`,hdrs[i],st(GR,{sz:11,bold:true,color:"1A1A2E"},"center")));
 
-  // Data rows start at row 5 (index 4)
+  // Rows 5+: Data
   agentRows.forEach((ag,idx)=>{
-    const r=idx+5; // Excel row (1-based)
-    const ri=idx+4; // 0-based index for SheetJS
-    const isAlt=idx%2===0;
-    const rowBg=isAlt?ALT_ROW:WHITE;
+    const r=idx+5;
+    const bg=idx%2===0?ALT:WH;
 
     // A: Nom
-    setCell(`A${r}`,ag.nom,s(rowBg,{sz:12,bold:true,color:"1A1A2E"},{h:"left"}));
+    c(`A${r}`,ag.nom,st(bg,{sz:12,bold:true},"left"));
     // B: Salaire base
-    setCell(`B${r}`,ag.sal,s(rowBg,{sz:11,bold:true},{h:"center"}));
-    // C: Présence (formula)
-    const cF=`26-(IF(E${r}="",0,LEN(E${r})-LEN(SUBSTITUTE(E${r},",",""))+1))+(IF(F${r}="",0,LEN(F${r})-LEN(SUBSTITUTE(F${r},",",""))+1))`;
-    ws[`C${r}`]={f:cF,v:0,s:s(rowBg,{sz:11,bold:true},{h:"center"})};
-    // D: Abs justifiée (vide)
-    setCell(`D${r}`,"",s(rowBg,{sz:11},{h:"left"}));
-    // E: Abs non justifiée
-    setCell(`E${r}`,ag.absNonJust||"",s(ag.absNonJust?RED_L:rowBg,{sz:10},{h:"left"}));
-    // F: Jours fériés / Double
-    setCell(`F${r}`,ag.joursDouble||"",s(ag.joursDouble?AMBER_L:rowBg,{sz:10},{h:"left"}));
-    // G: Retenue (formula)
-    const gF=`(IF(E${r}="",0,LEN(E${r})-LEN(SUBSTITUTE(E${r},",",""))+1))*(B${r}/26)`;
-    ws[`G${r}`]={f:gF,v:0,s:s(RED_L,{sz:11,bold:true,color:"C00000"},{h:"center"})};
-    ws[`G${r}`].z='#,##0.00 "DH"';
-    // H: Prime JF (formula)
-    const hF=`(IF(F${r}="",0,LEN(F${r})-LEN(SUBSTITUTE(F${r},",",""))+1))*(B${r}/26)`;
-    ws[`H${r}`]={f:hF,v:0,s:s(AMBER_L,{sz:11,bold:true,color:"7F6000"},{h:"center"})};
-    ws[`H${r}`].z='#,##0.00 "DH"';
-    // I: Salaire final (formula)
-    ws[`I${r}`]={f:`B${r}-G${r}+H${r}`,v:0,s:s(GREEN_L,{sz:12,bold:true,color:"1A5C2A"},{h:"center"})};
-    ws[`I${r}`].z='#,##0.00 "DH"';
-    // Format B
-    ws[`B${r}`].z='#,##0 "DH"';
+    c(`B${r}`,ag.sal,st(bg,{sz:11,bold:true},"center"),'#,##0 "DH"');
+    // C: Présence = 26 - absences + doubles (formula sur D et E)
+    ws[`C${r}`]={f:`26-(IF(E${r}="",0,LEN(E${r})-LEN(SUBSTITUTE(E${r},",",""))+1))+(IF(D${r}="",0,LEN(D${r})-LEN(SUBSTITUTE(D${r},",",""))+1))`,v:0,s:st(bg,{sz:12,bold:true},"center"),z:"0"};
+    // D: Jours Double (dates texte)
+    c(`D${r}`,ag.dbl||"",st(ag.dbl?AL:bg,{sz:10},"left"));
+    // E: Jours Absence (dates texte)
+    c(`E${r}`,ag.abs||"",st(ag.abs?RL:bg,{sz:10},"left"));
+    // F: Prime Double = nb_doubles * (salaire/26) * 2 ... ya3ni ytzad nhar kamel
+    ws[`F${r}`]={f:`(IF(D${r}="",0,LEN(D${r})-LEN(SUBSTITUTE(D${r},",",""))+1))*(B${r}/26)`,v:0,s:st(ag.dbl?AL:bg,{sz:11,bold:true,color:"7F6000"},"center"),z:'#,##0.00 "DH"'};
+    // G: Retenue = nb_absences * (salaire/26)
+    ws[`G${r}`]={f:`(IF(E${r}="",0,LEN(E${r})-LEN(SUBSTITUTE(E${r},",",""))+1))*(B${r}/26)`,v:0,s:st(ag.abs?RL:bg,{sz:11,bold:true,color:"C00000"},"center"),z:'#,##0.00 "DH"'};
+    // H: Salaire Final = Base + Prime Double - Retenue
+    ws[`H${r}`]={f:`B${r}+F${r}-G${r}`,v:0,s:st(GL,{sz:12,bold:true,color:"1A5C2A"},"center"),z:'#,##0.00 "DH"'};
   });
 
   // Total row
-  const totalR=agentRows.length+5;
-  merges.push({s:{r:totalR-1,c:0},e:{r:totalR-1,c:5}});
-  setCell(`A${totalR}`,"TOTAL MASSE SALARIALE",s(DARK_BLUE,{sz:12,bold:true,color:"FFD700"},{h:"center"},"thick"));
-  "BCDEF".split("").forEach(c=>setCell(`${c}${totalR}`,"",s(DARK_BLUE,{},{h:"center"},"thick")));
-  ws[`G${totalR}`]={f:`SUM(G5:G${totalR-1})`,v:0,s:s(DARK_BLUE,{sz:12,bold:true,color:"FF9999"},{h:"center"},"thick"),z:'#,##0.00 "DH"'};
-  ws[`H${totalR}`]={f:`SUM(H5:H${totalR-1})`,v:0,s:s(DARK_BLUE,{sz:12,bold:true,color:"FFD700"},{h:"center"},"thick"),z:'#,##0.00 "DH"'};
-  ws[`I${totalR}`]={f:`SUM(I5:I${totalR-1})`,v:0,s:s(DARK_BLUE,{sz:13,bold:true,color:"FFD700"},{h:"center"},"thick"),z:'#,##0.00 "DH"'};
+  const tr=agentRows.length+5;
+  merges.push({s:{r:tr-1,c:0},e:{r:tr-1,c:4}});
+  c(`A${tr}`,"TOTAL MASSE SALARIALE",st(DB,{sz:12,bold:true,color:"FFD700"},"center",true));
+  "BCDE".split("").forEach(col=>c(`${col}${tr}`,"",st(DB,{},"center",true)));
+  ws[`F${tr}`]={f:`SUM(F5:F${tr-1})`,v:0,s:st(DB,{sz:11,bold:true,color:"FFD700"},"center"),z:'#,##0.00 "DH"',border:brd("thick")};
+  ws[`G${tr}`]={f:`SUM(G5:G${tr-1})`,v:0,s:st(DB,{sz:11,bold:true,color:"FF9999"},"center"),z:'#,##0.00 "DH"',border:brd("thick")};
+  ws[`H${tr}`]={f:`SUM(H5:H${tr-1})`,v:0,s:st(DB,{sz:13,bold:true,color:"FFD700"},"center"),z:'#,##0.00 "DH"',border:brd("thick")};
 
-  // Sheet range
-  ws["!ref"]=`A1:I${totalR}`;
+  ws["!ref"]=`A1:H${tr}`;
   ws["!merges"]=merges;
-  ws["!cols"]=[{wch:30},{wch:12},{wch:12},{wch:18},{wch:38},{wch:28},{wch:14},{wch:13},{wch:18}];
-  ws["!rows"]=[{hpt:20},{hpt:20},{hpt:6},{hpt:45},
-    ...Array(agentRows.length).fill({hpt:30}),
-    {hpt:34}];
+  ws["!cols"]=[{wch:28},{wch:13},{wch:11},{wch:32},{wch:32},{wch:14},{wch:16},{wch:16}];
+  ws["!rows"]=[{hpt:22},{hpt:22},{hpt:5},{hpt:44},...Array(agentRows.length).fill({hpt:30}),{hpt:34}];
 
   XLSX.utils.book_append_sheet(wb,ws,"Suivi Présence");
   XLSX.writeFile(wb,`Tableau_Presence_${safeLabel}.xlsx`);
