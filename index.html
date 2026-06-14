@@ -2085,7 +2085,25 @@ window.exportSalaires=()=>{
   const debutD=new Date(debut+"T00:00:00");
   const finD=new Date(fin+"T00:00:00");
 
-  function fmtShort(d){return new Date(d).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});}
+  const MOIS_NOMS=["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"];
+  function fmtShort(d){
+    const dt=new Date(d);
+    return `${String(dt.getDate()).padStart(2,"0")}`;
+  }
+  function fmtGrouped(dates){
+    if(!dates.length)return"";
+    // Group by month
+    const byMonth={};
+    dates.forEach(iso=>{
+      const dt=new Date(iso+"T00:00:00");
+      const key=`${dt.getFullYear()}-${dt.getMonth()}`;
+      if(!byMonth[key])byMonth[key]={m:MOIS_NOMS[dt.getMonth()],days:[]};
+      byMonth[key].days.push(String(dt.getDate()).padStart(2,"0"));
+    });
+    const parts=Object.values(byMonth).map(g=>`${g.m} — ${g.days.join(", ")}`);
+    const total=dates.length;
+    return parts.join(" | ")+` — ${total} jour${total>1?"s":""}`;
+  }
 
   // Collect data per agent
   const agentRows=[];
@@ -2101,16 +2119,16 @@ window.exportSalaires=()=>{
       const start=ds<debutD?debutD:ds;
       const end=de>finD?finD:de;
       for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
-        const ds2=fmtShort(d);
+        const isoD=iso(d);
         if(a.type==="double"){
-          if(!doubleDates.includes(ds2))doubleDates.push(ds2);
+          if(!doubleDates.includes(isoD))doubleDates.push(isoD);
         } else {
-          absDates.push(ds2);
+          if(!absDates.includes(isoD))absDates.push(isoD);
         }
       }
     });
 
-    // Auto-detect off-day worked from planning (si machi déjà dans doubleDates)
+    // Auto-detect off-day worked from planning
     for(let d=new Date(debutD);d<=finD;d.setDate(d.getDate()+1)){
       const dateISO=iso(d);
       const {val}=getShiftVal(ag,dateISO);
@@ -2120,13 +2138,12 @@ window.exportSalaires=()=>{
       const dow=d.getDay();const dIdx=dow===0?6:dow-1;
       const isOffDay=dIdx===ag.offDay;
       if(isDouble||(isWorked&&isOffDay)){
-        const ds=fmtShort(d);
-        if(!doubleDates.includes(ds))doubleDates.push(ds);
+        if(!doubleDates.includes(dateISO))doubleDates.push(dateISO);
       }
     }
 
-    const absText=absDates.length>0?absDates.join(", ")+` — ${absDates.length} jour${absDates.length>1?"s":""}` :"";
-    const dblText=doubleDates.length>0?doubleDates.join(", ")+` — ${doubleDates.length} jour${doubleDates.length>1?"s":""}` :"";
+    const absText=fmtGrouped(absDates);
+    const dblText=fmtGrouped(doubleDates);
     agentRows.push({nom:ag.name,sal,
       abs:absText, absRaw:absDates.join(", "),
       dbl:dblText, dblRaw:doubleDates.join(", "),
