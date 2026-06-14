@@ -495,8 +495,11 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
           </div>
         </div>
         <div class="grid2">
-          <div class="mfield"><label>Date début</label><input type="date" id="aDebut"/></div>
-          <div class="mfield"><label>Date fin</label><input type="date" id="aExpire"/></div>
+          <div class="mfield"><label>Date début</label><input type="date" id="aDebut" oninput="calcJoursAbs()"/></div>
+          <div class="mfield"><label>Date fin</label><input type="date" id="aExpire" oninput="calcJoursAbs()"/></div>
+        </div>
+        <div id="joursAbsCounter" style="display:none;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:10px 16px;margin-bottom:8px;font-size:14px;font-weight:600;color:var(--t1)">
+          📅 <span id="joursAbsNb">0</span> jour(s) sélectionné(s)
         </div>
         <div class="btn btn-danger" onclick="saveAbo()" style="margin-top:4px"><i class="ti ti-device-floppy"></i> Enregistrer Absence</div>
       </div>
@@ -1848,6 +1851,22 @@ function renderAbos(){
   document.getElementById("aboEmpty").style.display=list.length?"none":"block";
 }
 
+window.calcJoursAbs=()=>{
+  const d=document.getElementById("aDebut").value;
+  const f=document.getElementById("aExpire").value;
+  const counter=document.getElementById("joursAbsCounter");
+  if(d&&f&&f>=d){
+    const jours=Math.round((new Date(f+"T00:00:00")-new Date(d+"T00:00:00"))/86400000)+1;
+    document.getElementById("joursAbsNb").textContent=jours;
+    const type=document.getElementById("aType").value;
+    counter.style.background=type==="double"?"var(--abg, #FFF3CC)":"var(--rbg, #FDDEDE)";
+    counter.style.borderColor=type==="double"?"#FFD166":"var(--rbdr, #FFAAAA)";
+    counter.style.display="block";
+  } else {
+    counter.style.display="none";
+  }
+};
+
 window.saveAbo=async()=>{
   const agent=document.getElementById("aAgent").value;
   const debut=document.getElementById("aDebut").value;
@@ -1860,6 +1879,7 @@ window.saveAbo=async()=>{
     await addDoc(collection(db,"absences"),data);
     document.getElementById("aDebut").value="";
     document.getElementById("aExpire").value="";
+    document.getElementById("joursAbsCounter").style.display="none";
     showAlert("aboAlert","✅ Absence enregistrée.","success");
     await loadAll();
   }catch(e){showAlert("aboAlert","Erreur: "+e.message,"error");}
@@ -2105,8 +2125,8 @@ window.exportSalaires=()=>{
       }
     }
 
-    const absText=absDates.length>0?absDates.join(", ")+`\n(${absDates.length} jour${absDates.length>1?"s":""})` :"";
-    const dblText=doubleDates.length>0?doubleDates.join(", ")+`\n(${doubleDates.length} jour${doubleDates.length>1?"s":""})` :"";
+    const absText=absDates.length>0?absDates.join(", ")+` — ${absDates.length} jour${absDates.length>1?"s":""}` :"";
+    const dblText=doubleDates.length>0?doubleDates.join(", ")+` — ${doubleDates.length} jour${doubleDates.length>1?"s":""}` :"";
     agentRows.push({nom:ag.name,sal,
       abs:absText, absRaw:absDates.join(", "),
       dbl:dblText, dblRaw:doubleDates.join(", "),
