@@ -2105,7 +2105,13 @@ window.exportSalaires=()=>{
       }
     }
 
-    agentRows.push({nom:ag.name,sal,abs:absDates.join(", "),dbl:doubleDates.join(", ")});
+    const absText=absDates.length>0?absDates.join(", ")+`  (${absDates.length} jour${absDates.length>1?"s":""})` :"";
+    const dblText=doubleDates.length>0?doubleDates.join(", ")+`  (${doubleDates.length} jour${doubleDates.length>1?"s":""})` :"";
+    agentRows.push({nom:ag.name,sal,
+      abs:absText, absRaw:absDates.join(", "),
+      dbl:dblText, dblRaw:doubleDates.join(", "),
+      absCount:absDates.length, dblCount:doubleDates.length
+    });
   });
 
   // Styles
@@ -2147,18 +2153,18 @@ window.exportSalaires=()=>{
     c(`A${r}`,ag.nom,st(bg,{sz:12,bold:true},"left"));
     // B: Salaire base
     c(`B${r}`,ag.sal,st(bg,{sz:11,bold:true},"center"),'#,##0 "DH"');
-    // C: Présence = 26 - absences + doubles (formula sur D et E)
-    ws[`C${r}`]={f:`26-(IF(E${r}="",0,LEN(E${r})-LEN(SUBSTITUTE(E${r},",",""))+1))+(IF(D${r}="",0,LEN(D${r})-LEN(SUBSTITUTE(D${r},",",""))+1))`,v:0,s:st(bg,{sz:12,bold:true},"center"),z:"0"};
-    // D: Jours Double (dates texte)
+    // C: Présence = 26 - absCount + dblCount (valeurs directes)
+    ws[`C${r}`]={v:26-ag.absCount+ag.dblCount,s:st(bg,{sz:12,bold:true},"center"),z:"0"};
+    // D: Jours Double (dates + (N jours))
     c(`D${r}`,ag.dbl||"",st(ag.dbl?AL:bg,{sz:10},"left"));
-    // E: Jours Absence (dates texte)
+    // E: Jours Absence (dates + (N jours))
     c(`E${r}`,ag.abs||"",st(ag.abs?RL:bg,{sz:10},"left"));
-    // F: Prime Double = nb_doubles * (salaire/26) * 2 ... ya3ni ytzad nhar kamel
-    ws[`F${r}`]={f:`(IF(D${r}="",0,LEN(D${r})-LEN(SUBSTITUTE(D${r},",",""))+1))*(B${r}/26)`,v:0,s:st(ag.dbl?AL:bg,{sz:11,bold:true,color:"7F6000"},"center"),z:'#,##0.00 "DH"'};
-    // G: Retenue = nb_absences * (salaire/26)
-    ws[`G${r}`]={f:`(IF(E${r}="",0,LEN(E${r})-LEN(SUBSTITUTE(E${r},",",""))+1))*(B${r}/26)`,v:0,s:st(ag.abs?RL:bg,{sz:11,bold:true,color:"C00000"},"center"),z:'#,##0.00 "DH"'};
-    // H: Salaire Final = Base + Prime Double - Retenue
-    ws[`H${r}`]={f:`B${r}+F${r}-G${r}`,v:0,s:st(GL,{sz:12,bold:true,color:"1A5C2A"},"center"),z:'#,##0.00 "DH"'};
+    // F: Prime Double = dblCount * (salaire/26)
+    ws[`F${r}`]={v:Math.round(ag.dblCount*(ag.sal/26)*100)/100,s:st(ag.dbl?AL:bg,{sz:11,bold:true,color:"7F6000"},"center"),z:'#,##0.00 "DH"'};
+    // G: Retenue = absCount * (salaire/26)
+    ws[`G${r}`]={v:Math.round(ag.absCount*(ag.sal/26)*100)/100,s:st(ag.abs?RL:bg,{sz:11,bold:true,color:"C00000"},"center"),z:'#,##0.00 "DH"'};
+    // H: Salaire Final = Base + Prime - Retenue
+    ws[`H${r}`]={f:`B${r}+F${r}-G${r}`,v:ag.sal+Math.round(ag.dblCount*(ag.sal/26)*100)/100-Math.round(ag.absCount*(ag.sal/26)*100)/100,s:st(GL,{sz:12,bold:true,color:"1A5C2A"},"center"),z:'#,##0.00 "DH"'};
   });
 
   // Total row
