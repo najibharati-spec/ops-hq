@@ -488,7 +488,10 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
         <div class="grid2">
           <div class="mfield"><label>Agent</label><select id="aAgent"></select></div>
           <div class="mfield"><label>Type</label>
-            <select id="aType"><option value="injustifiee">Absence injustifiée</option></select>
+            <select id="aType">
+              <option value="injustifiee">❌ Absence injustifiée (- salaire)</option>
+              <option value="double">💰 Jour Double / Férié (+ salaire)</option>
+            </select>
           </div>
         </div>
         <div class="grid2">
@@ -1812,30 +1815,36 @@ function diffDaysInclusive(d1,d2){
 
 function renderAbos(){
   const list=allAbsences.slice().sort((a,b)=>(b.debut||"").localeCompare(a.debut||""));
-  let totalJours=0,totalDeduit=0;
+  let totalJours=0,totalDeduit=0,totalPrime=0;
   const tb=document.getElementById("aboBody");tb.innerHTML="";
   list.forEach(a=>{
     const ag=AGENTS.find(x=>x.name===a.agent);
     const ini=ag?.ini||"??";
     const rate=(ag?.salaire||5000)/SALAIRE_BASE_JOURS;
     const jours=diffDaysInclusive(a.debut,a.fin||a.debut);
-    const deduction=Math.round(jours*rate*100)/100;
-    totalJours+=jours;totalDeduit+=deduction;
+    const isDouble=a.type==="double";
+    const montant=Math.round(jours*rate*100)/100;
+    if(isDouble)totalPrime+=montant; else totalDeduit+=montant;
+    totalJours+=jours;
     const tr=document.createElement("tr");
     tr.innerHTML=`
       <td><div class="ag-row"><div class="avatar">${ini}</div>
         <span style="font-size:13px;color:var(--t1);font-weight:600">${a.agent}</span></div></td>
-      <td><span class="badge badge-red">Injustifiée</span></td>
+      <td>${isDouble
+        ?'<span class="badge badge-amber">💰 Jour Double</span>'
+        :'<span class="badge badge-red">❌ Absence Injustifiée</span>'}</td>
       <td style="color:var(--t3)">${a.debut||"—"}</td>
       <td style="color:var(--t3)">${a.fin||a.debut||"—"}</td>
       <td style="font-weight:700">${jours}</td>
-      <td style="color:var(--red);font-weight:700">-${deduction} DH</td>
+      <td style="${isDouble?"color:var(--green)":"color:var(--red)"};font-weight:700">${isDouble?"+":"-"}${montant} DH</td>
       <td><div class="btn btn-sm btn-danger" onclick="deleteAbo('${a.id}')"><i class="ti ti-trash"></i></div></td>`;
     tb.appendChild(tr);
   });
   document.getElementById("aTotal").textContent=list.length;
   document.getElementById("aJours").textContent=totalJours;
-  document.getElementById("aDeduit").textContent=Math.round(totalDeduit*100)/100+" DH";
+  document.getElementById("aDeduit").textContent=
+    (totalPrime>0?`+${Math.round(totalPrime*100)/100} DH prime  `:"")+
+    (totalDeduit>0?`-${Math.round(totalDeduit*100)/100} DH retenue`:"");
   document.getElementById("aboEmpty").style.display=list.length?"none":"block";
 }
 
@@ -1845,7 +1854,8 @@ window.saveAbo=async()=>{
   const fin=document.getElementById("aExpire").value||debut;
   if(!agent||!debut){showAlert("aboAlert","Veuillez remplir agent et date début.","error");return;}
   if(fin<debut){showAlert("aboAlert","La date de fin doit être après la date de début.","error");return;}
-  const data={agent,type:"injustifiee",debut,fin,createdAt:serverTimestamp()};
+  const type=document.getElementById("aType").value;
+  const data={agent,type,debut,fin,createdAt:serverTimestamp()};
   try{
     await addDoc(collection(db,"absences"),data);
     document.getElementById("aDebut").value="";
@@ -2064,17 +2074,23 @@ window.exportSalaires=()=>{
     const absDates=[];
     const doubleDates=[];
 
-    // Absences depuis Firebase
+    // Absences depuis Firebase — séparées par type
     allAbsences.filter(a=>a.agent===ag.name).forEach(a=>{
       const ds=new Date(a.debut+"T00:00:00");
       const de=new Date((a.fin||a.debut)+"T00:00:00");
       const start=ds<debutD?debutD:ds;
       const end=de>finD?finD:de;
-      for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1))
-        absDates.push(fmtShort(d));
+      for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+        const ds2=fmtShort(d);
+        if(a.type==="double"){
+          if(!doubleDates.includes(ds2))doubleDates.push(ds2);
+        } else {
+          absDates.push(ds2);
+        }
+      }
     });
 
-    // Jours Double: marqué DOUBLE dans planning OU khdam f jour off
+    // Auto-detect off-day worked from planning (si machi déjà dans doubleDates)
     for(let d=new Date(debutD);d<=finD;d.setDate(d.getDate()+1)){
       const dateISO=iso(d);
       const {val}=getShiftVal(ag,dateISO);
