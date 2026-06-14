@@ -2105,8 +2105,8 @@ window.exportSalaires=()=>{
       }
     }
 
-    const absText=absDates.length>0?absDates.join(", ")+`  (${absDates.length} jour${absDates.length>1?"s":""})` :"";
-    const dblText=doubleDates.length>0?doubleDates.join(", ")+`  (${doubleDates.length} jour${doubleDates.length>1?"s":""})` :"";
+    const absText=absDates.length>0?absDates.join(", ")+`\n(${absDates.length} jour${absDates.length>1?"s":""})` :"";
+    const dblText=doubleDates.length>0?doubleDates.join(", ")+`\n(${doubleDates.length} jour${doubleDates.length>1?"s":""})` :"";
     agentRows.push({nom:ag.name,sal,
       abs:absText, absRaw:absDates.join(", "),
       dbl:dblText, dblRaw:doubleDates.join(", "),
