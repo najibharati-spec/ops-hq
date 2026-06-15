@@ -2250,23 +2250,70 @@ Génère un rapport hebdomadaire professionnel en français destiné au manager.
 
 Sois concis, professionnel et factuel. Utilise les informations des rapports uniquement.`;
 
+  // Generate automatic professional report from rapports data
   try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "anthropic-version":"2023-06-01",
-        "anthropic-dangerous-direct-browser-access":"true"
-      },
-      body:JSON.stringify({
-        model:"claude-sonnet-4-6",
-        max_tokens:1000,
-        messages:[{role:"user",content:prompt}]
-      })
+    const debutFmt=fromD.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"});
+    const finFmt=toD.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"});
+
+    // Group by agent
+    const byAgent={};
+    rapports.forEach(r=>{
+      if(!byAgent[r.agentName])byAgent[r.agentName]=[];
+      byAgent[r.agentName].push(r);
     });
-    const data=await res.json();
-    const text=data.content?.map(b=>b.text||"").join("")||"Erreur de génération.";
-    document.getElementById("iaContent").textContent=text;
+    const agentsSorted=Object.entries(byAgent).sort((a,b)=>b[1].length-a[1].length);
+    const totalRap=rapports.length;
+    const agentsActifs=agentsSorted.length;
+    const nonLus=rapports.filter(r=>!r.lu).length;
+
+    // Extract all content for keywords
+    const allContent=rapports.map(r=>(r.titre+" "+r.contenu).toLowerCase()).join(" ");
+    const hasIncident=allContent.includes("incident")||allContent.includes("problème")||allContent.includes("mochkil");
+    const hasPositif=allContent.includes("bien")||allContent.includes("bon")||allContent.includes("réussi")||allContent.includes("terminé");
+
+    let rapport=`RAPPORT HEBDOMADAIRE — ÉQUIPE OPS HQ RABAT
+Période : ${debutFmt} au ${finFmt}
+Généré le : ${new Date().toLocaleDateString("fr-FR")}
+${"─".repeat(50)}
+
+1. RÉSUMÉ GÉNÉRAL
+   ${totalRap} rapport(s) reçu(s) de ${agentsActifs} agent(s) actif(s) sur la période.
+   ${nonLus>0?`⚠️  ${nonLus} rapport(s) non lu(s) en attente de traitement.`:"✅  Tous les rapports ont été consultés."}
+
+2. ACTIVITÉ PAR AGENT
+`;
+    agentsSorted.forEach(([name,raps])=>{
+      rapport+=`\n   • ${name} — ${raps.length} rapport(s)\n`;
+      raps.forEach(r=>{
+        const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
+        rapport+=`     [${dt}] ${r.titre}\n`;
+      });
+    });
+
+    rapport+=`\n3. AGENTS N'AYANT PAS SOUMIS DE RAPPORT\n`;
+    const agentsAvecRap=new Set(Object.keys(byAgent));
+    const sanRap=AGENTS.filter(a=>!agentsAvecRap.has(a.name));
+    if(sanRap.length){
+      sanRap.forEach(a=>{ rapport+=`   • ${a.name}\n`; });
+    } else {
+      rapport+=`   ✅  Tous les agents ont soumis au moins un rapport.\n`;
+    }
+
+    rapport+=`\n4. POINTS D'ATTENTION\n`;
+    if(hasIncident) rapport+=`   ⚠️  Des incidents ont été signalés — voir rapports détaillés.\n`;
+    if(nonLus>0) rapport+=`   📋  ${nonLus} rapport(s) non lu(s) nécessitent une attention immédiate.\n`;
+    if(sanRap.length>0) rapport+=`   👤  ${sanRap.length} agent(s) sans rapport cette semaine.\n`;
+    if(!hasIncident&&nonLus===0&&sanRap.length===0) rapport+=`   ✅  Aucun point critique signalé cette semaine.\n`;
+
+    rapport+=`\n5. DÉTAIL DES RAPPORTS\n${"─".repeat(50)}\n`;
+    rapports.forEach((r,i)=>{
+      const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
+      rapport+=`\n[${i+1}] ${r.agentName} — ${dt}\nTitre : ${r.titre}\n${r.contenu}\n`;
+    });
+
+    rapport+=`\n${"─".repeat(50)}\nFin du rapport — OPS HQ Rabat`;
+
+    document.getElementById("iaContent").textContent=rapport;
     document.getElementById("iaResult").style.display="block";
   }catch(e){
     document.getElementById("iaContent").textContent="Erreur: "+e.message;
