@@ -1535,9 +1535,8 @@ function computeShiftVal(ag, dateISO){
     return s?s.val:"";
   }
 
-  // Semaines futures: shift fixe, OFF day tourne kola simana
-  // OFF day = (offDay de base + weekIdx) % 7 (Lun=0..Dim=6)
-  const rotatedOff=(ag.offDay+weekIdx)%7;
+  const WORK_DAYS=4; // Lun=0, Mar=1, Mer=2, Jeu=3
+  const rotatedOff=(ag.offDay+weekIdx)%WORK_DAYS;
   if(d===rotatedOff)return"OFF";
 
   // Shift: toujours horaireA (pas de rotation jour/nuit)
