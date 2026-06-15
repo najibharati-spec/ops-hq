@@ -332,6 +332,12 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
         <div id="dashMissingList"></div>
       </div>
 
+      <!-- EN SERVICE MAINTENANT -->
+      <div class="card" id="enServiceCard">
+        <div class="card-title"><span><i class="ti ti-user-check" style="margin-right:6px;color:var(--green)"></i>En service maintenant</span><div id="enServiceTime" style="font-size:11px;color:var(--t4);font-weight:400"></div></div>
+        <div id="enServiceList"></div>
+      </div>
+
       <!-- ZONE CARDS -->
       <div class="zone-grid" id="zoneGrid"></div>
 
@@ -1312,6 +1318,27 @@ function renderDashboard(){
   document.getElementById("heroOff").textContent=totalOff;
   document.getElementById("heroClock").textContent=now.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
   document.getElementById("heroDate").textContent=now.toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"long"});
+
+  // EN SERVICE MAINTENANT
+  const enServiceList=document.getElementById("enServiceList");
+  const enServiceTime=document.getElementById("enServiceTime");
+  const activeNow=agentToday.filter(a=>a.state==="ACTIVE");
+  enServiceTime.textContent=`Mis à jour à ${now.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}`;
+  if(activeNow.length===0){
+    enServiceList.innerHTML=`<div class="empty" style="padding:16px 0"><i class="ti ti-moon"></i><p>Aucun agent en service pour le moment</p></div>`;
+  } else {
+    enServiceList.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:10px;padding:4px 0">
+    ${activeNow.map(a=>`
+      <div style="display:flex;align-items:center;gap:10px;background:var(--gbg);border:1.5px solid var(--gbdr);border-radius:10px;padding:10px 14px;min-width:200px;flex:1">
+        <div class="avatar" style="background:var(--green);color:#fff;font-size:13px;font-weight:700">${a.ag.ini}</div>
+        <div>
+          <div style="font-weight:700;font-size:13px;color:var(--t1)">${a.ag.name}</div>
+          <div style="font-size:11px;color:var(--green);margin-top:2px">🟢 ${a.startStr} → ${a.endStr}</div>
+          <div style="font-size:11px;color:var(--t4)">${a.agZone}</div>
+        </div>
+      </div>`).join("")}
+    </div>`;
+  }
 
   // ZONE CARDS
   const zoneGrid=document.getElementById("zoneGrid");
