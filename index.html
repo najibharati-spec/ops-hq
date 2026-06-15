@@ -508,6 +508,32 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
         <div class="stat-card"><div class="slabel">Jours cumulés</div><div class="sval" style="color:var(--amber)" id="aJours">0</div></div>
         <div class="stat-card"><div class="slabel">Déductions cumulées</div><div class="sval" style="color:var(--red)" id="aDeduit">0 DH</div></div>
       </div>
+
+      <!-- FILTRE PAR AGENT -->
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-user-search" style="margin-right:6px"></i>Recherche par agent</span></div>
+        <div class="grid2" style="align-items:flex-end">
+          <div class="mfield">
+            <label>Agent</label>
+            <select id="filtreAgent" onchange="filtreAgentStats()"></select>
+          </div>
+          <div class="mfield">
+            <label>Période</label>
+            <div style="display:flex;gap:8px">
+              <input type="date" id="filtreDebut" oninput="filtreAgentStats()" style="flex:1"/>
+              <input type="date" id="filtreFin" oninput="filtreAgentStats()" style="flex:1"/>
+            </div>
+          </div>
+        </div>
+        <div id="filtreResult" style="display:none">
+          <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-top:12px;margin-bottom:0">
+            <div class="stat-card"><div class="slabel">Jours Travaillés</div><div class="sval" style="color:var(--green)" id="frTrav">—</div></div>
+            <div class="stat-card"><div class="slabel">Jours Absence</div><div class="sval" style="color:var(--red)" id="frAbs">—</div></div>
+            <div class="stat-card"><div class="slabel">Jours Double</div><div class="sval" style="color:var(--amber)" id="frDbl">—</div></div>
+            <div class="stat-card"><div class="slabel">Salaire Estimé</div><div class="sval" style="color:var(--acc)" id="frSal">—</div></div>
+          </div>
+        </div>
+      </div>
       <div class="card">
         <div class="card-title"><span><i class="ti ti-history" style="margin-right:6px"></i>Historique</span></div>
         <table class="tbl">
@@ -977,7 +1003,7 @@ function showApp(){
     document.getElementById("sbBadge").textContent="ADMIN";
     document.getElementById("sbBadge").className="badge badge-blue";
     AGENTS.forEach(ag=>{
-      ["aAgent","rfAgent"].forEach(id=>{
+      ["aAgent","rfAgent","filtreAgent"].forEach(id=>{
         const sel=document.getElementById(id);
         if(sel&&!sel.querySelector(`option[value="${ag.name}"]`)){
           const o=document.createElement("option");
@@ -1884,6 +1910,63 @@ window.saveAbo=async()=>{
     await loadAll();
   }catch(e){showAlert("aboAlert","Erreur: "+e.message,"error");}
 };
+window.filtreAgentStats=()=>{
+  const agName=document.getElementById("filtreAgent").value;
+  const debut=document.getElementById("filtreDebut").value;
+  const fin=document.getElementById("filtreFin").value;
+  if(!agName||!debut||!fin||fin<debut){
+    document.getElementById("filtreResult").style.display="none";return;
+  }
+  const ag=AGENTS.find(x=>x.name===agName);
+  if(!ag)return;
+  const sal=ag.salaire||5000;
+  const rate=sal/SALAIRE_BASE_JOURS;
+  const debutD=new Date(debut+"T00:00:00");
+  const finD=new Date(fin+"T00:00:00");
+
+  // Jours travaillés depuis planning
+  let travailles=0,doubles=0;
+  for(let d=new Date(debutD);d<=finD;d.setDate(d.getDate()+1)){
+    const {val}=getShiftVal(ag,iso(d));
+    if(!val||["OFF","ABSENT","CONGE","MALADIE",""].includes(val))continue;
+    if(val==="DOUBLE"){doubles++;travailles++;}
+    else{
+      const dow=d.getDay();const dIdx=dow===0?6:dow-1;
+      if(dIdx===ag.offDay)doubles++;
+      travailles++;
+    }
+  }
+
+  // Jours absence depuis Firebase
+  let absences=0;
+  allAbsences.filter(a=>a.agent===agName&&a.type!=="double").forEach(a=>{
+    const ds=new Date(a.debut+"T00:00:00");
+    const de=new Date((a.fin||a.debut)+"T00:00:00");
+    const start=ds<debutD?debutD:ds;
+    const end=de>finD?finD:de;
+    if(start<=end)absences+=Math.round((end-start)/86400000)+1;
+  });
+
+  // Doubles depuis Firebase (type=double)
+  allAbsences.filter(a=>a.agent===agName&&a.type==="double").forEach(a=>{
+    const ds=new Date(a.debut+"T00:00:00");
+    const de=new Date((a.fin||a.debut)+"T00:00:00");
+    const start=ds<debutD?debutD:ds;
+    const end=de>finD?finD:de;
+    if(start<=end)doubles+=Math.round((end-start)/86400000)+1;
+  });
+
+  const prime=Math.round(doubles*rate*100)/100;
+  const retenue=Math.round(absences*rate*100)/100;
+  const salEst=Math.round((sal+prime-retenue)*100)/100;
+
+  document.getElementById("frTrav").textContent=travailles+" j";
+  document.getElementById("frAbs").textContent=absences+" j";
+  document.getElementById("frDbl").textContent=doubles+" j";
+  document.getElementById("frSal").textContent=salEst+" DH";
+  document.getElementById("filtreResult").style.display="block";
+};
+
 window.deleteAbo=async id=>{
   if(!confirm("Supprimer cette absence ?"))return;
   try{await deleteDoc(doc(db,"absences",id));showAlert("aboAlert","Supprimé.","success");await loadAll();}
