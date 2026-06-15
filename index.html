@@ -465,6 +465,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
           <input type="date" id="rfFrom" class="btn" style="cursor:pointer"/>
           <input type="date" id="rfTo" class="btn" style="cursor:pointer"/>
           <div class="btn btn-success" onclick="exportRapportsExcel()"><i class="ti ti-table-export"></i> Exporter</div>
+          <div class="btn btn-primary" onclick="openRapportIA()"><i class="ti ti-sparkles"></i> Rapport IA</div>
         </div>
       </div>
       <div class="alert" id="rapAlert"></div>
@@ -549,6 +550,30 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
     </div>
 
   </main>
+</div>
+
+<!-- MODAL RAPPORT IA -->
+<div class="modal-ov" id="rapIAModal">
+  <div class="modal" style="max-width:700px;max-height:85vh;overflow-y:auto">
+    <div class="modal-title"><i class="ti ti-sparkles" style="color:var(--acc)"></i> Rapport Hebdomadaire — IA</div>
+    <i class="ti ti-x modal-x" onclick="document.getElementById('rapIAModal').classList.remove('open')"></i>
+    <div class="grid2" style="margin-bottom:12px">
+      <div class="mfield"><label>Du (Lundi)</label><input type="date" id="iaFrom"/></div>
+      <div class="mfield"><label>Au (Dimanche)</label><input type="date" id="iaTo"/></div>
+    </div>
+    <div class="btn btn-primary" onclick="genererRapportIA()" style="margin-bottom:16px"><i class="ti ti-sparkles"></i> Générer avec Claude</div>
+    <div id="iaLoading" style="display:none;text-align:center;padding:30px;color:var(--t4)">
+      <i class="ti ti-loader-2" style="font-size:28px;animation:spin 1s linear infinite"></i>
+      <p style="margin-top:8px">Claude analyse les rapports...</p>
+    </div>
+    <div id="iaResult" style="display:none">
+      <div id="iaContent" style="background:var(--bg3);border-radius:var(--r);padding:16px;font-size:13px;line-height:1.8;color:var(--t1);white-space:pre-wrap;border:1px solid var(--border)"></div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <div class="btn btn-success" onclick="copyRapportIA()"><i class="ti ti-copy"></i> Copier</div>
+        <div class="btn" onclick="document.getElementById('rapIAModal').classList.remove('open')">Fermer</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL RAPPORT -->
@@ -2127,7 +2152,95 @@ window.exportExcel=()=>{
   XLSX.writeFile(wb,`Planning_${weekLabel.replace(" — ","-")}.xlsx`);
 };
 
-// ===== SALAIRES =====
+// ===== RAPPORT IA =====
+window.openRapportIA=()=>{
+  // Default: last Monday → last Sunday
+  const now=new Date();
+  const day=now.getDay();
+  const lastMon=new Date(now);
+  lastMon.setDate(now.getDate()-(day===0?6:day-1)-7);
+  const lastSun=new Date(lastMon);
+  lastSun.setDate(lastMon.getDate()+6);
+  document.getElementById("iaFrom").value=iso(lastMon);
+  document.getElementById("iaTo").value=iso(lastSun);
+  document.getElementById("iaResult").style.display="none";
+  document.getElementById("iaLoading").style.display="none";
+  document.getElementById("rapIAModal").classList.add("open");
+};
+
+window.genererRapportIA=async()=>{
+  const from=document.getElementById("iaFrom").value;
+  const to=document.getElementById("iaTo").value;
+  if(!from||!to){return;}
+
+  const fromD=new Date(from+"T00:00:00");
+  const toD=new Date(to+"T00:00:00");
+
+  // Filter rapports in period
+  const rapports=allRapports.filter(r=>{
+    const d=r.createdAt?.toDate?r.createdAt.toDate():null;
+    if(!d)return false;
+    return d>=fromD && d<=new Date(to+"T23:59:59");
+  });
+
+  if(!rapports.length){
+    showAlert("rapAlert","Aucun rapport trouvé pour cette période.","error");
+    return;
+  }
+
+  document.getElementById("iaLoading").style.display="block";
+  document.getElementById("iaResult").style.display="none";
+
+  const debutFmt=fromD.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"});
+  const finFmt=toD.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"});
+
+  // Build rapports text
+  const rapText=rapports.map(r=>{
+    const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"-";
+    return `[${dt}] ${r.agentName} — ${r.titre}\n${r.contenu}`;
+  }).join("\n\n---\n\n");
+
+  const prompt=`Tu es un assistant de management pour une équipe d'agents de contrôle terrain à Rabat, Maroc.
+
+Voici les rapports soumis par les agents pour la période du ${debutFmt} au ${finFmt} :
+
+${rapText}
+
+Génère un rapport hebdomadaire professionnel en français destiné au manager. Le rapport doit inclure :
+1. **Résumé général** de la semaine (2-3 phrases)
+2. **Points positifs** relevés
+3. **Points d'attention / problèmes signalés**
+4. **Agents les plus actifs** (basé sur les rapports)
+5. **Recommandations** pour la semaine suivante
+
+Sois concis, professionnel et factuel. Utilise les informations des rapports uniquement.`;
+
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:1000,
+        messages:[{role:"user",content:prompt}]
+      })
+    });
+    const data=await res.json();
+    const text=data.content?.map(b=>b.text||"").join("")||"Erreur de génération.";
+    document.getElementById("iaContent").textContent=text;
+    document.getElementById("iaResult").style.display="block";
+  }catch(e){
+    document.getElementById("iaContent").textContent="Erreur: "+e.message;
+    document.getElementById("iaResult").style.display="block";
+  }finally{
+    document.getElementById("iaLoading").style.display="none";
+  }
+};
+
+window.copyRapportIA=()=>{
+  const txt=document.getElementById("iaContent").textContent;
+  navigator.clipboard.writeText(txt).then(()=>showAlert("rapAlert","✅ Rapport copié!","success"));
+};
 const MOIS_FR=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 
 window.openSalaireModal=()=>{
