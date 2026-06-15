@@ -443,6 +443,15 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
         <div class="card-title"><span><i class="ti ti-edit" style="margin-right:6px"></i>Nouveau rapport</span></div>
         <div class="mfield"><label>Titre</label><input type="text" id="myRapTitre" placeholder="ex: Incident client, Fin de tournée..."/></div>
         <div class="mfield"><label>Contenu</label><textarea id="myRapContenu" placeholder="Décrivez la situation..." style="min-height:140px"></textarea></div>
+        <div class="mfield">
+          <label>Photo (optionnel)</label>
+          <input type="file" id="myRapPhoto" accept="image/*" style="display:none" onchange="previewRapPhoto()"/>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div class="btn" onclick="document.getElementById('myRapPhoto').click()" style="background:var(--bg3)"><i class="ti ti-camera"></i> Ajouter photo</div>
+            <span id="myRapPhotoName" style="font-size:12px;color:var(--t4)"></span>
+          </div>
+          <img id="myRapPhotoPreview" style="display:none;max-width:100%;max-height:200px;border-radius:8px;margin-top:8px;border:1px solid var(--border)"/>
+        </div>
         <div class="modal-acts" style="margin-top:0">
           <div class="btn btn-primary" onclick="sendMyRapport()"><i class="ti ti-send"></i> Envoyer le rapport</div>
         </div>
@@ -586,7 +595,9 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       <span><i class="ti ti-calendar" style="margin-right:4px"></i><span id="rmDate"></span></span>
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:16px;font-size:13px;color:var(--t2);line-height:1.7;white-space:pre-wrap" id="rmContenu"></div>
+    <img id="rmPhoto" style="display:none;max-width:100%;max-height:300px;border-radius:8px;margin-top:12px;border:1px solid var(--border)"/>
     <div class="modal-acts">
+      <div class="btn btn-danger" onclick="deleteRapport()"><i class="ti ti-trash"></i> Supprimer</div>
       <div class="btn" onclick="closeRapModal()">Fermer</div>
       <div class="btn btn-success" id="btnMarquerLu"><i class="ti ti-check"></i> Marquer lu</div>
     </div>
@@ -1597,10 +1608,19 @@ window.sendMyRapport=async()=>{
   const titre=document.getElementById("myRapTitre").value.trim();
   const contenu=document.getElementById("myRapContenu").value.trim();
   if(!titre||!contenu){showAlert("myRapAlert","Veuillez remplir le titre et le contenu.","error");return;}
+  // Get photo base64 if any
+  let photoBase64="";
+  const photoPreview=document.getElementById("myRapPhotoPreview");
+  if(photoPreview.style.display!=="none"&&photoPreview.src)photoBase64=photoPreview.src;
   try{
-    await addDoc(collection(db,"rapports"),{agentName:myAgent.name,titre,contenu,lu:false,createdAt:serverTimestamp()});
+    await addDoc(collection(db,"rapports"),{agentName:myAgent.name,titre,contenu,photo:photoBase64,lu:false,createdAt:serverTimestamp()});
     document.getElementById("myRapTitre").value="";
     document.getElementById("myRapContenu").value="";
+    document.getElementById("myRapPhoto").value="";
+    document.getElementById("myRapPhotoName").textContent="";
+    photoPreview.style.display="none";
+    photoPreview.src="";
+    showAlert("myRapAlert","✅ Rapport envoyé !","success");
     showAlert("myRapAlert","✅ Rapport envoyé !","success");
     await loadAll();
   }catch(e){showAlert("myRapAlert","Erreur: "+e.message,"error");}
@@ -1855,8 +1875,23 @@ window.openRapport=r=>{
   const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString("fr-FR"):"—";
   document.getElementById("rmDate").textContent=dt;
   document.getElementById("rmContenu").textContent=r.contenu||"Aucun contenu.";
+  // Photo
+  const rmPhoto=document.getElementById("rmPhoto");
+  if(r.photo){rmPhoto.src=r.photo;rmPhoto.style.display="block";}
+  else{rmPhoto.style.display="none";rmPhoto.src="";}
   document.getElementById("btnMarquerLu").style.display=r.lu?"none":"inline-flex";
   document.getElementById("rapModal").classList.add("open");
+};
+
+window.deleteRapport=async()=>{
+  if(!curRapId)return;
+  if(!confirm("Supprimer ce rapport ?"))return;
+  try{
+    await deleteDoc(doc(db,"rapports",curRapId));
+    closeRapModal();
+    showAlert("rapAlert","🗑️ Rapport supprimé.","success");
+    await loadAll();
+  }catch(e){showAlert("rapAlert","Erreur: "+e.message,"error");}
 };
 window.closeRapModal=()=>document.getElementById("rapModal").classList.remove("open");
 document.getElementById("btnMarquerLu").onclick=async()=>{
