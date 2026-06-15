@@ -1527,19 +1527,25 @@ function computeShiftVal(ag, dateISO){
   const weekIdx=getWeekIndex(monday);
   const d=date.getDay()===0?6:date.getDay()-1; // 0=Lun..6=Dim
 
-  if(weekIdx<0)return ""; // before seed week — no data
+  if(weekIdx<0)return""; // before seed week
+
+  // SEED data: semaine 0 (08-14 juin) — Firebase ou SEED
   if(weekIdx===0){
-    // Week 0 = exact SEED data
     const s=SEED_PLANNING.find(x=>x.agent===ag.name&&x.date===dateISO);
     return s?s.val:"";
   }
-  // Computed weeks
-  if(d===ag.offDay)return"OFF";
-  const isNuit=weekIdx%2===0?ag.horaireA.startsWith("18"):ag.horaireB.startsWith("18");
+
+  // Semaines futures: shift fixe, OFF day tourne kola simana
+  // OFF day = (offDay de base + weekIdx) % 7 (Lun=0..Dim=6)
+  const rotatedOff=(ag.offDay+weekIdx)%7;
+  if(d===rotatedOff)return"OFF";
+
+  // Shift: toujours horaireA (pas de rotation jour/nuit)
+  const horaire=ag.horaireA;
+  const isNuit=horaire.startsWith("18")||horaire.startsWith("19")||horaire.startsWith("20")||horaire.startsWith("21")||horaire.startsWith("22")||horaire.startsWith("23");
   const isWeekend=(d===4||d===5); // Ven ou Sam
   if(isNuit)return isWeekend?"18:00-02:00":"18:00-01:00";
-  const h=weekIdx%2===0?ag.horaireA:ag.horaireB;
-  if(h.startsWith("09"))return isWeekend?"09:00-17:00":"09:00-16:00";
+  if(horaire.startsWith("09"))return isWeekend?"09:00-17:00":"09:00-16:00";
   return isWeekend?"10:00-18:00":"10:00-17:00";
 }
 
