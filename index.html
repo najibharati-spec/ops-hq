@@ -1964,27 +1964,25 @@ window.filtreAgentStats=()=>{
       note=`+${Math.round(rate*100)/100} DH`;
     } else if(!val||val==="OFF"){
       statut="OFF"; offs++;
-      badge=`<span class="badge" style="background:var(--sbg);color:var(--slate);border-color:var(--sbdr)">OFF</span>`;
     } else if(val==="CONGE"){
       statut="CONGÉ";
-      badge=`<span class="badge badge-amber">Congé</span>`;
     } else if(val==="MALADIE"){
       statut="MALADIE";
-      badge=`<span class="badge" style="background:var(--pbg);color:var(--purple);border-color:var(--pbdr)">Maladie</span>`;
     } else {
-      // Travaillé
       travailles++;
-      if(isOffDay){doubles++; badge=`<span class="badge badge-amber">💰 Travaillé (jour off)</span>`;note=`+${Math.round(rate*100)/100} DH`;}
-      else{badge=`<span class="badge badge-green">✓ Travaillé</span>`;}
-      statut="TRAVAILLÉ";
+      if(isOffDay){doubles++; statut="DOUBLE_AUTO"; badge=`<span class="badge badge-amber">💰 Jour off travaillé</span>`;note=`+${Math.round(rate*100)/100} DH`;}
+      else{statut="TRAVAILLÉ";}
     }
 
-    rows.push(`<tr>
-      <td style="color:var(--t4);font-size:12px">${idx++}</td>
-      <td style="font-weight:600">${d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})}</td>
-      <td style="color:var(--t3)">${JNOMS_FULL[dow]}</td>
-      <td>${badge}${note?`<span style="font-size:11px;color:var(--t4);margin-left:6px">${note}</span>`:""}</td>
-    </tr>`);
+    // Afficher seulement absences et doubles
+    if(statut==="ABSENT"||statut==="DOUBLE"||statut==="DOUBLE_AUTO"){
+      rows.push(`<tr>
+        <td style="color:var(--t4);font-size:12px">${idx++}</td>
+        <td style="font-weight:600">${d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})}</td>
+        <td style="color:var(--t3)">${JNOMS_FULL[dow]}</td>
+        <td>${badge}${note?`<span style="font-size:11px;color:var(--t4);margin-left:6px">${note}</span>`:""}</td>
+      </tr>`);
+    }
   }
 
   const prime=Math.round(doubles*rate*100)/100;
@@ -1995,7 +1993,9 @@ window.filtreAgentStats=()=>{
   document.getElementById("frAbs").textContent=absences+" j";
   document.getElementById("frDbl").textContent=doubles+" j";
   document.getElementById("frSal").textContent=salEst.toLocaleString("fr-FR")+" DH";
-  document.getElementById("frBody").innerHTML=rows.join("");
+  document.getElementById("frBody").innerHTML=rows.length
+    ? rows.join("")
+    : `<tr><td colspan="4" style="text-align:center;color:var(--t4);padding:20px">✅ Aucune absence ni jour double sur cette période</td></tr>`;
   document.getElementById("filtreResult").style.display="block";
 };
 
