@@ -1424,6 +1424,36 @@ function renderDashboard(){
     agentToday.push({ag,val,state,startMin,endMin,startStr,endStr,agZone});
   });
 
+  // VÉRIFIER LES SHIFTS DE NUIT D'HIER QUI SE TERMINENT APRÈS MINUIT (01:00, 02:00...)
+  // Ex: shift 18:00-01:00 hier = encore "en cours" jusqu'à 01:00 aujourd'hui
+  const yesterday=new Date(now); yesterday.setDate(now.getDate()-1);
+  const yesterdayISO=iso(yesterday);
+  AGENTS.forEach(ag=>{
+    const {val:valY}=getShiftVal(ag,yesterdayISO);
+    if(!valY||["OFF","ABSENT","CONGE","MALADIE"].includes(valY))return;
+    const [ys,ye]=valY.split("-");
+    const [ysh,ysm]=ys.split(":").map(Number);
+    const [yeh,yem]=ye.split(":").map(Number);
+    let yStartMin=ysh*60+ysm, yEndMin=yeh*60+yem;
+    if(yEndMin<=yStartMin)yEndMin+=24*60; // shift traverse minuit
+    // yEndMin > 24*60 signifie que le shift d'hier se termine après minuit aujourd'hui
+    if(yEndMin>24*60){
+      const endMinToday=yEndMin-24*60; // ex: 25*60 -> 01:00 aujourd'hui
+      if(nowMin>=endMinToday){
+        // Le shift d'hier est terminé maintenant — vérifier rapport pour la date d'HIER
+        const hasReportYesterday=allRapports.some(r=>{
+          if(r.agentName!==ag.name)return false;
+          const d=r.createdAt?.toDate?r.createdAt.toDate():null;
+          return d&&iso(d)===yesterdayISO;
+        });
+        const alreadyFlagged=missingReports.some(m=>m.ag.name===ag.name);
+        if(!hasReportYesterday&&!alreadyFlagged){
+          missingReports.push({ag,endStr:ye+" (hier)"});
+        }
+      }
+    }
+  });
+
   // HERO STRIP
   document.getElementById("heroActive").textContent=totalActive;
   document.getElementById("heroUpcoming").textContent=totalUpcoming;
