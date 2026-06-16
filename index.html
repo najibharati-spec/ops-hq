@@ -503,9 +503,9 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       <div class="card">
         <div class="card-title"><span><i class="ti ti-calendar-x" style="margin-right:6px"></i>Déclarer une absence</span></div>
         <div class="grid2">
-          <div class="mfield"><label>Agent</label><select id="aAgent"></select></div>
+          <div class="mfield"><label>Agent</label><select id="aAgent" onchange="calcJoursAbs()"></select></div>
           <div class="mfield"><label>Type</label>
-            <select id="aType">
+            <select id="aType" onchange="calcJoursAbs()">
               <option value="injustifiee">❌ Absence injustifiée (- salaire)</option>
               <option value="double">💰 Jour Double / Férié (+ salaire)</option>
             </select>
@@ -2088,13 +2088,41 @@ function renderAbos(){
 window.calcJoursAbs=()=>{
   const d=document.getElementById("aDebut").value;
   const f=document.getElementById("aExpire").value;
+  const agent=document.getElementById("aAgent").value;
   const counter=document.getElementById("joursAbsCounter");
   if(d&&f&&f>=d){
     const jours=Math.round((new Date(f+"T00:00:00")-new Date(d+"T00:00:00"))/86400000)+1;
-    document.getElementById("joursAbsNb").textContent=jours;
     const type=document.getElementById("aType").value;
-    counter.style.background=type==="double"?"var(--abg, #FFF3CC)":"var(--rbg, #FDDEDE)";
-    counter.style.borderColor=type==="double"?"#FFD166":"var(--rbdr, #FFAAAA)";
+
+    // Check conflict
+    const newStart=new Date(d+"T00:00:00");
+    const newEnd=new Date(f+"T00:00:00");
+    let hasConflict=false;
+    const conflictDates=[];
+    allAbsences.filter(a=>a.agent===agent).forEach(a=>{
+      const exStart=new Date(a.debut+"T00:00:00");
+      const exEnd=new Date((a.fin||a.debut)+"T00:00:00");
+      if(newStart<=exEnd && newEnd>=exStart){
+        hasConflict=true;
+        const ovStart=newStart>exStart?newStart:exStart;
+        const ovEnd=newEnd<exEnd?newEnd:exEnd;
+        for(let dt=new Date(ovStart);dt<=ovEnd;dt.setDate(dt.getDate()+1)){
+          conflictDates.push(dt.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"}));
+        }
+      }
+    });
+
+    if(hasConflict){
+      document.getElementById("joursAbsNb").parentElement.innerHTML=`⚠️ Conflit : entrée déjà existante le(s) <strong>${conflictDates.join(", ")}</strong> pour cet agent`;
+      counter.style.background="#FDDEDE";
+      counter.style.borderColor="#E57373";
+      window.absConflict=true;
+    } else {
+      document.getElementById("joursAbsNb").parentElement.innerHTML=`📅 <span id="joursAbsNb">${jours}</span> jour(s) sélectionné(s)`;
+      counter.style.background=type==="double"?"var(--abg, #FFF3CC)":"var(--rbg, #FDDEDE)";
+      counter.style.borderColor=type==="double"?"#FFD166":"var(--rbdr, #FFAAAA)";
+      window.absConflict=false;
+    }
     counter.style.display="block";
   } else {
     counter.style.display="none";
@@ -2108,6 +2136,30 @@ window.saveAbo=async()=>{
   if(!agent||!debut){showAlert("aboAlert","Veuillez remplir agent et date début.","error");return;}
   if(fin<debut){showAlert("aboAlert","La date de fin doit être après la date de début.","error");return;}
   const type=document.getElementById("aType").value;
+
+  // Vérifier collision avec absences existantes du même agent
+  const newStart=new Date(debut+"T00:00:00");
+  const newEnd=new Date(fin+"T00:00:00");
+  const conflicts=[];
+  allAbsences.filter(a=>a.agent===agent).forEach(a=>{
+    const exStart=new Date(a.debut+"T00:00:00");
+    const exEnd=new Date((a.fin||a.debut)+"T00:00:00");
+    // Overlap check
+    if(newStart<=exEnd && newEnd>=exStart){
+      // Build list of overlapping dates
+      const ovStart=newStart>exStart?newStart:exStart;
+      const ovEnd=newEnd<exEnd?newEnd:exEnd;
+      for(let d=new Date(ovStart);d<=ovEnd;d.setDate(d.getDate()+1)){
+        conflicts.push(d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"}));
+      }
+    }
+  });
+
+  if(conflicts.length>0){
+    showAlert("aboAlert",`❌ Impossible : ${agent} a déjà une entrée enregistrée le(s) ${conflicts.join(", ")}. Supprimez l'entrée existante avant d'en ajouter une nouvelle.`,"error");
+    return;
+  }
+
   const data={agent,type,debut,fin,createdAt:serverTimestamp()};
   try{
     await addDoc(collection(db,"absences"),data);
