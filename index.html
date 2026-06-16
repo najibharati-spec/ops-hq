@@ -71,6 +71,16 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
 .ptitle{font-family:var(--font-display);font-size:23px;font-weight:700;color:var(--t1);letter-spacing:.3px}.psub{font-size:12px;color:var(--t4);margin-top:3px}
 .btns{display:flex;gap:10px;align-items:center}
 .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r);font-size:13px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--t2);text-decoration:none;transition:all .15s;font-weight:500;box-shadow:var(--shadow)}
+
+/* READ-ONLY MODE (Manager) — block all editing actions, allow navigation/export only */
+body.readonly-mode .nav-item{pointer-events:auto}
+body.readonly-mode .shift-cell{pointer-events:none;cursor:default;opacity:.85}
+body.readonly-mode input,
+body.readonly-mode select,
+body.readonly-mode textarea{pointer-events:none;background:var(--bg3)!important;opacity:.7}
+body.readonly-mode .btn:not(.ro-allow){pointer-events:none;opacity:.45;filter:grayscale(.3)}
+body.readonly-mode .btn-sm{pointer-events:none;opacity:.45}
+body.readonly-mode .readonly-banner{display:flex!important}
 .btn:hover{background:var(--bg);border-color:var(--t4)}
 .btn-primary{background:var(--acc);border-color:var(--acc);color:#fff;box-shadow:0 2px 8px rgba(14,92,151,.3)}
 .btn-primary:hover{background:var(--acc2);border-color:var(--acc2)}
@@ -292,18 +302,22 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       <div class="uname" id="sbName">—</div>
       <div class="urole" id="sbRole">Lead On-Field Agent</div>
       <span class="badge badge-blue" id="sbBadge">ADMIN</span><br/><br/>
-      <div class="btn btn-sm" onclick="doLogout()" style="cursor:pointer;display:inline-flex;"><i class="ti ti-logout"></i> Déconnexion</div>
+      <div class="btn btn-sm ro-allow" onclick="doLogout()" style="cursor:pointer;display:inline-flex;"><i class="ti ti-logout"></i> Déconnexion</div>
     </div>
   </aside>
 
   <main class="main">
+
+    <div class="readonly-banner" style="display:none;align-items:center;gap:8px;background:#E8F0FE;border:1px solid #A9C5F5;color:#1F4E78;padding:10px 16px;border-radius:10px;margin-bottom:16px;font-size:13px;font-weight:600">
+      <i class="ti ti-eye"></i> Mode lecture seule — Manager : consultation uniquement, aucune modification possible.
+    </div>
 
     <!-- DASHBOARD -->
     <div class="section active" id="sec-dashboard">
       <div class="topbar">
         <div><div class="ptitle">Dashboard</div><div class="psub" id="dateStr"></div></div>
         <div class="btns">
-          <div class="btn btn-primary" onclick="go('planning',document.querySelector('.nav-item.admin-only'))"><i class="ti ti-calendar"></i> Voir Planning</div>
+          <div class="btn btn-primary ro-allow" onclick="go('planning',document.querySelector('.nav-item.admin-only'))"><i class="ti ti-calendar"></i> Voir Planning</div>
         </div>
       </div>
 
@@ -376,8 +390,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
           <div class="btn" onclick="openColorModal()" style="gap:6px"><i class="ti ti-palette"></i> Couleurs</div>
           <div class="btn" onclick="resetPlanning()" style="gap:6px;background:#fef2f2;border-color:#fca5a5;color:#dc2626"><i class="ti ti-trash"></i> Reset Planning</div>
           <div class="btn" onclick="copyPrevWeek()" style="gap:6px;background:var(--accbg);border-color:var(--accbdr);color:var(--acc)"><i class="ti ti-copy"></i> Copier sem. précédente</div>
-          <div class="btn btn-success" onclick="exportExcel()"><i class="ti ti-table-export"></i> Excel</div>
-          <div class="btn btn-danger" onclick="exportPDF()"><i class="ti ti-file-export"></i> PDF</div>
+          <div class="btn btn-success ro-allow" onclick="exportExcel()"><i class="ti ti-table-export"></i> Excel</div>
+          <div class="btn btn-danger ro-allow" onclick="exportPDF()"><i class="ti ti-file-export"></i> PDF</div>
         </div>
       </div>
       <div class="alert" id="planAlert"></div>
@@ -479,8 +493,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
           </select>
           <input type="date" id="rfFrom" class="btn" style="cursor:pointer"/>
           <input type="date" id="rfTo" class="btn" style="cursor:pointer"/>
-          <div class="btn btn-success" onclick="exportRapportsExcel()"><i class="ti ti-table-export"></i> Exporter</div>
-          <div class="btn btn-primary" onclick="openRapportIA()"><i class="ti ti-sparkles"></i> Rapport IA</div>
+          <div class="btn btn-success ro-allow" onclick="exportRapportsExcel()"><i class="ti ti-table-export"></i> Exporter</div>
+          <div class="btn btn-primary ro-allow" onclick="openRapportIA()"><i class="ti ti-sparkles"></i> Rapport IA</div>
         </div>
       </div>
       <div class="alert" id="rapAlert"></div>
@@ -495,8 +509,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       <div class="topbar">
         <div><div class="ptitle">Absences</div><div class="psub">Suivi des absences injustifiées</div></div>
         <div class="btns">
-          <div class="btn" style="background:#FEF3E2;border-color:#FBD49C;color:#D9750A" onclick="openSalaireModal()"><i class="ti ti-cash"></i> Export Salaires</div>
-          <div class="btn" style="background:#E8F0FE;border-color:#A9C5F5;color:#1F4E78" onclick="openPointageModal()"><i class="ti ti-clipboard-list"></i> Pointage Simple</div>
+          <div class="btn ro-allow" style="background:#FEF3E2;border-color:#FBD49C;color:#D9750A" onclick="openSalaireModal()"><i class="ti ti-cash"></i> Export Salaires</div>
+          <div class="btn ro-allow" style="background:#E8F0FE;border-color:#A9C5F5;color:#1F4E78" onclick="openPointageModal()"><i class="ti ti-clipboard-list"></i> Pointage Simple</div>
         </div>
       </div>
       <div class="alert" id="aboAlert"></div>
@@ -577,7 +591,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       <div class="mfield"><label>Du (Lundi)</label><input type="date" id="iaFrom"/></div>
       <div class="mfield"><label>Au (Dimanche)</label><input type="date" id="iaTo"/></div>
     </div>
-    <div class="btn btn-primary" onclick="genererRapportIA()" style="margin-bottom:16px"><i class="ti ti-sparkles"></i> Générer avec Claude</div>
+    <div class="btn btn-primary ro-allow" onclick="genererRapportIA()" style="margin-bottom:16px"><i class="ti ti-sparkles"></i> Générer avec Claude</div>
     <div id="iaLoading" style="display:none;text-align:center;padding:30px;color:var(--t4)">
       <i class="ti ti-loader-2" style="font-size:28px;animation:spin 1s linear infinite"></i>
       <p style="margin-top:8px">Claude analyse les rapports...</p>
@@ -585,8 +599,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
     <div id="iaResult" style="display:none">
       <div id="iaContent" style="background:var(--bg3);border-radius:var(--r);padding:16px;font-size:13px;line-height:1.8;color:var(--t1);white-space:pre-wrap;border:1px solid var(--border)"></div>
       <div style="margin-top:12px;display:flex;gap:8px">
-        <div class="btn btn-success" onclick="copyRapportIA()"><i class="ti ti-copy"></i> Copier</div>
-        <div class="btn" onclick="document.getElementById('rapIAModal').classList.remove('open')">Fermer</div>
+        <div class="btn btn-success ro-allow" onclick="copyRapportIA()"><i class="ti ti-copy"></i> Copier</div>
+        <div class="btn ro-allow" onclick="document.getElementById('rapIAModal').classList.remove('open')">Fermer</div>
       </div>
     </div>
   </div>
@@ -734,8 +748,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       <i class="ti ti-info-circle"></i> Tableau simple : Nom, Absences, Jours Fériés travaillés, Total Jours (base 26).
     </div>
     <div class="modal-acts">
-      <div class="btn" onclick="closePointageModal()">Annuler</div>
-      <div class="btn btn-primary" style="background:#1F4E78;border-color:#1F4E78" onclick="exportPointageSimple()"><i class="ti ti-table-export"></i> Télécharger Excel</div>
+      <div class="btn ro-allow" onclick="closePointageModal()">Annuler</div>
+      <div class="btn btn-primary ro-allow" style="background:#1F4E78;border-color:#1F4E78" onclick="exportPointageSimple()"><i class="ti ti-table-export"></i> Télécharger Excel</div>
     </div>
   </div>
 </div>
@@ -760,8 +774,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
       Jour travaillé un jour OFF habituel = payé double. Jours en plus/en moins par rapport à ${SALAIRE_BASE_JOURS} sont ajustés.
     </div>
     <div class="modal-acts">
-      <div class="btn" onclick="closeSalaireModal()">Annuler</div>
-      <div class="btn btn-primary" style="background:var(--amber);border-color:var(--amber)" onclick="exportSalaires()"><i class="ti ti-table-export"></i> Télécharger Excel</div>
+      <div class="btn ro-allow" onclick="closeSalaireModal()">Annuler</div>
+      <div class="btn btn-primary ro-allow" style="background:var(--amber);border-color:var(--amber)" onclick="exportSalaires()"><i class="ti ti-table-export"></i> Télécharger Excel</div>
     </div>
   </div>
 </div>
@@ -928,6 +942,7 @@ let selectedProfile=null; // "admin" or agent name, during login flow
 let pinModalAgent=null;
 
 const ADMIN_PROFILE={name:"Najib",ini:"NH",role:"Lead On-Field Agent"};
+const MANAGER_PROFILE={name:"Oussama ElHamali",ini:"OE",role:"Manager (lecture seule)",pin:"manager2026"};
 
 // Build the profile grid on the login page
 function buildProfileGrid(){
@@ -941,6 +956,15 @@ function buildProfileGrid(){
     <div style="font-size:10px;color:var(--t4);margin-top:2px">Admin</div>`;
   adminCard.onclick=()=>selectProfile("admin");
   grid.appendChild(adminCard);
+
+  // Manager card (read-only)
+  const managerCard=document.createElement("div");
+  managerCard.className="profile-card";
+  managerCard.innerHTML=`<div class="avatar" style="width:40px;height:40px;font-size:13px;margin:0 auto 6px;background:#E8F0FE;border-color:#A9C5F5;color:#1F4E78">${MANAGER_PROFILE.ini}</div>
+    <div style="font-size:12px;font-weight:700;color:var(--t1)">${MANAGER_PROFILE.name.split(" ")[0]}</div>
+    <div style="font-size:10px;color:var(--t4);margin-top:2px">Manager</div>`;
+  managerCard.onclick=()=>selectProfile("manager");
+  grid.appendChild(managerCard);
 
   AGENTS.forEach(ag=>{
     const card=document.createElement("div");
@@ -967,6 +991,15 @@ window.selectProfile=(profile)=>{
     document.getElementById("pinName").textContent=ADMIN_PROFILE.name;
     document.getElementById("pinRole").textContent=ADMIN_PROFILE.role;
     document.getElementById("loginPin").placeholder="Mot de passe admin";
+    document.getElementById("loginPin").type="password";
+  }else if(profile==="manager"){
+    document.getElementById("pinAvatar").textContent=MANAGER_PROFILE.ini;
+    document.getElementById("pinAvatar").style.background="#E8F0FE";
+    document.getElementById("pinAvatar").style.borderColor="#A9C5F5";
+    document.getElementById("pinAvatar").style.color="#1F4E78";
+    document.getElementById("pinName").textContent=MANAGER_PROFILE.name;
+    document.getElementById("pinRole").textContent=MANAGER_PROFILE.role;
+    document.getElementById("loginPin").placeholder="Mot de passe manager";
     document.getElementById("loginPin").type="password";
   }else{
     const ag=AGENTS.find(a=>a.name===profile);
@@ -1002,6 +1035,14 @@ window.doLogin=async()=>{
     }catch(e){
       err.textContent="Mot de passe incorrect.";err.style.display="block";txt.textContent="Déverrouiller";
     }
+  }else if(selectedProfile==="manager"){
+    if(pin===MANAGER_PROFILE.pin){
+      userRole="manager";myAgent=null;userDisplayName=MANAGER_PROFILE.name;
+      sessionStorage.setItem("opshq_manager","1");
+      showApp();
+    }else{
+      err.textContent="Mot de passe incorrect.";err.style.display="block";
+    }
   }else{
     const ag=AGENTS.find(a=>a.name===selectedProfile);
     if(ag&&getAgentPin(ag.name)===pin){
@@ -1017,6 +1058,8 @@ window.doLogin=async()=>{
 window.doLogout=async()=>{
   if(userRole==="admin")await signOut(auth);
   sessionStorage.removeItem("opshq_agent");
+  sessionStorage.removeItem("opshq_manager");
+  document.body.classList.remove("readonly-mode");
   userRole="guest";myAgent=null;currentUser=null;
   showLogin();
 };
@@ -1045,6 +1088,9 @@ onAuthStateChanged(auth,async u=>{
     const ag=AGENTS.find(a=>a.name===agName);
     if(ag){userRole="agent";myAgent=ag;userDisplayName=ag.name;showApp();}
     else{showLogin();}
+  }else if(sessionStorage.getItem("opshq_manager")){
+    userRole="manager";myAgent=null;userDisplayName=MANAGER_PROFILE.name;
+    showApp();
   }else{
     showLogin();
   }
@@ -1069,11 +1115,33 @@ function showApp(){
   const roleEl=document.getElementById("sbRole");
 
   if(userRole==="admin"){
+    document.body.classList.remove("readonly-mode");
     adminEls.forEach(el=>el.style.display="");
     agentEls.forEach(el=>el.style.display="none");
     if(roleEl)roleEl.textContent="Lead On-Field Agent";
     document.getElementById("sbBadge").textContent="ADMIN";
     document.getElementById("sbBadge").className="badge badge-blue";
+    AGENTS.forEach(ag=>{
+      ["aAgent","rfAgent","filtreAgent"].forEach(id=>{
+        const sel=document.getElementById(id);
+        if(sel&&!sel.querySelector(`option[value="${ag.name}"]`)){
+          const o=document.createElement("option");
+          o.value=ag.name;o.textContent=ag.name;
+          sel.appendChild(o);
+        }
+      });
+    });
+    go("dashboard",document.querySelector(".nav-item.admin-only"));
+  }else if(userRole==="manager"){
+    document.body.classList.add("readonly-mode");
+    adminEls.forEach(el=>el.style.display="");
+    agentEls.forEach(el=>el.style.display="none");
+    if(roleEl)roleEl.textContent="Manager · Lecture seule";
+    document.getElementById("sbBadge").textContent="MANAGER";
+    document.getElementById("sbBadge").className="badge";
+    document.getElementById("sbBadge").style.background="#E8F0FE";
+    document.getElementById("sbBadge").style.color="#1F4E78";
+    document.getElementById("sbBadge").style.borderColor="#A9C5F5";
     AGENTS.forEach(ag=>{
       ["aAgent","rfAgent","filtreAgent"].forEach(id=>{
         const sel=document.getElementById(id);
