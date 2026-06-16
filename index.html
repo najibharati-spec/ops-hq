@@ -496,6 +496,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
         <div><div class="ptitle">Absences</div><div class="psub">Suivi des absences injustifiées</div></div>
         <div class="btns">
           <div class="btn" style="background:#FEF3E2;border-color:#FBD49C;color:#D9750A" onclick="openSalaireModal()"><i class="ti ti-cash"></i> Export Salaires</div>
+          <div class="btn" style="background:#E8F0FE;border-color:#A9C5F5;color:#1F4E78" onclick="openPointageModal()"><i class="ti ti-clipboard-list"></i> Pointage Simple</div>
         </div>
       </div>
       <div class="alert" id="aboAlert"></div>
@@ -710,6 +711,31 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size
     <div class="modal-acts">
       <div class="btn" onclick="closeZoneModal()">Annuler</div>
       <div class="btn btn-primary" onclick="saveAgentZone()"><i class="ti ti-device-floppy"></i> Enregistrer</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL POINTAGE SIMPLE -->
+<div class="modal-ov" id="pointageModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title"><i class="ti ti-clipboard-list" style="color:#1F4E78"></i> Pointage Simple</div>
+    <i class="ti ti-x modal-x" onclick="closePointageModal()"></i>
+    <div class="grid2">
+      <div class="mfield">
+        <label>Date début</label>
+        <input type="date" id="ptDebut" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none"/>
+      </div>
+      <div class="mfield">
+        <label>Date fin</label>
+        <input type="date" id="ptFin" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none"/>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--t4);line-height:1.6;background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:6px">
+      <i class="ti ti-info-circle"></i> Tableau simple : Nom, Absences, Jours Fériés travaillés, Total Jours (base 26).
+    </div>
+    <div class="modal-acts">
+      <div class="btn" onclick="closePointageModal()">Annuler</div>
+      <div class="btn btn-primary" style="background:#1F4E78;border-color:#1F4E78" onclick="exportPointageSimple()"><i class="ti ti-table-export"></i> Télécharger Excel</div>
     </div>
   </div>
 </div>
@@ -2445,6 +2471,86 @@ window.copyRapportIA=()=>{
   const txt=document.getElementById("iaContent").textContent;
   navigator.clipboard.writeText(txt).then(()=>showAlert("rapAlert","✅ Rapport copié!","success"));
 };
+
+// ===== POINTAGE SIMPLE =====
+window.openPointageModal=()=>{
+  const now=new Date();
+  const debut=new Date(now.getFullYear(),now.getMonth()-1,21);
+  const fin=new Date(now.getFullYear(),now.getMonth(),21);
+  document.getElementById("ptDebut").value=iso(debut);
+  document.getElementById("ptFin").value=iso(fin);
+  document.getElementById("pointageModal").classList.add("open");
+};
+window.closePointageModal=()=>document.getElementById("pointageModal").classList.remove("open");
+
+window.exportPointageSimple=()=>{
+  const debut=document.getElementById("ptDebut").value;
+  const fin=document.getElementById("ptFin").value;
+  if(!debut||!fin||fin<debut){return;}
+
+  const debutD=new Date(debut+"T00:00:00");
+  const finD=new Date(fin+"T00:00:00");
+  const debutFmt=fmt(new Date(debut+"T12:00:00"));
+  const finFmt=fmt(new Date(fin+"T12:00:00"));
+  const safeLabel=`${debutFmt.replace(/\//g,"-")}_au_${finFmt.replace(/\//g,"-")}`;
+
+  // Calculate absences and jours fériés per agent (+ Najib Harati, manager)
+  const allPeople=[...AGENTS,{name:ADMIN_NAME,salaire:ADMIN_SALAIRE}];
+  const agentData=allPeople.map(ag=>{
+    let absCount=0,ferieCount=0;
+    allAbsences.filter(a=>a.agent===ag.name).forEach(a=>{
+      const ds=new Date(a.debut+"T00:00:00");
+      const de=new Date((a.fin||a.debut)+"T00:00:00");
+      const start=ds<debutD?debutD:ds;
+      const end=de>finD?finD:de;
+      if(start>end)return;
+      const jours=Math.round((end-start)/86400000)+1;
+      if(a.type==="double")ferieCount+=jours; else absCount+=jours;
+    });
+    return{nom:ag.name,abs:absCount,ferie:ferieCount};
+  });
+
+  // Build XLSX matching uploaded template style
+  const DARK_BLUE="1F4E78",HDR_BLUE="4F81BD",WHITE="FFFFFF";
+  function s(fill,fnt,h){
+    return{
+      fill:fill?{patternType:"solid",fgColor:{rgb:fill}}:undefined,
+      font:{name:"Calibri",sz:fnt?.sz||11,bold:!!fnt?.bold,color:{rgb:fnt?.color||"000000"}},
+      alignment:{horizontal:h||"center",vertical:"center",wrapText:true}
+    };
+  }
+
+  const wb=XLSX.utils.book_new();
+  const ws={};
+  const merges=[{s:{r:0,c:0},e:{r:0,c:3}}];
+
+  function c(addr,v,style){
+    ws[addr]={v,s:style};
+    if(typeof v==="string"&&v.startsWith("="))ws[addr].f=v.slice(1),ws[addr].v=0;
+  }
+
+  c("A1",`TABLEAU DE SUIVI DE PRESENCE (${debutFmt} - ${finFmt})`,s(DARK_BLUE,{sz:16,bold:true,color:WHITE},"center"));
+
+  const headers=["Nom & Prénom","Absences","Jours Fériés","Total Jours"];
+  "ABCD".split("").forEach((col,i)=>c(`${col}3`,headers[i],s(HDR_BLUE,{sz:11,bold:true,color:WHITE},"center")));
+
+  agentData.forEach((ag,idx)=>{
+    const r=idx+4;
+    c(`A${r}`,ag.nom,s(null,{sz:11,bold:true},"left"));
+    c(`B${r}`,ag.abs,s(null,{sz:11},"center"));
+    c(`C${r}`,ag.ferie,s(null,{sz:11},"center"));
+    ws[`D${r}`]={f:`26-B${r}+C${r}`,v:26-ag.abs+ag.ferie,s:s(null,{sz:11},"center")};
+  });
+
+  ws["!ref"]=`A1:D${agentData.length+3}`;
+  ws["!merges"]=merges;
+  ws["!cols"]=[{wch:30},{wch:15},{wch:18},{wch:15}];
+
+  XLSX.utils.book_append_sheet(wb,ws,`Pointage`);
+  XLSX.writeFile(wb,`Tableau_Pointage_${safeLabel}.xlsx`);
+  closePointageModal();
+};
+
 const MOIS_FR=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 
 window.openSalaireModal=()=>{
