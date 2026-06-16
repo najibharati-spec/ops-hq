@@ -1394,40 +1394,64 @@ function renderDashboard(){
 
   const now=new Date();
   const nowMin=now.getHours()*60+now.getMinutes();
+  const yesterday=new Date(now); yesterday.setDate(now.getDate()-1);
+  const yesterdayISO=iso(yesterday);
+  const isEarlyMorning=now.getHours()<6; // entre 00:00 et 06:00
 
   AGENTS.forEach(ag=>{
-    const {val}=getShiftVal(ag,todayISO);
-    let state,startMin=null,endMin=null,startStr="",endStr="";
-    if(!val||["OFF","ABSENT","CONGE","MALADIE"].includes(val)){
-      state=val||"NONPLANIFIE";
-      totalOff++;
-    }else{
-      [startStr,endStr]=val.split("-");
-      const [sh,sm]=startStr.split(":").map(Number);
-      const [eh,em]=endStr.split(":").map(Number);
-      startMin=sh*60+sm;
-      endMin=eh*60+em;
-      if(endMin<=startMin)endMin+=24*60;
-      if(nowMin>=startMin&&nowMin<endMin){state="ACTIVE";totalActive++;}
-      else if(nowMin<startMin){state="UPCOMING";totalUpcoming++;}
-      else{
-        state="DONE";
-        const hasReportToday=allRapports.some(r=>{
-          if(r.agentName!==ag.name)return false;
-          const d=r.createdAt?.toDate?r.createdAt.toDate():null;
-          return d&&iso(d)===todayISO;
-        });
-        if(!hasReportToday)missingReports.push({ag,endStr});
+    let val,state,startMin=null,endMin=null,startStr="",endStr="",usedYesterday=false;
+
+    // Si on est entre minuit et 6h, vérifier d'abord si le shift d'HIER
+    // (qui traverse minuit, ex: 18:00-02:00) est encore en cours
+    if(isEarlyMorning){
+      const {val:valY}=getShiftVal(ag,yesterdayISO);
+      if(valY&&!["OFF","ABSENT","CONGE","MALADIE"].includes(valY)){
+        const [ys,ye]=valY.split("-");
+        const [ysh,ysm]=ys.split(":").map(Number);
+        const [yeh,yem]=ye.split(":").map(Number);
+        let yStartMin=ysh*60+ysm, yEndMin=yeh*60+yem;
+        if(yEndMin<=yStartMin)yEndMin+=24*60; // traverse minuit
+        const nowMinExtended=nowMin+24*60; // ramener "maintenant" sur la même échelle que hier
+        if(nowMinExtended>=yStartMin&&nowMinExtended<yEndMin){
+          // Le shift d'hier est encore actif maintenant
+          val=valY; startStr=ys; endStr=ye;
+          startMin=yStartMin; endMin=yEndMin;
+          state="ACTIVE"; totalActive++; usedYesterday=true;
+        }
       }
     }
+
+    if(!usedYesterday){
+      ({val}=getShiftVal(ag,todayISO));
+      if(!val||["OFF","ABSENT","CONGE","MALADIE"].includes(val)){
+        state=val||"NONPLANIFIE";
+        totalOff++;
+      }else{
+        [startStr,endStr]=val.split("-");
+        const [sh,sm]=startStr.split(":").map(Number);
+        const [eh,em]=endStr.split(":").map(Number);
+        startMin=sh*60+sm;
+        endMin=eh*60+em;
+        if(endMin<=startMin)endMin+=24*60;
+        if(nowMin>=startMin&&nowMin<endMin){state="ACTIVE";totalActive++;}
+        else if(nowMin<startMin){state="UPCOMING";totalUpcoming++;}
+        else{
+          state="DONE";
+          const hasReportToday=allRapports.some(r=>{
+            if(r.agentName!==ag.name)return false;
+            const d=r.createdAt?.toDate?r.createdAt.toDate():null;
+            return d&&iso(d)===todayISO;
+          });
+          if(!hasReportToday)missingReports.push({ag,endStr});
+        }
+      }
+    }
+
     const agZone=getAgentZone(ag.name);
     agentToday.push({ag,val,state,startMin,endMin,startStr,endStr,agZone});
   });
 
-  // VÉRIFIER LES SHIFTS DE NUIT D'HIER QUI SE TERMINENT APRÈS MINUIT (01:00, 02:00...)
-  // Ex: shift 18:00-01:00 hier = encore "en cours" jusqu'à 01:00 aujourd'hui
-  const yesterday=new Date(now); yesterday.setDate(now.getDate()-1);
-  const yesterdayISO=iso(yesterday);
+  // Vérifier rapports manquants pour shifts d'hier qui viennent de se terminer après minuit
   AGENTS.forEach(ag=>{
     const {val:valY}=getShiftVal(ag,yesterdayISO);
     if(!valY||["OFF","ABSENT","CONGE","MALADIE"].includes(valY))return;
