@@ -571,10 +571,7 @@ body.readonly-mode .readonly-banner{display:flex!important}
       </div>
       <div class="card">
         <div class="card-title"><span><i class="ti ti-history" style="margin-right:6px"></i>Historique</span></div>
-        <table class="tbl">
-          <thead><tr><th>Agent</th><th>Type</th><th>Début</th><th>Fin</th><th>Jours</th><th>Déduction</th><th>Action</th></tr></thead>
-          <tbody id="aboBody"></tbody>
-        </table>
+        <div id="aboGrouped"></div>
         <div class="empty" id="aboEmpty" style="display:none"><i class="ti ti-file-off"></i><p>Aucune absence enregistrée.</p></div>
       </div>
     </div>
@@ -2183,33 +2180,80 @@ function diffDaysInclusive(d1,d2){
   return Math.round((b-a)/86400000)+1;
 }
 
+const MOIS_LONG=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+
 function renderAbos(){
   const list=allAbsences.slice().sort((a,b)=>(b.debut||"").localeCompare(a.debut||""));
   let totalJours=0,totalDeduit=0,totalPrime=0;
-  const tb=document.getElementById("aboBody");tb.innerHTML="";
+
+  // Group by month (based on debut date), then by agent
+  const byMonth={};
   list.forEach(a=>{
+    const d=new Date((a.debut||"2026-01-01")+"T00:00:00");
+    const key=`${d.getFullYear()}-${String(d.getMonth()).padStart(2,"0")}`;
+    if(!byMonth[key])byMonth[key]={year:d.getFullYear(),month:d.getMonth(),agents:{}};
+    if(!byMonth[key].agents[a.agent])byMonth[key].agents[a.agent]=[];
+    byMonth[key].agents[a.agent].push(a);
+
     const ag=AGENTS.find(x=>x.name===a.agent);
-    const ini=ag?.ini||"??";
     const rate=(ag?.salaire||5000)/SALAIRE_BASE_JOURS;
     const jours=diffDaysInclusive(a.debut,a.fin||a.debut);
     const isDouble=a.type==="double";
     const montant=Math.round(jours*rate*100)/100;
     if(isDouble)totalPrime+=montant; else totalDeduit+=montant;
     totalJours+=jours;
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td><div class="ag-row"><div class="avatar">${ini}</div>
-        <span style="font-size:13px;color:var(--t1);font-weight:600">${a.agent}</span></div></td>
-      <td>${isDouble
-        ?'<span class="badge badge-amber">💰 Jour Double</span>'
-        :'<span class="badge badge-red">❌ Absence Injustifiée</span>'}</td>
-      <td style="color:var(--t3)">${a.debut||"—"}</td>
-      <td style="color:var(--t3)">${a.fin||a.debut||"—"}</td>
-      <td style="font-weight:700">${jours}</td>
-      <td style="${isDouble?"color:var(--green)":"color:var(--red)"};font-weight:700">${isDouble?"+":"-"}${montant} DH</td>
-      <td><div class="btn btn-sm btn-danger" onclick="deleteAbo('${a.id}')"><i class="ti ti-trash"></i></div></td>`;
-    tb.appendChild(tr);
   });
+
+  const monthKeys=Object.keys(byMonth).sort().reverse();
+  const container=document.getElementById("aboGrouped");
+  container.innerHTML="";
+
+  monthKeys.forEach(key=>{
+    const {year,month,agents}=byMonth[key];
+    const monthBlock=document.createElement("div");
+    monthBlock.style.marginBottom="20px";
+
+    const monthHeader=document.createElement("div");
+    monthHeader.style="font-size:14px;font-weight:700;color:var(--t1);padding:10px 0;border-bottom:2px solid var(--acc);margin-bottom:10px;display:flex;align-items:center;gap:8px";
+    monthHeader.innerHTML=`<i class="ti ti-calendar" style="color:var(--acc)"></i> ${MOIS_LONG[month]} ${year}`;
+    monthBlock.appendChild(monthHeader);
+
+    Object.entries(agents).forEach(([agentName,entries])=>{
+      const ag=AGENTS.find(x=>x.name===agentName);
+      const ini=ag?.ini||"??";
+      const rate=(ag?.salaire||5000)/SALAIRE_BASE_JOURS;
+
+      const agentBlock=document.createElement("div");
+      agentBlock.style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px";
+
+      const agentHeader=document.createElement("div");
+      agentHeader.style="display:flex;align-items:center;gap:10px;margin-bottom:8px";
+      agentHeader.innerHTML=`<div class="avatar">${ini}</div><span style="font-weight:700;font-size:13px;color:var(--t1)">${agentName}</span>`;
+      agentBlock.appendChild(agentHeader);
+
+      entries.sort((a,b)=>(a.debut||"").localeCompare(b.debut||"")).forEach(a=>{
+        const jours=diffDaysInclusive(a.debut,a.fin||a.debut);
+        const isDouble=a.type==="double";
+        const montant=Math.round(jours*rate*100)/100;
+        const row=document.createElement("div");
+        row.style="display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--border);font-size:12px";
+        row.innerHTML=`
+          <span style="flex:0 0 130px">${isDouble?'<span class="badge badge-amber">💰 Double</span>':'<span class="badge badge-red">❌ Absence</span>'}</span>
+          <span style="color:var(--t3);flex:0 0 90px">${a.debut||"—"}</span>
+          <span style="color:var(--t4)">→</span>
+          <span style="color:var(--t3);flex:0 0 90px">${a.fin||a.debut||"—"}</span>
+          <span style="font-weight:700;flex:0 0 50px">${jours} j</span>
+          <span style="${isDouble?"color:var(--green)":"color:var(--red)"};font-weight:700;flex:0 0 90px">${isDouble?"+":"-"}${montant} DH</span>
+          <div class="btn btn-sm btn-danger" style="margin-left:auto" onclick="deleteAbo('${a.id}')"><i class="ti ti-trash"></i></div>`;
+        agentBlock.appendChild(row);
+      });
+
+      monthBlock.appendChild(agentBlock);
+    });
+
+    container.appendChild(monthBlock);
+  });
+
   document.getElementById("aTotal").textContent=list.length;
   document.getElementById("aJours").textContent=totalJours;
   document.getElementById("aDeduit").textContent=
