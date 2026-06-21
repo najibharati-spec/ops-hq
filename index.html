@@ -776,6 +776,41 @@ body.readonly-mode .readonly-banner{display:flex!important}
     </div>
   </div>
 </div>
+<!-- EDIT ABSENCE MODAL -->
+<div class="modal-ov" id="editAboModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title"><i class="ti ti-pencil" style="color:var(--acc)"></i> Modifier l'entrée</div>
+    <i class="ti ti-x modal-x" onclick="closeEditAbo()"></i>
+    <div class="mfield">
+      <label>Agent</label>
+      <input id="eaAgent" readonly style="background:var(--bg3);color:var(--t3);cursor:default">
+    </div>
+    <div class="mfield">
+      <label>Type</label>
+      <select id="eaType">
+        <option value="absence">❌ Absence injustifiée</option>
+        <option value="double">💰 Jour Double / Férié</option>
+      </select>
+    </div>
+    <div class="grid2">
+      <div class="mfield">
+        <label>Date début</label>
+        <input type="date" id="eaDebut" oninput="calcEditJours()">
+      </div>
+      <div class="mfield">
+        <label>Date fin</label>
+        <input type="date" id="eaFin" oninput="calcEditJours()">
+      </div>
+    </div>
+    <div id="editJoursCounter" style="display:none;padding:8px 12px;border-radius:var(--r);font-size:12px;font-weight:600;margin-bottom:12px;border:1px solid var(--border)"></div>
+    <div id="editAboAlert" class="alert" style="display:none"></div>
+    <div class="modal-acts">
+      <button class="btn" onclick="closeEditAbo()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEditAbo()"><i class="ti ti-check"></i> Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-ov" id="colorModal">
   <div class="modal color-modal">
     <div class="modal-title"><i class="ti ti-palette" style="color:var(--acc)"></i> Personnaliser les couleurs</div>
@@ -2244,7 +2279,10 @@ function renderAbos(){
           <span style="color:var(--t3);flex:0 0 90px">${a.fin||a.debut||"—"}</span>
           <span style="font-weight:700;flex:0 0 50px">${jours} j</span>
           <span style="${isDouble?"color:var(--green)":"color:var(--red)"};font-weight:700;flex:0 0 90px">${isDouble?"+":"-"}${montant} DH</span>
-          <div class="btn btn-sm btn-danger" style="margin-left:auto" onclick="deleteAbo('${a.id}')"><i class="ti ti-trash"></i></div>`;
+          <div style="display:flex;gap:6px;margin-left:auto">
+            <div class="btn btn-sm" style="background:var(--accbg);border-color:var(--accbdr);color:var(--acc)" onclick="openEditAbo('${a.id}','${a.agent}','${a.type}','${a.debut}','${a.fin||a.debut}')"><i class="ti ti-pencil"></i></div>
+            <div class="btn btn-sm btn-danger" onclick="deleteAbo('${a.id}')"><i class="ti ti-trash"></i></div>
+          </div>`;
         agentBlock.appendChild(row);
       });
 
@@ -2431,6 +2469,76 @@ window.filtreAgentStats=()=>{
     : `<tr><td colspan="4" style="text-align:center;color:var(--t4);padding:20px">✅ Aucune absence ni jour double sur cette période</td></tr>`;
   document.getElementById("filtreResult").style.display="block";
 };
+
+// EDIT ABSENCE
+let editAboId=null;
+window.openEditAbo=(id,agent,type,debut,fin)=>{
+  editAboId=id;
+  document.getElementById("eaAgent").value=agent;
+  document.getElementById("eaType").value=type;
+  document.getElementById("eaDebut").value=debut;
+  document.getElementById("eaFin").value=fin||debut;
+  calcEditJours();
+  const al=document.getElementById("editAboAlert");al.style.display="none";
+  document.getElementById("editAboModal").classList.add("open");
+};
+window.closeEditAbo=()=>{
+  document.getElementById("editAboModal").classList.remove("open");
+  editAboId=null;
+};
+window.calcEditJours=()=>{
+  const d=document.getElementById("eaDebut").value;
+  const f=document.getElementById("eaFin").value;
+  const counter=document.getElementById("editJoursCounter");
+  if(d&&f&&f>=d){
+    const jours=Math.round((new Date(f+"T00:00:00")-new Date(d+"T00:00:00"))/86400000)+1;
+    const type=document.getElementById("eaType").value;
+    counter.textContent=`📅 ${jours} jour(s)`;
+    counter.style.background=type==="double"?"var(--abg)":"var(--rbg)";
+    counter.style.borderColor=type==="double"?"var(--abdr)":"var(--rbdr)";
+    counter.style.color=type==="double"?"var(--amber)":"var(--red)";
+    counter.style.display="block";
+  }else{counter.style.display="none";}
+};
+window.saveEditAbo=async()=>{
+  if(!editAboId)return;
+  const agent=document.getElementById("eaAgent").value;
+  const type=document.getElementById("eaType").value;
+  const debut=document.getElementById("eaDebut").value;
+  const fin=document.getElementById("eaFin").value||debut;
+  if(!debut){showAlert2("editAboAlert","Date début obligatoire.","error");return;}
+  if(fin<debut){showAlert2("editAboAlert","Date fin doit être après date début.","error");return;}
+  // Collision check (exclude current entry)
+  const newStart=new Date(debut+"T00:00:00");
+  const newEnd=new Date(fin+"T00:00:00");
+  const conflicts=[];
+  allAbsences.filter(a=>a.agent===agent&&a.id!==editAboId).forEach(a=>{
+    const exStart=new Date(a.debut+"T00:00:00");
+    const exEnd=new Date((a.fin||a.debut)+"T00:00:00");
+    if(newStart<=exEnd&&newEnd>=exStart){
+      const ovStart=newStart>exStart?newStart:exStart;
+      const ovEnd=newEnd<exEnd?newEnd:exEnd;
+      for(let d=new Date(ovStart);d<=ovEnd;d.setDate(d.getDate()+1)){
+        conflicts.push(d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"}));
+      }
+    }
+  });
+  if(conflicts.length>0){showAlert2("editAboAlert",`❌ Conflit avec entrée existante: ${conflicts.join(", ")}`,"error");return;}
+  try{
+    await updateDoc(doc(db,"absences",editAboId),{type,debut,fin});
+    closeEditAbo();
+    showAlert("aboAlert","✅ Entrée modifiée.","success");
+    await loadAll();
+  }catch(e){showAlert2("editAboAlert","Erreur: "+e.message,"error");}
+};
+function showAlert2(id,msg,type){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.textContent=msg;
+  el.className="alert alert-"+(type==="error"?"error":"success");
+  el.style.display="block";
+  setTimeout(()=>el.style.display="none",4000);
+}
 
 window.deleteAbo=async id=>{
   if(!confirm("Supprimer cette absence ?"))return;
