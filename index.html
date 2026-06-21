@@ -242,6 +242,46 @@ body.readonly-mode .readonly-banner{display:flex!important}
 .timeline-now{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--energy);z-index:2}
 .timeline-axis{display:grid;grid-template-columns:140px 1fr;gap:10px;margin-bottom:6px}
 .timeline-axis-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--t4);padding:0 2px}
+
+/* === REDESIGN OVERRIDE === */
+:root{
+--bg:#0b1220!important;
+--bg2:#111827!important;
+--bg3:#172033!important;
+--border:#24324a!important;
+--t1:#f8fafc!important;
+--t2:#dbe4f0!important;
+--t3:#9fb2c9!important;
+--t4:#7c92ad!important;
+--acc:#22c55e!important;
+--acc2:#16a34a!important;
+--accbg:#0f1f17!important;
+--accbdr:#1f6b43!important;
+--shadow:0 10px 30px rgba(0,0,0,.35)!important;
+--shadow-md:0 18px 40px rgba(0,0,0,.45)!important;
+}
+body{
+background:linear-gradient(135deg,#0b1220,#111827)!important;
+}
+.sidebar,.card,.stat-card,.zone-card,.modal,.login-card{
+background:rgba(17,24,39,.92)!important;
+backdrop-filter:blur(12px)!important;
+border:1px solid #24324a!important;
+}
+.hero-strip{
+background:linear-gradient(135deg,#16a34a,#22c55e,#06b6d4)!important;
+}
+.btn-primary{
+background:linear-gradient(135deg,#16a34a,#22c55e)!important;
+border:none!important;
+}
+.ptitle,.logo-text,.sval{
+letter-spacing:.5px!important;
+}
+.tbl tbody tr:hover td{
+background:#182235!important;
+}
+
 </style>
 </head>
 <body>
