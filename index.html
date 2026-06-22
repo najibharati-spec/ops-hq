@@ -1998,7 +1998,9 @@ function renderDashboard(){
       }
     }
 
-    const agZone=getAgentZone(ag.name);
+    const agZone=FIXED_ZONE_AGENTS.includes(ag.name)
+      ? getAgentZone(ag.name)
+      : (getAutoZone(ag.name, weekStart)||getAgentZone(ag.name));
     agentToday.push({ag,val,state,startMin,endMin,startStr,endStr,agZone});
   });
 
@@ -2080,7 +2082,7 @@ function renderDashboard(){
     missingAlert.style.display="block";
     missingList.innerHTML="";
     missingReports.forEach(({ag,endStr})=>{
-      const agZone=getAgentZone(ag.name);
+      const agZone=FIXED_ZONE_AGENTS.includes(ag.name)?getAgentZone(ag.name):(getAutoZone(ag.name,weekStart)||getAgentZone(ag.name));
       const d=document.createElement("div");
       d.className="rpt-row";
       d.innerHTML=`<div class="ag-row">
