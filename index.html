@@ -319,6 +319,8 @@ background:linear-gradient(#22c55e,#06b6d4)!important;
 body,.tbl td,.tbl th,.psub,.slabel,.card-title,.nav-item,.btn,.mfield label,input,textarea,select{
 color:#f8fafc !important;
 }
+/* But NOT zone badges — they have their own colors */
+.zone-badge{color:revert !important;}
 .psub,.slabel,.card-title,.tbl th,.logo-sub,.urole{
 color:#cbd5e1 !important;
 }
@@ -434,6 +436,41 @@ font-weight:800 !important;
 .badge-purple{color:#5b21b6 !important;}
 .badge-slate{color:#1e293b !important;}
 
+/* === ZONE BADGE TEXT FIX — force correct colors even with color:#fff override === */
+.z-hay{color:#0E5C97 !important;background:#E6F1FB !important;border:1px solid #A8CFEC !important;}
+.z-agdal{color:#0F9D6E !important;background:#E7F9F1 !important;border:1px solid #9CE8CC !important;}
+.z-carr{color:#D9750A !important;background:#FEF3E2 !important;border:1px solid #FBD49C !important;}
+.z-temara{color:#7C5CBF !important;background:#F2EEFB !important;border:1px solid #D3C5F0 !important;}
+.z-sale{color:#D64550 !important;background:#FDEEEF !important;border:1px solid #F3B7BC !important;}
+
+/* Planning shift cells - work shift text */
+.sh-work .sh-t{color:#065f46 !important;}
+.sh-work .sh-s{color:#065f46 !important;}
+.sh-off .sh-t{color:#1e293b !important;}
+.sh-off .sh-s{color:#1e293b !important;}
+.sh-conge .sh-t{color:#92400e !important;}
+.sh-conge .sh-s{color:#92400e !important;}
+.sh-maladie .sh-t{color:#5b21b6 !important;}
+.sh-maladie .sh-s{color:#5b21b6 !important;}
+.sh-absent .sh-t{color:#991b1b !important;}
+.sh-absent .sh-s{color:#991b1b !important;}
+.sh-double .sh-t{color:#78350f !important;}
+.sh-double .sh-s{color:#78350f !important;}
+
+/* Type badges JOUR/NUIT/VAR */
+.type-j{color:#065f46 !important;}
+.type-n{color:#1e3a5f !important;}
+.type-v{color:#92400e !important;}
+
+/* Total hours badge */
+.total-h{color:#0c4a6e !important;}
+
+/* Absence count badges in agents table */
+.badge-red.abs-count{color:#991b1b !important;}
+
+/* ZONE column in planning - text inside zone-badge spans */
+.zone-badge span, .zone-badge i{color:inherit !important;}
+
 
 /* ===== COMPLETE MODERN THEME OVERRIDE ===== */
 :root{
@@ -456,11 +493,21 @@ body{background:#0b1020!important;color:#fff!important}
  background:linear-gradient(135deg,#3b82f6,#06b6d4)!important;
 }
 *{
- color:inherit;
  opacity:1!important;
 }
 body,div,span,p,td,th,label,a,button{
  color:#fff!important;
+}
+/* Exclude colored badges from white-text override */
+.zone-badge,.badge-green,.badge-blue,.badge-amber,.badge-red,.badge-purple,.badge-slate,
+.sh-work .sh-t,.sh-work .sh-s,
+.sh-off .sh-t,.sh-off .sh-s,
+.sh-conge .sh-t,.sh-conge .sh-s,
+.sh-maladie .sh-t,.sh-maladie .sh-s,
+.sh-absent .sh-t,.sh-absent .sh-s,
+.sh-double .sh-t,.sh-double .sh-s,
+.type-j,.type-n,.type-v,.total-h{
+ color:revert;
 }
 .psub,.slabel,.ssub,.logo-sub,.urole,.card-title,.tbl th{
  color:#cbd5e1!important;
