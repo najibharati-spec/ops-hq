@@ -161,3 +161,75 @@ service cloud.firestore {
 | `pages/rapports.html` | Admin | Voir & valider rapports |
 | `pages/abonnements.html` | Admin | Gérer abonnements |
 | `pages/agent.html` | Agents | Missions + soumettre rapports |
+/* FORCE TEXT VISIBILITY */
+
+*{
+    text-shadow:none !important;
+}
+
+body,
+div,
+span,
+p,
+td,
+th,
+label,
+a,
+button{
+    opacity:1 !important;
+}
+
+/* White text everywhere */
+.tbl td,
+.tbl th,
+.plan-tbl td,
+.plan-tbl th,
+.card,
+.zone-card,
+.stat-card,
+.nav-item,
+.btn,
+label,
+span{
+    color:#ffffff !important;
+}
+
+/* Secondary text */
+.psub,
+.slabel,
+.logo-sub,
+.urole,
+.ssub{
+    color:#d1d5db !important;
+}
+
+/* Remove transparency */
+.card,
+.stat-card,
+.zone-card,
+.sidebar,
+.modal{
+    opacity:1 !important;
+    backdrop-filter:none !important;
+}
+
+/* Inputs */
+input,
+textarea,
+select{
+    color:#ffffff !important;
+    background:#0f172a !important;
+    border:1px solid #475569 !important;
+}
+
+/* Tables */
+.tbl td,
+.plan-tbl td{
+    font-weight:600 !important;
+}
+
+/* Hover */
+.tbl tr:hover td,
+.plan-tbl tr:hover td{
+    color:#ffffff !important;
+}
