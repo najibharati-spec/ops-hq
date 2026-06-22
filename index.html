@@ -692,6 +692,29 @@ hr,.sep{border-color:#1e2a3a !important;}
 .week-label{color:#6b5a3e !important;}
 .alert{border-radius:12px !important;}
 
+/* === DRAG & DROP ROWS === */
+.plan-row-draggable{cursor:grab !important;}
+.plan-row-draggable:active{cursor:grabbing !important;}
+.plan-row-dragging{
+  opacity:.4 !important;
+  background:rgba(201,168,76,.08) !important;
+}
+.plan-row-dragover{
+  background:rgba(201,168,76,.12) !important;
+  border-top:2px solid #c9a84c !important;
+  box-shadow:0 -2px 0 #c9a84c !important;
+}
+.drag-handle{
+  cursor:grab;
+  color:#4a3d28;
+  font-size:16px;
+  padding:0 6px;
+  display:inline-flex;
+  align-items:center;
+  transition:color .15s;
+}
+.drag-handle:hover{color:#c9a84c;}
+
 </style>
 </head>
 <body>
@@ -1388,10 +1411,10 @@ const ZONES=[
 
 const AGENTS=[
   // Hay Riad
-  {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad",             shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:1, pin:"1234", salaire:5000},
-  {name:"Aymane Chlifane",  ini:"AC",  zone:"Hay Riad",             shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0, pin:"2345", salaire:5000},
+  {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad",             shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:1, pin:"1234", salaire:5000},
+  {name:"Aymane Chlifane",  ini:"AC",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0, pin:"2345", salaire:5000},
   // Agdal - Soussi
-  {name:"Yahya Rhallab",    ini:"YR",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:3, pin:"3456", salaire:5000},
+  {name:"Yahya Rhallab",    ini:"YR",  zone:"Hay Riad",             shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:3, pin:"3456", salaire:5000},
   {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0, pin:"4567", salaire:5000},
   // Carrousel - Hay Fath
   {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath", shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:1, pin:"5678", salaire:5000},
@@ -1418,6 +1441,7 @@ let userRole="guest"; // "admin" | "agent"
 let myAgent=null; // for agent role: the AGENTS object
 let allRapports=[],allAbsences=[],allPlanning=[],allAgentSettings=[];
 let weekStart=getMonday(new Date());
+let dragSrcAgent=null;
 let pmAgent2=null,pmDate3=null,pmId=null,curRapId=null;
 let pmStatus="WORK";
 let selectedProfile=null; // "admin" or agent name, during login flow
@@ -2242,10 +2266,23 @@ function getAutoZone(agentName, mondayDate){
   if(FIXED_ZONE_AGENTS.includes(agentName))return null; // use stored zone
   const ag=AGENTS.find(x=>x.name===agentName);
   if(!ag)return null;
-  // Find agent's starting zone index in rotation
-  const baseIdx=ZONE_ROTATION.indexOf(ag.zone);
-  if(baseIdx===-1)return null; // not in rotation
   const weekIdx=getWeekIndex(mondayDate);
+
+  // Semaine 22/06 (weekIdx=2) — G1(Yahya+Youssef) gardent Temara
+  if(weekIdx===2){
+    const W2={
+      "Youssef Derkaoui":"Temara","Yahya Rhallab":"Temara",
+    };
+    if(W2[agentName])return W2[agentName];
+  }
+
+  // Rotation groupe — démarre proprement à weekIdx=3 (29/06)
+  // G1(Hay Riad base=0): Temara→HayRiad→Agdal→Carrousel
+  // G2(Agdal base=1):    HayRiad→Agdal→Carrousel→Temara
+  // G3(Carrousel base=2):Agdal→Carrousel→Temara→HayRiad
+  // G4(Temara base=3):   Carrousel→Temara→HayRiad→Agdal
+  const baseIdx=ZONE_ROTATION.indexOf(ag.zone);
+  if(baseIdx===-1)return null;
   const rotIdx=(baseIdx+weekIdx)%ZONE_ROTATION.length;
   return ZONE_ROTATION[(rotIdx+ZONE_ROTATION.length)%ZONE_ROTATION.length];
 }
@@ -2259,7 +2296,7 @@ function computeShiftVal(ag, dateISO){
 
   if(weekIdx<0)return""; // before seed week
 
-  // SEED data: semaine 0 (08-14) et semaine 1 (15-21) — pas de rotation
+  // SEED data: semaine 0 (08-14) et semaine 1 (15-21)
   if(weekIdx===0||weekIdx===1){
     const s=SEED_PLANNING.find(x=>x.agent===ag.name&&x.date===dateISO);
     return s?s.val:"";
@@ -2269,8 +2306,18 @@ function computeShiftVal(ag, dateISO){
   const rotatedOff=(ag.offDay+weekIdx)%WORK_DAYS;
   if(d===rotatedOff)return"OFF";
 
-  // Shift: toujours horaireA (pas de rotation jour/nuit)
-  const horaire=ag.horaireA;
+  // Pour les agents VAR: alterner horaireA/horaireB chaque semaine
+  // weekIdx pair → horaireA, impair → horaireB
+  // Exception semaine 29/06 (weekIdx=3): Aymane et Achraf sont en JOUR
+  let horaire;
+  if(ag.shiftType==="variable"){
+    const isWeekIdx3=(weekIdx===3);
+    const forceJour=isWeekIdx3&&(ag.name==="Aymane Chlifane"||ag.name==="Achraf Akhlij");
+    horaire=forceJour?ag.horaireA:(weekIdx%2===0?ag.horaireA:ag.horaireB);
+  }else{
+    horaire=ag.horaireA;
+  }
+
   const isNuit=horaire.startsWith("18")||horaire.startsWith("19")||horaire.startsWith("20")||horaire.startsWith("21")||horaire.startsWith("22")||horaire.startsWith("23");
   const isWeekend=(d===4||d===5); // Ven ou Sam
   if(isNuit)return isWeekend?"18:00-02:00":"18:00-01:00";
@@ -2439,6 +2486,45 @@ function renderWeekPlan(){
     // TYPE
     cells+=`<td>${typeHtml(setting.shiftType)}</td>`;
     tr.innerHTML=cells;
+    tr.draggable=true;
+    tr.dataset.agentName=ag.name;
+    tr.classList.add("plan-row-draggable");
+
+    tr.addEventListener("dragstart",e=>{
+      dragSrcAgent=ag.name;
+      e.dataTransfer.effectAllowed="move";
+      setTimeout(()=>tr.classList.add("plan-row-dragging"),0);
+    });
+    tr.addEventListener("dragend",()=>{
+      tr.classList.remove("plan-row-dragging");
+      document.querySelectorAll(".plan-row-dragover").forEach(r=>r.classList.remove("plan-row-dragover"));
+    });
+    tr.addEventListener("dragover",e=>{
+      e.preventDefault();
+      e.dataTransfer.dropEffect="move";
+      document.querySelectorAll(".plan-row-dragover").forEach(r=>r.classList.remove("plan-row-dragover"));
+      tr.classList.add("plan-row-dragover");
+    });
+    tr.addEventListener("dragleave",()=>{
+      tr.classList.remove("plan-row-dragover");
+    });
+    tr.addEventListener("drop",e=>{
+      e.preventDefault();
+      tr.classList.remove("plan-row-dragover");
+      if(dragSrcAgent&&dragSrcAgent!==ag.name){
+        // Swap positions in AGENTS array
+        const idxA=AGENTS.findIndex(x=>x.name===dragSrcAgent);
+        const idxB=AGENTS.findIndex(x=>x.name===ag.name);
+        if(idxA!==-1&&idxB!==-1){
+          const tmp=AGENTS[idxA];
+          AGENTS[idxA]=AGENTS[idxB];
+          AGENTS[idxB]=tmp;
+          renderWeekPlan();
+        }
+      }
+      dragSrcAgent=null;
+    });
+
     tbody.appendChild(tr);
   });
 }
