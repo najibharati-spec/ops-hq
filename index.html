@@ -1180,18 +1180,49 @@ hr,.sep{border-color:#1e2a3a !important;}
 
 <!-- MODAL ZONE -->
 <div class="modal-ov" id="zoneModal">
-  <div class="modal" style="max-width:400px">
-    <div class="modal-title"><i class="ti ti-map-pin" style="color:var(--acc)"></i> Changer la zone</div>
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title"><i class="ti ti-settings" style="color:var(--acc)"></i> Paramètres agent</div>
     <i class="ti ti-x modal-x" onclick="closeZoneModal()"></i>
     <div id="zAgentName" style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:16px;padding:10px 14px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)"></div>
+
+    <!-- Nom -->
     <div class="mfield">
-      <label>Zone actuelle → Nouvelle zone</label>
-      <select id="zoneSelect" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none"></select>
+      <label>Nom complet</label>
+      <input type="text" id="agEditName" placeholder="Nom de l'agent" style="width:100%;"/>
+    </div>
+
+    <!-- Zone -->
+    <div class="mfield">
+      <label>Zone</label>
+      <select id="zoneSelect" style="width:100%;"></select>
     </div>
     <div class="mfield" id="newZoneWrap" style="display:none">
       <label>Nom de la nouvelle zone</label>
-      <input type="text" id="newZoneName" placeholder="ex: Hassan - Centre" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-size:13px;outline:none"/>
+      <input type="text" id="newZoneName" placeholder="ex: Hassan - Centre" style="width:100%;"/>
     </div>
+
+    <!-- Shift type -->
+    <div class="mfield">
+      <label>Type de shift</label>
+      <select id="agEditShiftType" style="width:100%;">
+        <option value="variable">🔄 Variable (JOUR/NUIT alternés)</option>
+        <option value="fix_jour">☀️ Fix Jour</option>
+        <option value="fix_nuit">🌙 Fix Nuit</option>
+      </select>
+    </div>
+
+    <!-- Horaire A -->
+    <div class="grid2">
+      <div class="mfield">
+        <label id="labelHoraireA">Horaire A (ou fixe)</label>
+        <input type="text" id="agEditHoraireA" placeholder="ex: 10:00-17:00" style="width:100%;"/>
+      </div>
+      <div class="mfield" id="horaireB_wrap">
+        <label>Horaire B (alternance)</label>
+        <input type="text" id="agEditHoraireB" placeholder="ex: 18:00-01:00" style="width:100%;"/>
+      </div>
+    </div>
+
     <div class="modal-acts">
       <div class="btn" onclick="closeZoneModal()">Annuler</div>
       <div class="btn btn-primary" onclick="saveAgentZone()"><i class="ti ti-device-floppy"></i> Enregistrer</div>
@@ -1415,9 +1446,9 @@ const AGENTS=[
   {name:"Aymane Chlifane",  ini:"AC",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0, pin:"2345", salaire:5000},
   // Agdal - Soussi
   {name:"Yahya Rhallab",    ini:"YR",  zone:"Hay Riad",             shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:3, pin:"3456", salaire:5000},
-  {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:0, pin:"4567", salaire:5000},
+  {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:1, pin:"4567", salaire:5000},
   // Carrousel - Hay Fath
-  {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath", shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:1, pin:"5678", salaire:5000},
+  {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath", shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:0, pin:"5678", salaire:5000},
   {name:"Islam Elmardi",    ini:"IE",  zone:"Carrousel - Hay Fath", shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:2, pin:"6789", salaire:5000},
   // Temara
   {name:"Ayoub Abssi",      ini:"ABS", zone:"Temara",               shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:2, pin:"7890", salaire:5000},
@@ -2268,10 +2299,11 @@ function getAutoZone(agentName, mondayDate){
   if(!ag)return null;
   const weekIdx=getWeekIndex(mondayDate);
 
-  // Semaine 22/06 (weekIdx=2) — G1(Yahya+Youssef) gardent Temara
+  // Semaine 22/06 (weekIdx=2) — overrides exceptionnels
   if(weekIdx===2){
     const W2={
       "Youssef Derkaoui":"Temara","Yahya Rhallab":"Temara",
+      "Aymane Chlifane":"Carrousel - Hay Fath","Achraf Akhlij":"Carrousel - Hay Fath",
     };
     if(W2[agentName])return W2[agentName];
   }
@@ -3688,29 +3720,50 @@ let zCurrentAgent=null;
 
 window.openZoneModal=(agentName)=>{
   zCurrentAgent=agentName;
+  const ag=AGENTS.find(x=>x.name===agentName);
+  if(!ag)return;
   const curZone=getAgentZone(agentName);
-  document.getElementById("zAgentName").innerHTML=
-    `<i class="ti ti-user" style="margin-right:6px;color:var(--acc)"></i>${agentName} &nbsp;·&nbsp; Zone actuelle : <strong>${curZone}</strong>`;
 
+  document.getElementById("zAgentName").innerHTML=
+    `<i class="ti ti-user" style="margin-right:6px;color:var(--acc)"></i>${agentName}`;
+
+  // Fill name
+  document.getElementById("agEditName").value=agentName;
+
+  // Fill zone select
   const sel=document.getElementById("zoneSelect");
   sel.innerHTML="";
-  // Add all existing zones
   ZONES.forEach(z=>{
     const o=document.createElement("option");
     o.value=z.name;o.textContent=z.name;
     if(z.name===curZone)o.selected=true;
     sel.appendChild(o);
   });
-  // Option to add new zone
   const oNew=document.createElement("option");
-  oNew.value="__new__";oNew.textContent="➕ Ajouter une nouvelle zone...";
+  oNew.value="__new__";oNew.textContent="➕ Nouvelle zone...";
   sel.appendChild(oNew);
-
   sel.onchange=()=>{
     document.getElementById("newZoneWrap").style.display=sel.value==="__new__"?"block":"none";
   };
   document.getElementById("newZoneWrap").style.display="none";
   document.getElementById("newZoneName").value="";
+
+  // Fill shift type
+  document.getElementById("agEditShiftType").value=ag.shiftType||"variable";
+
+  // Fill horaires
+  document.getElementById("agEditHoraireA").value=ag.horaireA||"";
+  document.getElementById("agEditHoraireB").value=ag.horaireB||"";
+
+  // Show/hide horaireB based on shiftType
+  const updateHoraireB=()=>{
+    const st=document.getElementById("agEditShiftType").value;
+    document.getElementById("horaireB_wrap").style.display=st==="variable"?"block":"none";
+    document.getElementById("labelHoraireA").textContent=st==="variable"?"Horaire A":"Horaire fixe";
+  };
+  document.getElementById("agEditShiftType").onchange=updateHoraireB;
+  updateHoraireB();
+
   document.getElementById("zoneModal").classList.add("open");
 };
 
@@ -3718,35 +3771,61 @@ window.closeZoneModal=()=>document.getElementById("zoneModal").classList.remove(
 
 window.saveAgentZone=async()=>{
   if(!zCurrentAgent)return;
+  const ag=AGENTS.find(x=>x.name===zCurrentAgent);
+  if(!ag)return;
+
+  // Get values
+  const newName=document.getElementById("agEditName").value.trim();
   let newZone=document.getElementById("zoneSelect").value;
+  const newShiftType=document.getElementById("agEditShiftType").value;
+  const newHoraireA=document.getElementById("agEditHoraireA").value.trim();
+  const newHoraireB=document.getElementById("agEditHoraireB").value.trim();
+
+  if(!newName){document.getElementById("agEditName").focus();return;}
+
   if(newZone==="__new__"){
     newZone=document.getElementById("newZoneName").value.trim();
     if(!newZone){document.getElementById("newZoneName").focus();return;}
-    // Add to ZONES array if not already there
     if(!ZONES.find(z=>z.name===newZone)){
-      // Generate a unique CSS class
       const cls="z-custom-"+newZone.toLowerCase().replace(/[^a-z0-9]/g,"-").slice(0,12);
       ZONES.push({name:newZone,cls});
-      // Inject CSS for new zone
       const style=document.createElement("style");
-      style.textContent=`.${cls}{background:#f0f4f8;color:#334155;border:1px solid #94a3b8}`;
+      style.textContent=`.${cls}{background:rgba(148,163,184,.1);color:#94a3b8;border:1px solid rgba(148,163,184,.25)}`;
       document.head.appendChild(style);
     }
   }
+
+  // Update AGENTS array in memory
+  const oldName=zCurrentAgent;
+  ag.name=newName;
+  ag.zone=newZone;
+  ag.shiftType=newShiftType;
+  ag.horaireA=newHoraireA||ag.horaireA;
+  ag.horaireB=newHoraireB||ag.horaireB;
+
   // Save to Firebase agentSettings
-  const existing=allAgentSettings.find(s=>s.agent===zCurrentAgent);
+  const existing=allAgentSettings.find(s=>s.agent===oldName);
   try{
     if(existing){
-      await updateDoc(doc(db,"agentSettings",existing.id),{agent:zCurrentAgent,zone:newZone});
-      existing.zone=newZone;
+      await updateDoc(doc(db,"agentSettings",existing.id),{
+        agent:newName,zone:newZone,shiftType:newShiftType,
+        horaireA:newHoraireA,horaireB:newHoraireB
+      });
+      existing.agent=newName;existing.zone=newZone;
+      existing.shiftType=newShiftType;
     }else{
-      const setting=getAgentSetting(zCurrentAgent);
-      const ref=await addDoc(collection(db,"agentSettings"),{agent:zCurrentAgent,zone:newZone,shiftType:setting.shiftType});
-      allAgentSettings.push({id:ref.id,agent:zCurrentAgent,zone:newZone,shiftType:setting.shiftType});
+      const ref=await addDoc(collection(db,"agentSettings"),{
+        agent:newName,zone:newZone,shiftType:newShiftType,
+        horaireA:newHoraireA,horaireB:newHoraireB
+      });
+      allAgentSettings.push({id:ref.id,agent:newName,zone:newZone,shiftType:newShiftType});
     }
+    // Update zCurrentAgent if name changed
+    zCurrentAgent=newName;
     closeZoneModal();
-    showAlert("planAlert",`✅ Zone de ${zCurrentAgent} mise à jour : ${newZone}`,"success");
-    await loadAll();
+    showAlert("planAlert",`✅ Agent ${newName} mis à jour`,"success");
+    renderWeekPlan();
+    renderAgents();
   }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
 };
 
