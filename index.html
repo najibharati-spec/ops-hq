@@ -2643,11 +2643,12 @@ function renderWeekPlan(){
 
   const tbody=document.getElementById("planBody");tbody.innerHTML="";
 
-  // Sort agents by current zone so same-zone agents appear together
+  // Fixed group order — Salé always last
+  const GROUP_ORDER=["Yahya Rhallab","Youssef Derkaoui","Achraf Akhlij","Aymane Chlifane","Islam Elmardi","Oussama El Atrach","Mourad Cherradi","Ayoub Abssi","Ayoub Ben Malek","Hassan Azgoune","Zakariae Benali","Charaf Loummihi"];
   const sortedAgents=[...AGENTS].sort((a,b)=>{
-    const zA=FIXED_ZONE_AGENTS.includes(a.name)?getAgentZone(a.name):(getAutoZone(a.name,weekStart)||getAgentZone(a.name));
-    const zB=FIXED_ZONE_AGENTS.includes(b.name)?getAgentZone(b.name):(getAutoZone(b.name,weekStart)||getAgentZone(b.name));
-    if(zA<zB)return -1;if(zA>zB)return 1;return 0;
+    const iA=GROUP_ORDER.indexOf(a.name);
+    const iB=GROUP_ORDER.indexOf(b.name);
+    return(iA===-1?99:iA)-(iB===-1?99:iB);
   });
 
   sortedAgents.forEach(ag=>{
