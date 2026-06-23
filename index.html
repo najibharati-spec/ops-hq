@@ -754,23 +754,34 @@ hr,.sep{border-color:#1e2a3a !important;}
   </div>
 </div>
 
-<!-- RENAME AGENT MODAL -->
-<div class="modal-ov" id="renameModal">
-  <div class="modal" style="max-width:360px">
-    <div class="modal-title"><i class="ti ti-pencil" style="color:var(--acc)"></i> Modifier le nom</div>
-    <i class="ti ti-x modal-x" onclick="document.getElementById('renameModal').classList.remove('open')"></i>
+<!-- SWAP AGENT MODAL -->
+<div class="modal-ov" id="swapModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-title"><i class="ti ti-arrows-exchange" style="color:var(--acc)"></i> Échanger les noms</div>
+    <i class="ti ti-x modal-x" onclick="document.getElementById('swapModal').classList.remove('open')"></i>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:12px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+      <div style="text-align:center;flex:1">
+        <div class="avatar" id="swapAva1" style="margin:0 auto 6px;width:36px;height:36px;font-size:12px"></div>
+        <div id="swapName1" style="font-size:13px;font-weight:700;color:var(--acc)"></div>
+      </div>
+      <i class="ti ti-arrows-exchange" style="font-size:22px;color:var(--t4)"></i>
+      <div style="text-align:center;flex:1">
+        <div class="avatar" id="swapAva2" style="margin:0 auto 6px;width:36px;height:36px;font-size:12px"></div>
+        <div id="swapName2" style="font-size:13px;font-weight:700;color:var(--t1)"></div>
+      </div>
+    </div>
     <div class="mfield">
-      <label>Nouveau nom</label>
-      <input type="text" id="renameInput" style="width:100%" placeholder="Nom affiché..."/>
+      <label>Échanger avec</label>
+      <select id="swapSelect" style="width:100%"></select>
     </div>
     <div class="modal-acts" style="flex-direction:column;gap:8px">
-      <div class="btn btn-primary" style="width:100%;justify-content:center" onclick="doRename('week')">
+      <div class="btn btn-primary" style="width:100%;justify-content:center" onclick="doSwap('week')">
         <i class="ti ti-calendar-week"></i> Cette semaine seulement
       </div>
-      <div class="btn btn-primary" style="width:100%;justify-content:center;background:linear-gradient(135deg,#7c3aed,#a855f7)" onclick="doRename('all')">
+      <div class="btn btn-primary" style="width:100%;justify-content:center;background:linear-gradient(135deg,#7c3aed,#a855f7)" onclick="doSwap('all')">
         <i class="ti ti-infinity"></i> Toutes les semaines
       </div>
-      <div class="btn" style="width:100%;justify-content:center" onclick="document.getElementById('renameModal').classList.remove('open')">Annuler</div>
+      <div class="btn" style="width:100%;justify-content:center" onclick="document.getElementById('swapModal').classList.remove('open')">Annuler</div>
     </div>
   </div>
 </div>
@@ -2296,43 +2307,77 @@ window.resetPlanning=async()=>{
   }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
 };
 
-let renameTargetAgent=null;
+let swapSourceAgent=null;
+
+// Load saved swaps on startup
+function loadSwapDisplayNames(){
+  AGENTS.forEach(ag=>{
+    const saved=localStorage.getItem("displayName_perm_"+ag.name);
+    if(saved)ag.displayName=saved;
+  });
+}
+loadSwapDisplayNames();
+
 window.openRenameModal=(agentName)=>{
-  renameTargetAgent=agentName;
-  const weekKey="nameOverride_"+agentName+"_"+iso(weekStart);
-  const ag=AGENTS.find(x=>x.name===agentName);
-  const current=localStorage.getItem(weekKey)||ag?.displayName||agentName;
-  document.getElementById("renameInput").value=current;
-  document.getElementById("renameModal").classList.add("open");
-  setTimeout(()=>document.getElementById("renameInput").focus(),100);
+  swapSourceAgent=agentName;
+  const ag1=AGENTS.find(x=>x.name===agentName);
+  if(!ag1)return;
+
+  // Fill source
+  document.getElementById("swapAva1").textContent=ag1.ini;
+  document.getElementById("swapName1").textContent=ag1.displayName||ag1.name;
+
+  // Fill select with other agents
+  const sel=document.getElementById("swapSelect");
+  sel.innerHTML="";
+  AGENTS.filter(x=>x.name!==agentName).forEach(ag=>{
+    const o=document.createElement("option");
+    o.value=ag.name;
+    o.textContent=ag.displayName||ag.name;
+    sel.appendChild(o);
+  });
+
+  // Update preview on select change
+  const updatePreview=()=>{
+    const ag2=AGENTS.find(x=>x.name===sel.value);
+    if(ag2){
+      document.getElementById("swapAva2").textContent=ag2.ini;
+      document.getElementById("swapName2").textContent=ag2.displayName||ag2.name;
+    }
+  };
+  sel.onchange=updatePreview;
+  updatePreview();
+
+  document.getElementById("swapModal").classList.add("open");
 };
 
-window.doRename=(scope)=>{
-  const newName=document.getElementById("renameInput").value.trim();
-  if(!newName)return;
-  const ag=AGENTS.find(x=>x.name===renameTargetAgent);
-  if(!ag)return;
+window.doSwap=(scope)=>{
+  const ag1=AGENTS.find(x=>x.name===swapSourceAgent);
+  const ag2=AGENTS.find(x=>x.name===document.getElementById("swapSelect").value);
+  if(!ag1||!ag2)return;
+
+  const name1=ag1.displayName||ag1.name;
+  const name2=ag2.displayName||ag2.name;
 
   if(scope==="week"){
-    // Store week-only override in localStorage
-    const weekKey="nameOverride_"+renameTargetAgent+"_"+iso(weekStart);
-    localStorage.setItem(weekKey,newName);
+    // Week-only swap via localStorage
+    const wk=iso(weekStart);
+    localStorage.setItem("displayName_week_"+ag1.name+"_"+wk, name2);
+    localStorage.setItem("displayName_week_"+ag2.name+"_"+wk, name1);
   }else{
-    // Store permanent display name
-    ag.displayName=newName;
-    // Clear any week overrides for this agent
-    Object.keys(localStorage).filter(k=>k.startsWith("nameOverride_"+renameTargetAgent+"_")).forEach(k=>localStorage.removeItem(k));
-    localStorage.setItem("displayName_"+renameTargetAgent,newName);
+    // Permanent swap
+    ag1.displayName=name2;
+    ag2.displayName=name1;
+    localStorage.setItem("displayName_perm_"+ag1.name, name2);
+    localStorage.setItem("displayName_perm_"+ag2.name, name1);
+    // Clear week overrides for both
+    Object.keys(localStorage)
+      .filter(k=>k.startsWith("displayName_week_"+ag1.name)||k.startsWith("displayName_week_"+ag2.name))
+      .forEach(k=>localStorage.removeItem(k));
   }
-  document.getElementById("renameModal").classList.remove("open");
+  document.getElementById("swapModal").classList.remove("open");
   renderWeekPlan();
 };
-
-// Load permanent display names on startup
-AGENTS.forEach(ag=>{
-  const saved=localStorage.getItem("displayName_"+ag.name);
-  if(saved)ag.displayName=saved;
-});
 
 window.openResetAgentModal=()=>{
   const sel=document.getElementById("resetAgentSelect");
@@ -2615,9 +2660,9 @@ function renderWeekPlan(){
     // Only count manual overrides (not seed data from weeks 0-1)
     const seedDates=SEED_PLANNING.filter(s=>s.agent===ag.name).map(s=>s.date);
     const hasOverrides=allPlanning.some(p=>p.agent===ag.name&&!seedDates.includes(p.date));
-    // Get display name (week override or permanent)
-    const weekKey="nameOverride_"+ag.name+"_"+iso(weekStart);
-    const displayName=localStorage.getItem(weekKey)||ag.displayName||ag.name;
+    // Get display name (week override or permanent swap)
+    const wkKey="displayName_week_"+ag.name+"_"+iso(weekStart);
+    const displayName=localStorage.getItem(wkKey)||ag.displayName||ag.name;
     let cells=`<td>
       <div class="ag-row">
         <div class="avatar">${ag.ini}</div>
