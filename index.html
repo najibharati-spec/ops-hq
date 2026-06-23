@@ -1617,6 +1617,9 @@ document.getElementById("loginPin").addEventListener("keydown",e=>{if(e.key==="E
   }catch(e){console.error(e);}
 })();
 
+// Build grid immediately so it shows while Firebase loads
+buildProfileGrid();
+
 onAuthStateChanged(auth,async u=>{
   if(u){
     userRole="admin";currentUser=u;userDisplayName="Najib Harati";
