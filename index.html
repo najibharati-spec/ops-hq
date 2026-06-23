@@ -2339,13 +2339,10 @@ function computeShiftVal(ag, dateISO){
   if(d===rotatedOff)return"OFF";
 
   // Pour les agents VAR: alterner horaireA/horaireB chaque semaine
-  // weekIdx pair → horaireA, impair → horaireB
-  // Exception semaine 29/06 (weekIdx=3): Aymane et Achraf sont en JOUR
+  // weekIdx pair → horaireA (JOUR), impair → horaireB (NUIT)
   let horaire;
   if(ag.shiftType==="variable"){
-    const isWeekIdx3=(weekIdx===3);
-    const forceJour=isWeekIdx3&&(ag.name==="Aymane Chlifane"||ag.name==="Achraf Akhlij");
-    horaire=forceJour?ag.horaireA:(weekIdx%2===0?ag.horaireA:ag.horaireB);
+    horaire=weekIdx%2===0?ag.horaireA:ag.horaireB;
   }else{
     horaire=ag.horaireA;
   }
