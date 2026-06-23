@@ -2251,6 +2251,19 @@ window.resetPlanning=async()=>{
   }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
 };
 
+window.resetAgentShifts=async(agentName)=>{
+  // Delete all Firebase overrides for this agent (keeps computation automatic)
+  if(!confirm(\`Supprimer tous les overrides manuels de \${agentName} et revenir au planning automatique ?\`))return;
+  showAlert("planAlert","⏳ Réinitialisation en cours...","success");
+  try{
+    const toDelete=allPlanning.filter(p=>p.agent===agentName);
+    await Promise.all(toDelete.map(p=>deleteDoc(doc(db,"planning2",p.id))));
+    toDelete.forEach(p=>{const idx=allPlanning.findIndex(x=>x.id===p.id);if(idx>-1)allPlanning.splice(idx,1);});
+    renderWeekPlan();renderDashboard();
+    showAlert("planAlert",\`✅ \${agentName} — planning automatique restauré !\`,"success");
+  }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
+};
+
 window.copyPrevWeek=async()=>{
   if(!confirm("Copier la semaine précédente vers la semaine actuelle ? (écrase les modifications manuelles de cette semaine)"))return;
   showAlert("planAlert","⏳ Copie en cours...","success");
@@ -2493,10 +2506,15 @@ function renderWeekPlan(){
     const zCls=getZoneCls(agZone);
     const setting=getAgentSetting(ag.name);
 
+    // Check if agent has manual overrides in Firebase
+    const hasOverrides=allPlanning.some(p=>p.agent===ag.name);
     let cells=`<td>
       <div class="ag-row">
         <div class="avatar">${ag.ini}</div>
-        <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
+          ${hasOverrides?`<span onclick="resetAgentShifts('${ag.name}')" title="Supprimer les overrides manuels" style="font-size:10px;color:#f59e0b;cursor:pointer;display:inline-flex;align-items:center;gap:3px;width:fit-content"><i class="ti ti-refresh" style="font-size:10px"></i> reset auto</span>`:''}
+        </div>
       </div>
     </td>`;
     for(let d=0;d<7;d++){
