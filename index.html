@@ -736,8 +736,8 @@ hr,.sep{border-color:#1e2a3a !important;}
     <div id="loginStepPin" style="display:none">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:10px 12px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
         <div class="avatar" id="pinAvatar" style="width:42px;height:42px;font-size:13px"></div>
-        <div>
-          <div style="font-size:14px;font-weight:700;color:var(--t1)" id="pinName"></div>
+        <div style="flex:1">
+          <input id="pinName" type="text" style="font-size:14px;font-weight:700;color:var(--t1);background:transparent;border:none;outline:none;border-bottom:1px solid var(--border);padding:2px 4px;width:100%;margin-bottom:4px" placeholder="Nom affiché..."/>
           <div style="font-size:11px;color:var(--t4)" id="pinRole"></div>
         </div>
         <div class="btn btn-sm" style="margin-left:auto" onclick="backToProfiles()"><i class="ti ti-arrow-left"></i></div>
@@ -751,6 +751,27 @@ hr,.sep{border-color:#1e2a3a !important;}
     </div>
 
     <div class="login-foot">Système réservé aux membres autorisés</div>
+  </div>
+</div>
+
+<!-- RENAME AGENT MODAL -->
+<div class="modal-ov" id="renameModal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-title"><i class="ti ti-pencil" style="color:var(--acc)"></i> Modifier le nom</div>
+    <i class="ti ti-x modal-x" onclick="document.getElementById('renameModal').classList.remove('open')"></i>
+    <div class="mfield">
+      <label>Nouveau nom</label>
+      <input type="text" id="renameInput" style="width:100%" placeholder="Nom affiché..."/>
+    </div>
+    <div class="modal-acts" style="flex-direction:column;gap:8px">
+      <div class="btn btn-primary" style="width:100%;justify-content:center" onclick="doRename('week')">
+        <i class="ti ti-calendar-week"></i> Cette semaine seulement
+      </div>
+      <div class="btn btn-primary" style="width:100%;justify-content:center;background:linear-gradient(135deg,#7c3aed,#a855f7)" onclick="doRename('all')">
+        <i class="ti ti-infinity"></i> Toutes les semaines
+      </div>
+      <div class="btn" style="width:100%;justify-content:center" onclick="document.getElementById('renameModal').classList.remove('open')">Annuler</div>
+    </div>
   </div>
 </div>
 
@@ -1544,7 +1565,7 @@ window.selectProfile=(profile)=>{
     document.getElementById("pinAvatar").style.background="var(--energybg)";
     document.getElementById("pinAvatar").style.borderColor="var(--energybdr)";
     document.getElementById("pinAvatar").style.color="var(--energy)";
-    document.getElementById("pinName").textContent=ADMIN_PROFILE.name;
+    document.getElementById("pinName").value=ADMIN_PROFILE.name;
     document.getElementById("pinRole").textContent=ADMIN_PROFILE.role;
     document.getElementById("loginPin").placeholder="Mot de passe admin";
     document.getElementById("loginPin").type="password";
@@ -1553,7 +1574,7 @@ window.selectProfile=(profile)=>{
     document.getElementById("pinAvatar").style.background="#E8F0FE";
     document.getElementById("pinAvatar").style.borderColor="#A9C5F5";
     document.getElementById("pinAvatar").style.color="#1F4E78";
-    document.getElementById("pinName").textContent=MANAGER_PROFILE.name;
+    document.getElementById("pinName").value=MANAGER_PROFILE.name;
     document.getElementById("pinRole").textContent=MANAGER_PROFILE.role;
     document.getElementById("loginPin").placeholder="Mot de passe manager";
     document.getElementById("loginPin").type="password";
@@ -1563,7 +1584,7 @@ window.selectProfile=(profile)=>{
     document.getElementById("pinAvatar").style.background="var(--accbg)";
     document.getElementById("pinAvatar").style.borderColor="var(--accbdr)";
     document.getElementById("pinAvatar").style.color="var(--acc)";
-    document.getElementById("pinName").textContent=ag.name;
+    document.getElementById("pinName").value=ag.name;
     document.getElementById("pinRole").textContent=ag.zone+" · On-Field Agent";
     document.getElementById("loginPin").placeholder="••••";
     document.getElementById("loginPin").type="password";
@@ -1587,13 +1608,16 @@ window.doLogin=async()=>{
   if(selectedProfile==="admin"){
     txt.textContent="Connexion...";
     try{
+      const customName=document.getElementById("pinName").value.trim()||"Najib Harati";
+      userDisplayName=customName;
       await signInWithEmailAndPassword(auth,"najib@opshq.ma",pin);
     }catch(e){
       err.textContent="Mot de passe incorrect.";err.style.display="block";txt.textContent="Déverrouiller";
     }
   }else if(selectedProfile==="manager"){
     if(pin===MANAGER_PROFILE.pin){
-      userRole="admin";myAgent=null;userDisplayName=MANAGER_PROFILE.name;
+      const customName=document.getElementById("pinName").value.trim()||MANAGER_PROFILE.name;
+      userRole="admin";myAgent=null;userDisplayName=customName;
       sessionStorage.setItem("opshq_manager","1");
       showApp();
     }else{
@@ -1602,7 +1626,8 @@ window.doLogin=async()=>{
   }else{
     const ag=AGENTS.find(a=>a.name===selectedProfile);
     if(ag&&getAgentPin(ag.name)===pin){
-      userRole="agent";myAgent=ag;userDisplayName=ag.name;
+      const customName=document.getElementById("pinName").value.trim()||ag.name;
+      userRole="agent";myAgent=ag;userDisplayName=customName;
       sessionStorage.setItem("opshq_agent",ag.name);
       showApp();
     }else{
@@ -2271,6 +2296,44 @@ window.resetPlanning=async()=>{
   }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
 };
 
+let renameTargetAgent=null;
+window.openRenameModal=(agentName)=>{
+  renameTargetAgent=agentName;
+  const weekKey="nameOverride_"+agentName+"_"+iso(weekStart);
+  const ag=AGENTS.find(x=>x.name===agentName);
+  const current=localStorage.getItem(weekKey)||ag?.displayName||agentName;
+  document.getElementById("renameInput").value=current;
+  document.getElementById("renameModal").classList.add("open");
+  setTimeout(()=>document.getElementById("renameInput").focus(),100);
+};
+
+window.doRename=(scope)=>{
+  const newName=document.getElementById("renameInput").value.trim();
+  if(!newName)return;
+  const ag=AGENTS.find(x=>x.name===renameTargetAgent);
+  if(!ag)return;
+
+  if(scope==="week"){
+    // Store week-only override in localStorage
+    const weekKey="nameOverride_"+renameTargetAgent+"_"+iso(weekStart);
+    localStorage.setItem(weekKey,newName);
+  }else{
+    // Store permanent display name
+    ag.displayName=newName;
+    // Clear any week overrides for this agent
+    Object.keys(localStorage).filter(k=>k.startsWith("nameOverride_"+renameTargetAgent+"_")).forEach(k=>localStorage.removeItem(k));
+    localStorage.setItem("displayName_"+renameTargetAgent,newName);
+  }
+  document.getElementById("renameModal").classList.remove("open");
+  renderWeekPlan();
+};
+
+// Load permanent display names on startup
+AGENTS.forEach(ag=>{
+  const saved=localStorage.getItem("displayName_"+ag.name);
+  if(saved)ag.displayName=saved;
+});
+
 window.openResetAgentModal=()=>{
   const sel=document.getElementById("resetAgentSelect");
   sel.innerHTML="";
@@ -2552,11 +2615,14 @@ function renderWeekPlan(){
     // Only count manual overrides (not seed data from weeks 0-1)
     const seedDates=SEED_PLANNING.filter(s=>s.agent===ag.name).map(s=>s.date);
     const hasOverrides=allPlanning.some(p=>p.agent===ag.name&&!seedDates.includes(p.date));
+    // Get display name (week override or permanent)
+    const weekKey="nameOverride_"+ag.name+"_"+iso(weekStart);
+    const displayName=localStorage.getItem(weekKey)||ag.displayName||ag.name;
     let cells=`<td>
       <div class="ag-row">
         <div class="avatar">${ag.ini}</div>
         <div style="display:flex;flex-direction:column;gap:2px">
-          <span style="font-size:13px;color:var(--t1);font-weight:600">${ag.name}</span>
+          <span onclick="openRenameModal('${ag.name}')" style="font-size:13px;color:var(--t1);font-weight:600;cursor:pointer;border-bottom:1px dashed rgba(201,168,76,.3)" title="Cliquer pour modifier le nom">${displayName}</span>
           ${hasOverrides?`<span onclick="resetAgentShifts('${ag.name}')" title="Supprimer les overrides manuels" style="font-size:10px;color:#f59e0b;cursor:pointer;display:inline-flex;align-items:center;gap:3px;width:fit-content"><i class="ti ti-refresh" style="font-size:10px"></i> reset auto</span>`:''}
         </div>
       </div>
