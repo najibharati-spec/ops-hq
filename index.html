@@ -1617,8 +1617,7 @@ document.getElementById("loginPin").addEventListener("keydown",e=>{if(e.key==="E
   }catch(e){console.error(e);}
 })();
 
-// Build grid immediately so it shows while Firebase loads
-buildProfileGrid();
+document.addEventListener("DOMContentLoaded",()=>setTimeout(buildProfileGrid,50));
 
 onAuthStateChanged(auth,async u=>{
   if(u){
@@ -1640,7 +1639,7 @@ onAuthStateChanged(auth,async u=>{
 function showLogin(){
   document.getElementById("loginPage").classList.add("active");
   document.getElementById("appPage").classList.remove("active");
-  buildProfileGrid();
+  setTimeout(buildProfileGrid, 0);
   document.getElementById("loginStepGrid").style.display="block";
   document.getElementById("loginStepPin").style.display="none";
 }
@@ -2256,14 +2255,14 @@ window.resetPlanning=async()=>{
 
 window.resetAgentShifts=async(agentName)=>{
   // Delete all Firebase overrides for this agent (keeps computation automatic)
-  if(!confirm(\`Supprimer tous les overrides manuels de \${agentName} et revenir au planning automatique ?\`))return;
+  if(!confirm("Supprimer tous les overrides manuels de "+agentName+" et revenir au planning automatique ?"))return;
   showAlert("planAlert","⏳ Réinitialisation en cours...","success");
   try{
     const toDelete=allPlanning.filter(p=>p.agent===agentName);
     await Promise.all(toDelete.map(p=>deleteDoc(doc(db,"planning2",p.id))));
     toDelete.forEach(p=>{const idx=allPlanning.findIndex(x=>x.id===p.id);if(idx>-1)allPlanning.splice(idx,1);});
     renderWeekPlan();renderDashboard();
-    showAlert("planAlert",\`✅ \${agentName} — planning automatique restauré !\`,"success");
+    showAlert("planAlert","✅ "+agentName+" — planning automatique restauré !","success");
   }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
 };
 
