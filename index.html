@@ -754,6 +754,23 @@ hr,.sep{border-color:#1e2a3a !important;}
   </div>
 </div>
 
+<!-- RESET AGENT MODAL -->
+<div class="modal-ov" id="resetAgentModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-title"><i class="ti ti-refresh" style="color:#f59e0b"></i> Reset auto — choisir agent</div>
+    <i class="ti ti-x modal-x" onclick="document.getElementById('resetAgentModal').classList.remove('open')"></i>
+    <p style="font-size:12px;color:var(--t4);margin-bottom:14px">Supprime tous les overrides manuels Firebase de l'agent et restaure le planning automatique.</p>
+    <div class="mfield">
+      <label>Agent</label>
+      <select id="resetAgentSelect" style="width:100%"></select>
+    </div>
+    <div class="modal-acts">
+      <div class="btn" onclick="document.getElementById('resetAgentModal').classList.remove('open')">Annuler</div>
+      <div class="btn" style="background:#fff7ed;border-color:#fed7aa;color:#c2410c" onclick="doResetSelectedAgent()"><i class="ti ti-refresh"></i> Reset</div>
+    </div>
+  </div>
+</div>
+
 <!-- APP -->
 <div class="page app-page" id="appPage">
   <aside class="sidebar">
@@ -862,6 +879,7 @@ hr,.sep{border-color:#1e2a3a !important;}
           <div class="btn" onclick="openShiftTypeModal()"><i class="ti ti-settings"></i> Shifts</div>
           <div class="btn" onclick="openColorModal()" style="gap:6px"><i class="ti ti-palette"></i> Couleurs</div>
           <div class="btn" onclick="resetPlanning()" style="gap:6px;background:#fef2f2;border-color:#fca5a5;color:#dc2626"><i class="ti ti-trash"></i> Reset Planning</div>
+          <div class="btn" onclick="openResetAgentModal()" style="gap:6px;background:#fff7ed;border-color:#fed7aa;color:#c2410c"><i class="ti ti-refresh"></i> Reset Agent</div>
           <div class="btn" onclick="copyPrevWeek()" style="gap:6px;background:var(--accbg);border-color:var(--accbdr);color:var(--acc)"><i class="ti ti-copy"></i> Copier sem. précédente</div>
           <div class="btn btn-success ro-allow" onclick="exportExcel()"><i class="ti ti-table-export"></i> Excel</div>
           <div class="btn btn-danger ro-allow" onclick="exportPDF()"><i class="ti ti-file-export"></i> PDF</div>
@@ -2251,6 +2269,23 @@ window.resetPlanning=async()=>{
     renderWeekPlan();renderDashboard();
     showAlert("planAlert","✅ Planning réinitialisé (mode automatique) !","success");
   }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
+};
+
+window.openResetAgentModal=()=>{
+  const sel=document.getElementById("resetAgentSelect");
+  sel.innerHTML="";
+  AGENTS.forEach(ag=>{
+    const o=document.createElement("option");
+    o.value=ag.name;o.textContent=ag.name;
+    sel.appendChild(o);
+  });
+  document.getElementById("resetAgentModal").classList.add("open");
+};
+
+window.doResetSelectedAgent=async()=>{
+  const agentName=document.getElementById("resetAgentSelect").value;
+  document.getElementById("resetAgentModal").classList.remove("open");
+  await resetAgentShifts(agentName);
 };
 
 window.resetAgentShifts=async(agentName)=>{
