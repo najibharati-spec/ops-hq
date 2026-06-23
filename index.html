@@ -2258,7 +2258,8 @@ window.resetAgentShifts=async(agentName)=>{
   if(!confirm("Supprimer tous les overrides manuels de "+agentName+" et revenir au planning automatique ?"))return;
   showAlert("planAlert","⏳ Réinitialisation en cours...","success");
   try{
-    const toDelete=allPlanning.filter(p=>p.agent===agentName);
+    const seedDates2=SEED_PLANNING.filter(s=>s.agent===agentName).map(s=>s.date);
+    const toDelete=allPlanning.filter(p=>p.agent===agentName&&!seedDates2.includes(p.date));
     await Promise.all(toDelete.map(p=>deleteDoc(doc(db,"planning2",p.id))));
     toDelete.forEach(p=>{const idx=allPlanning.findIndex(x=>x.id===p.id);if(idx>-1)allPlanning.splice(idx,1);});
     renderWeekPlan();renderDashboard();
@@ -2509,7 +2510,9 @@ function renderWeekPlan(){
     const setting=getAgentSetting(ag.name);
 
     // Check if agent has manual overrides in Firebase
-    const hasOverrides=allPlanning.some(p=>p.agent===ag.name);
+    // Only count manual overrides (not seed data from weeks 0-1)
+    const seedDates=SEED_PLANNING.filter(s=>s.agent===ag.name).map(s=>s.date);
+    const hasOverrides=allPlanning.some(p=>p.agent===ag.name&&!seedDates.includes(p.date));
     let cells=`<td>
       <div class="ag-row">
         <div class="avatar">${ag.ini}</div>
