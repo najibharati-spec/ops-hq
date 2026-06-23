@@ -2289,14 +2289,18 @@ window.doResetSelectedAgent=async()=>{
 };
 
 window.resetAgentShifts=async(agentName)=>{
-  // Delete all Firebase overrides for this agent (keeps computation automatic)
-  if(!confirm("Supprimer tous les overrides manuels de "+agentName+" et revenir au planning automatique ?"))return;
+  if(!confirm("Supprimer tous les overrides de "+agentName+" et revenir au planning automatique ?"))return;
   showAlert("planAlert","⏳ Réinitialisation en cours...","success");
   try{
-    const seedDates2=SEED_PLANNING.filter(s=>s.agent===agentName).map(s=>s.date);
-    const toDelete=allPlanning.filter(p=>p.agent===agentName&&!seedDates2.includes(p.date));
+    // Delete ALL records for this agent (seed + manual)
+    const toDelete=allPlanning.filter(p=>p.agent===agentName);
     await Promise.all(toDelete.map(p=>deleteDoc(doc(db,"planning2",p.id))));
-    toDelete.forEach(p=>{const idx=allPlanning.findIndex(x=>x.id===p.id);if(idx>-1)allPlanning.splice(idx,1);});
+    // Re-seed only original seed data
+    const agentSeed=SEED_PLANNING.filter(s=>s.agent===agentName);
+    await Promise.all(agentSeed.map(s=>addDoc(collection(db,"planning2"),{...s,seeded:true})));
+    // Reload allPlanning
+    const snap=await getDocs(collection(db,"planning2"));
+    allPlanning=snap.docs.map(d=>({id:d.id,...d.data()}));
     renderWeekPlan();renderDashboard();
     showAlert("planAlert","✅ "+agentName+" — planning automatique restauré !","success");
   }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
