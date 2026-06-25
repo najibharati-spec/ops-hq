@@ -4222,7 +4222,7 @@ window.resetColors=()=>{
 // Load saved colors on start
 loadSavedColors();
 
-// ===== POINTAGE SYSTEM =====
+// ===== POINTAGE SYSTEM (simple declaration) =====
 let pointageActif=null;
 
 async function loadPointage(){
@@ -4243,72 +4243,46 @@ function updatePointageUI(){
   const time=document.getElementById("pointageTime");
   if(!btn)return;
 
-  // Reset button (always show if pointage exists)
+  // Modifier button
   let resetBtn=document.getElementById("pointageResetBtn");
   if(!resetBtn){
     resetBtn=document.createElement("div");
     resetBtn.id="pointageResetBtn";
-    resetBtn.title="Réinitialiser le pointage";
     resetBtn.style.cssText="display:none;align-items:center;gap:6px;background:#faf6f0;border:1px solid #e8e0d5;color:#6b7280;font-size:12px;font-weight:600;padding:8px 12px;border-radius:8px;cursor:pointer;margin-left:4px";
     resetBtn.innerHTML='<i class="ti ti-refresh" style="font-size:13px"></i> Modifier';
     resetBtn.onclick=()=>window.resetPointage&&window.resetPointage();
     btn.parentNode.insertBefore(resetBtn,btn.nextSibling);
   }
 
+  const MOTIF_CONFIG={
+    present:{icon:"🟢",label:"Présent",color:"#16a34a",dot:"#16a34a"},
+    maladie:{icon:"🤒",label:"Maladie",color:"#7c3aed",dot:"#d97706"},
+    absence:{icon:"🏠",label:"Absence",color:"#92580a",dot:"#d97706"},
+    autre:{icon:"💬",label:"Motif déclaré",color:"#374151",dot:"#d97706"},
+  };
+
   if(!pointageActif){
-    btn.innerHTML='<i class="ti ti-player-play" style="font-size:15px"></i> Démarrer ma journée';
+    btn.innerHTML='<i class="ti ti-clipboard-check" style="font-size:15px"></i> Déclarer ma présence';
     btn.style.background="#0a3a54";btn.style.cursor="pointer";
-    lbl.textContent="Journée non commencée";
+    lbl.textContent="Pas encore déclaré aujourd'hui";
     lbl.style.color="#374151";
     dot.style.background="#9ca3af";
     time.textContent="";
     resetBtn.style.display="none";
-  }else if(pointageActif.motifDebut&&pointageActif.motifDebut!=="present"&&!pointageActif.debutLocal){
-    btn.innerHTML='<i class="ti ti-check" style="font-size:15px"></i> Pointage enregistré';
+  }else{
+    const cfg=MOTIF_CONFIG[pointageActif.motif]||MOTIF_CONFIG.autre;
+    btn.innerHTML='<i class="ti ti-check" style="font-size:15px"></i> Déclaration enregistrée';
     btn.style.background="#6b7280";btn.style.cursor="default";
-    const motifIcons={maladie:"🤒",absence:"🏠",autre:"💬"};
-    lbl.textContent=motifIcons[pointageActif.motifDebut]||"💬" +" "+pointageActif.motifDebut;
-    lbl.style.color="#6b7280";
-    dot.style.background="#d97706";
-    time.textContent="Déclaré ce jour";
-    resetBtn.style.display="inline-flex";
-  }else if(pointageActif.debut&&!pointageActif.fin){
-    btn.innerHTML='<i class="ti ti-player-stop" style="font-size:15px"></i> Terminer ma journée';
-    btn.style.background="#dc2626";btn.style.cursor="pointer";
-    lbl.textContent="En service";
-    lbl.style.color="#16a34a";
-    dot.style.background="#16a34a";
-    const d=new Date(pointageActif.debutLocal);
-    time.textContent="Démarré à "+d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
-    resetBtn.style.display="inline-flex";
-  }else if(pointageActif.fin){
-    btn.innerHTML='<i class="ti ti-check" style="font-size:15px"></i> Journée terminée';
-    btn.style.background="#6b7280";btn.style.cursor="pointer";
-    lbl.textContent="Journée terminée";
-    lbl.style.color="#6b7280";
-    dot.style.background="#6b7280";
-    const debut=new Date(pointageActif.debutLocal);
-    const fin=new Date(pointageActif.finLocal);
-    const diff=Math.round((fin-debut)/60000);
-    const h=Math.floor(diff/60);const m=diff%60;
-    const motifStr=pointageActif.motif&&pointageActif.motif!=="normal"?" · "+pointageActif.motif:"";
-    time.textContent=debut.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+" → "+fin.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+" · "+h+"h"+String(m).padStart(2,"0")+motifStr;
+    lbl.innerHTML=cfg.icon+" <span style='color:"+cfg.color+";font-weight:800'>"+cfg.label+"</span>";
+    dot.style.background=cfg.dot;
+    const d=new Date(pointageActif.declaredAt||new Date());
+    time.textContent="Déclaré à "+d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+(pointageActif.motifDetail?" · "+pointageActif.motifDetail:"");
     resetBtn.style.display="inline-flex";
   }
 }
 
-window.togglePointage=async()=>{
-  if(!myAgent)return;
-  const today=iso(new Date());
-  const now=new Date();
-
-  if(!pointageActif||(!pointageActif.debut)){
-    // Open debut modal
-    document.getElementById("pointageDebutModal").classList.add("open");
-  }else if(pointageActif.debut&&!pointageActif.fin){
-    // Open fin modal
-    document.getElementById("pointageFinModal").classList.add("open");
-  }
+window.togglePointage=()=>{
+  document.getElementById("pointageDebutModal").classList.add("open");
 };
 
 // ===== SUGGESTIONS SYSTEM =====
@@ -4398,31 +4372,26 @@ window.confirmPointageDebut=async(motif)=>{
   if(!myAgent)return;
   const today=iso(new Date());
   const now=new Date();
-  let finalMotif=motif;
+  let motifDetail="";
   if(motif==="autre"){
     const custom=document.getElementById("pointageDebutMotif").value.trim();
-    finalMotif=custom||"autre";
+    motifDetail=custom||"";
   }
   try{
-    const isPresent=motif==="present";
-    const ref=await addDoc(collection(db,"pointages"),{
-      agent:myAgent.name,zone:getAgentZone(myAgent.name),
-      date:today,
-      debut:isPresent?serverTimestamp():null,
-      debutLocal:isPresent?now.toISOString():null,
-      fin:isPresent?null:serverTimestamp(),
-      finLocal:isPresent?null:now.toISOString(),
-      motifDebut:finalMotif,
-      createdAt:serverTimestamp()
-    });
-    pointageActif={
-      id:ref.id,agent:myAgent.name,date:today,
-      debutLocal:isPresent?now.toISOString():null,
-      fin:isPresent?null:true,
-      finLocal:isPresent?null:now.toISOString(),
-      motifDebut:finalMotif,
-      motif:isPresent?null:finalMotif
-    };
+    // If already exists today, update it
+    if(pointageActif){
+      await updateDoc(doc(db,"pointages",pointageActif.id),{
+        motif,motifDetail,declaredAt:now.toISOString(),updatedAt:serverTimestamp()
+      });
+      pointageActif.motif=motif;pointageActif.motifDetail=motifDetail;pointageActif.declaredAt=now.toISOString();
+    }else{
+      const ref=await addDoc(collection(db,"pointages"),{
+        agent:myAgent.name,zone:getAgentZone(myAgent.name)||"",
+        date:today,motif,motifDetail,
+        declaredAt:now.toISOString(),createdAt:serverTimestamp()
+      });
+      pointageActif={id:ref.id,agent:myAgent.name,date:today,motif,motifDetail,declaredAt:now.toISOString()};
+    }
     updatePointageUI();
   }catch(e){console.error(e);}
 };
@@ -4437,24 +4406,7 @@ window.resetPointage=async()=>{
   }catch(e){console.error(e);}
 };
 
-window.confirmPointageFin=async(motif)=>{
-  const now=new Date();
-  let finalMotif=motif;
-  if(motif==="autre"){
-    const custom=document.getElementById("pointageAutreMotif").value.trim();
-    finalMotif=custom||"autre";
-  }
-  document.getElementById("pointageFinModal").classList.remove("open");
-  try{
-    await updateDoc(doc(db,"pointages",pointageActif.id),{
-      fin:serverTimestamp(),finLocal:now.toISOString(),motif:finalMotif
-    });
-    pointageActif.fin=true;
-    pointageActif.finLocal=now.toISOString();
-    pointageActif.motif=finalMotif;
-    updatePointageUI();
-  }catch(e){console.error(e);}
-};
+
 
 window.openSuggReply=async(id, agentName)=>{
   const rep=prompt(`Répondre à ${agentName} :`);
@@ -4521,9 +4473,9 @@ document.getElementById("pmInput").addEventListener("keydown",e=>{
 <!-- POINTAGE DEBUT MODAL -->
 <div class="modal-ov" id="pointageDebutModal">
   <div class="modal" style="max-width:380px">
-    <div class="modal-title"><i class="ti ti-player-play" style="color:var(--acc)"></i> Démarrer la journée</div>
+    <div class="modal-title"><i class="ti ti-clipboard-check" style="color:var(--acc)"></i> Déclaration du jour</div>
     <i class="ti ti-x modal-x" onclick="document.getElementById('pointageDebutModal').classList.remove('open')"></i>
-    <p style="font-size:13px;color:#6b7280;margin-bottom:18px">Comment se présente votre journée ?</p>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:18px">Quelle est votre situation aujourd'hui ?</p>
     <div style="display:flex;flex-direction:column;gap:10px">
       <div onclick="window.confirmPointageDebut&&window.confirmPointageDebut('present')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #b8d8cc;border-radius:10px;cursor:pointer;background:#e8f4f0;transition:all .15s" onmouseover="this.style.background='#d0ece4'" onmouseout="this.style.background='#e8f4f0'">
         <span style="font-size:22px">🟢</span>
@@ -4548,37 +4500,8 @@ document.getElementById("pmInput").addEventListener("keydown",e=>{
   </div>
 </div>
 
-<!-- POINTAGE FIN MODAL -->
-<div class="modal-ov" id="pointageFinModal">
-  <div class="modal" style="max-width:380px">
-    <div class="modal-title"><i class="ti ti-clock-off" style="color:var(--acc)"></i> Fin de journée</div>
-    <i class="ti ti-x modal-x" onclick="document.getElementById('pointageFinModal').classList.remove('open')"></i>
-    <p style="font-size:13px;color:#6b7280;margin-bottom:18px">Comment s'est passée votre journée ?</p>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div onclick="window.confirmPointageFin&&window.confirmPointageFin('normal')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #b8d8cc;border-radius:10px;cursor:pointer;background:#e8f4f0;transition:all .15s" onmouseover="this.style.background='#d0ece4'" onmouseout="this.style.background='#e8f4f0'">
-        <span style="font-size:22px">✅</span>
-        <div><div style="font-size:13px;font-weight:700;color:#0a5c3a">Journée normale</div><div style="font-size:11px;color:#6b7280;margin-top:2px">J'ai effectué mon shift complet</div></div>
-      </div>
-      <div onclick="window.confirmPointageFin&&window.confirmPointageFin('maladie')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #ddd6fe;border-radius:10px;cursor:pointer;background:#f5f3ff;transition:all .15s" onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">
-        <span style="font-size:22px">🤒</span>
-        <div><div style="font-size:13px;font-weight:700;color:#4a3080">Maladie</div><div style="font-size:11px;color:#6b7280;margin-top:2px">J'étais malade / indisposé</div></div>
-      </div>
-      <div onclick="window.confirmPointageFin&&window.confirmPointageFin('absence')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #f0d88a;border-radius:10px;cursor:pointer;background:#fef9ec;transition:all .15s" onmouseover="this.style.background='#fdf0d0'" onmouseout="this.style.background='#fef9ec'">
-        <span style="font-size:22px">🏠</span>
-        <div><div style="font-size:13px;font-weight:700;color:#92580a">Absence</div><div style="font-size:11px;color:#6b7280;margin-top:2px">Je n'étais pas sur le terrain</div></div>
-      </div>
-      <div onclick="window.confirmPointageFin&&window.confirmPointageFin('autre')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #e8e0d5;border-radius:10px;cursor:pointer;background:#faf6f0;transition:all .15s" onmouseover="this.style.background='#f2ece3'" onmouseout="this.style.background='#faf6f0'">
-        <span style="font-size:22px">💬</span>
-        <div>
-          <div style="font-size:13px;font-weight:700;color:#374151">Autre motif</div>
-          <input id="pointageAutreMotif" type="text" onclick="event.stopPropagation()" placeholder="Précisez..." style="margin-top:6px;width:100%;font-size:12px;padding:6px 10px;border:1px solid #e8e0d5;border-radius:6px;background:#fff"/>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- WELCOME SCREEN -->
+<!-- WELCOME<!-- WELCOME SCREEN -->
 <div id="welcomeScreen" style="display:none;position:fixed;inset:0;z-index:10000;background:#faf6f0;flex-direction:column;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
   <div id="welcomeContent" style="text-align:center;max-width:480px;padding:40px 30px;animation:wFadeIn .6s ease">
     <!-- Avatar -->
