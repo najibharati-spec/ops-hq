@@ -375,8 +375,8 @@ body{
 .shift-cell:hover{transform:translateY(-1px) !important;box-shadow:0 4px 12px rgba(0,0,0,.08) !important;}
 .sh-work{background:#e8f4f0 !important;border:1px solid #b8d8cc !important;}
 .sh-work .sh-t,.sh-work .sh-s{color:#0a3a54 !important;}
-.sh-off{background:#f2ece3 !important;border:1px solid #e8e0d5 !important;}
-.sh-off .sh-t,.sh-off .sh-s{color:#9ca3af !important;}
+.sh-off{background:#1e293b !important;border:1.5px solid #334155 !important;min-height:58px !important;}
+.sh-off .sh-t,.sh-off .sh-s{color:#94a3b8 !important;}
 .sh-absent{background:#fdf0f0 !important;border:1px solid #eab8b8 !important;}
 .sh-absent .sh-t,.sh-absent .sh-s{color:#8f1a1a !important;}
 .sh-conge{background:#fef9ec !important;border:1px solid #f0d88a !important;}
@@ -559,9 +559,11 @@ hr,.sep{border-color:#e8e0d5 !important;}
     <span class="nav-sec admin-only">Gestion</span>
     <div class="nav-item admin-only" onclick="go('rapports',this)"><i class="ti ti-file-text"></i> Rapports <span id="navBadgeRap" style="margin-left:auto;display:none" class="badge badge-blue">0</span></div>
     <div class="nav-item admin-only" onclick="go('abonnements',this)"><i class="ti ti-calendar-x"></i> Absences</div>
+    <div class="nav-item admin-only" onclick="go('boitesugg',this)"><i class="ti ti-inbox"></i> Suggestions <span id="navBadgeSuggAdmin" style="display:none;background:#d97706;color:#000;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;padding:0 4px;align-items:center;justify-content:center;margin-left:auto">0</span></div>
     <span class="nav-sec agent-only" style="display:none">Principal</span>
     <div class="nav-item agent-only active" style="display:none" onclick="go('monplanning',this)"><i class="ti ti-calendar"></i> Mon Planning</div>
     <div class="nav-item agent-only" style="display:none" onclick="go('mesrapports',this)"><i class="ti ti-file-text"></i> Mes Rapports</div>
+    <div class="nav-item agent-only" style="display:none" onclick="go('suggestions',this)"><i class="ti ti-message-circle"></i> Suggestions <span id="navBadgeSug" style="display:none;background:#d97706;color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;padding:0 4px;align-items:center;justify-content:center;margin-left:auto">0</span></div>
     <div class="sb-user">
       <div class="uname" id="sbName">—</div>
       <div class="urole" id="sbRole">Lead On-Field Agent</div>
@@ -644,19 +646,35 @@ hr,.sep{border-color:#e8e0d5 !important;}
     <div class="section" id="sec-planning">
       <div class="topbar">
         <div><div class="ptitle">Planning</div><div class="psub" id="planWeekLabel">Semaine en cours</div></div>
-        <div class="btns">
-          <div class="week-nav">
-            <div class="btn btn-sm" onclick="prevWeek()"><i class="ti ti-chevron-left"></i></div>
-            <span class="week-label" id="weekRange">—</span>
-            <div class="btn btn-sm" onclick="nextWeek()"><i class="ti ti-chevron-right"></i></div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <!-- Week navigation -->
+          <div style="display:flex;align-items:center;background:#e8f0f4;border:1px solid #b8cfd8;border-radius:8px;overflow:hidden">
+            <div onclick="prevWeek()" style="padding:7px 10px;cursor:pointer;color:#0a3a54;transition:background .15s" onmouseover="this.style.background='#d0e4ed'" onmouseout="this.style.background='transparent'"><i class="ti ti-chevron-left"></i></div>
+            <span id="weekRange" style="font-size:12px;font-weight:700;color:#0a3a54;padding:0 10px;white-space:nowrap;border-left:1px solid #b8cfd8;border-right:1px solid #b8cfd8">—</span>
+            <div onclick="nextWeek()" style="padding:7px 10px;cursor:pointer;color:#0a3a54;transition:background .15s" onmouseover="this.style.background='#d0e4ed'" onmouseout="this.style.background='transparent'"><i class="ti ti-chevron-right"></i></div>
           </div>
-          <div class="btn" onclick="openShiftTypeModal()" style="color:#0a3a54;border-color:#b8cfd8;background:#e8f0f4"><i class="ti ti-settings"></i> Shifts</div>
-          <div class="btn" onclick="openColorModal()" style="color:#0a3a54;border-color:#b8cfd8;background:#e8f0f4"><i class="ti ti-palette"></i> Couleurs</div>
-          <div class="btn" onclick="resetPlanning()" style="color:#8f1a1a;border-color:#eab8b8;background:#fdf0f0"><i class="ti ti-trash"></i> Reset Planning</div>
-          <div class="btn" onclick="openResetAgentModal()" style="color:#92580a;border-color:#f0d88a;background:#fef9ec"><i class="ti ti-refresh"></i> Reset Agent</div>
-          <div class="btn" onclick="copyPrevWeek()" style="color:#0a3a54;border-color:#b8cfd8;background:#e8f0f4"><i class="ti ti-copy"></i> Copier sem. précédente</div>
-          <div class="btn ro-allow" onclick="exportExcel()" style="color:#0a5c3a;border-color:#b8d8cc;background:#e8f4f0"><i class="ti ti-table-export"></i> Excel</div>
-          <div class="btn ro-allow" onclick="exportPDF()" style="color:#8f1a1a;border-color:#eab8b8;background:#fdf0f0"><i class="ti ti-file-export"></i> PDF</div>
+
+          <!-- Separator -->
+          <div style="width:1px;height:24px;background:#e8e0d5;margin:0 2px"></div>
+
+          <!-- Config buttons -->
+          <div id="tbShifts" onclick="window.openShiftTypeModal&&window.openShiftTypeModal()" title="Shifts" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid #b8cfd8;background:#e8f0f4;color:#0a3a54;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#d0e4ed'" onmouseout="this.style.background='#e8f0f4'"><i class="ti ti-settings" style="font-size:14px"></i> Shifts</div>
+          <div id="tbCouleurs" onclick="window.openColorModal&&window.openColorModal()" title="Couleurs" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid #b8cfd8;background:#e8f0f4;color:#0a3a54;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#d0e4ed'" onmouseout="this.style.background='#e8f0f4'"><i class="ti ti-palette" style="font-size:14px"></i> Couleurs</div>
+          <div id="tbCopier" onclick="window.copyPrevWeek&&window.copyPrevWeek()" title="Copier semaine précédente" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid #b8cfd8;background:#e8f0f4;color:#0a3a54;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#d0e4ed'" onmouseout="this.style.background='#e8f0f4'"><i class="ti ti-copy" style="font-size:14px"></i> Copier</div>
+
+          <!-- Separator -->
+          <div style="width:1px;height:24px;background:#e8e0d5;margin:0 2px"></div>
+
+          <!-- Reset buttons -->
+          <div id="tbResetAgent" onclick="window.openResetAgentModal&&window.openResetAgentModal()" title="Reset agent" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid #f0d88a;background:#fef9ec;color:#92580a;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#fdf0d0'" onmouseout="this.style.background='#fef9ec'"><i class="ti ti-refresh" style="font-size:14px"></i> Reset</div>
+          <div id="tbResetPlan" onclick="window.resetPlanning&&window.resetPlanning()" title="Reset planning complet" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid #eab8b8;background:#fdf0f0;color:#8f1a1a;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#fae0e0'" onmouseout="this.style.background='#fdf0f0'"><i class="ti ti-trash" style="font-size:14px"></i></div>
+
+          <!-- Separator -->
+          <div style="width:1px;height:24px;background:#e8e0d5;margin:0 2px"></div>
+
+          <!-- Export buttons -->
+          <div id="tbExcel" onclick="window.exportExcel&&window.exportExcel()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid #b8d8cc;background:#e8f4f0;color:#0a5c3a;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#d0ece4'" onmouseout="this.style.background='#e8f4f0'"><i class="ti ti-table-export" style="font-size:14px"></i> Excel</div>
+          <div id="tbPDF" onclick="window.exportPDF&&window.exportPDF()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid #eab8b8;background:#fdf0f0;color:#8f1a1a;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#fae0e0'" onmouseout="this.style.background='#fdf0f0'"><i class="ti ti-file-export" style="font-size:14px"></i> PDF</div>
         </div>
       </div>
       <div class="alert" id="planAlert"></div>
@@ -747,6 +765,59 @@ hr,.sep{border-color:#e8e0d5 !important;}
       </div>
     </div>
 
+
+    <!-- SUGGESTIONS SECTION (agent) -->
+    <!-- BOITE SUGGESTIONS (admin) -->
+    <div class="section" id="sec-boitesugg">
+      <div class="topbar">
+        <div><div class="ptitle">Boîte de suggestions</div><div class="psub">Messages des agents</div></div>
+        <div style="display:flex;gap:8px">
+          <select id="suggFilterType" onchange="window.renderSuggestions&&window.renderSuggestions()" style="padding:6px 10px;border:1px solid #e8e0d5;border-radius:8px;font-size:12px;background:#fffdf9;color:#374151;cursor:pointer">
+            <option value="">Tous les types</option>
+            <option value="suggestion">Suggestions</option>
+            <option value="reclamation">Réclamations</option>
+            <option value="molahada">Observations</option>
+          </select>
+          <select id="suggFilterStatus" onchange="window.renderSuggestions&&window.renderSuggestions()" style="padding:6px 10px;border:1px solid #e8e0d5;border-radius:8px;font-size:12px;background:#fffdf9;color:#374151;cursor:pointer">
+            <option value="">Tous</option>
+            <option value="new">Non lus</option>
+            <option value="read">Lus</option>
+          </select>
+        </div>
+      </div>
+      <div class="alert" id="suggAdminAlert"></div>
+      <div id="suggAdminList"><div class="empty"><i class="ti ti-inbox"></i><p>Aucune suggestion reçue.</p></div></div>
+    </div>
+
+    <div class="section" id="sec-suggestions">
+      <div class="topbar">
+        <div><div class="ptitle">Suggestions & Réclamations</div><div class="psub">Partagez votre avis avec l'encadrement</div></div>
+      </div>
+      <div class="alert" id="sugAlert"></div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-message-plus" style="margin-right:6px"></i>Nouvelle demande</div>
+        <div class="mfield">
+          <label>Type</label>
+          <select id="sugType" style="width:100%">
+            <option value="suggestion">💡 Suggestion</option>
+            <option value="reclamation">⚠️ Réclamation</option>
+            <option value="molahada">📋 Observation</option>
+            <option value="autre">💬 Autre</option>
+          </select>
+        </div>
+        <div class="mfield">
+          <label>Message</label>
+          <textarea id="sugMessage" placeholder="Décrivez votre suggestion, réclamation ou observation..." style="min-height:130px"></textarea>
+        </div>
+        <div class="modal-acts" style="margin-top:0">
+          <div class="btn btn-primary" onclick="window.sendSuggestion&&window.sendSuggestion()"><i class="ti ti-send"></i> Envoyer</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-history" style="margin-right:6px"></i>Mes demandes envoyées</div>
+        <div id="mySugList"><div class="empty"><i class="ti ti-message-off"></i><p>Aucune demande envoyée.</p></div></div>
+      </div>
+    </div>
 
     <div class="section" id="sec-rapports">
       <div class="topbar">
@@ -1373,6 +1444,7 @@ window.doLogin=async()=>{
       userRole="admin";myAgent=null;userDisplayName=customName;
       sessionStorage.setItem("opshq_manager","1");
       showApp();
+      setTimeout(()=>showWelcome("manager",null),600);
     }else{
       err.textContent="Mot de passe incorrect.";err.style.display="block";
     }
@@ -1391,6 +1463,7 @@ window.doLogin=async()=>{
         });
       }catch(e){console.warn("presence write failed",e);}
       showApp();
+      setTimeout(()=>showWelcome("agent",ag),600);
     }else{
       err.textContent="Mot de passe incorrect.";err.style.display="block";
     }
@@ -1425,7 +1498,9 @@ document.getElementById("loginPin").addEventListener("keydown",e=>{if(e.key==="E
   }catch(e){console.error(e);}
 })();
 
-document.addEventListener("DOMContentLoaded",()=>setTimeout(buildProfileGrid,50));
+document.addEventListener("DOMContentLoaded",()=>{
+  setTimeout(buildProfileGrid,50);
+});
 
 onAuthStateChanged(auth,async u=>{
   if(u){
@@ -1521,6 +1596,89 @@ async function requestNotifPermission(){
   }
 }
 
+function getTimeGreeting(){
+  const h=new Date().getHours();
+  if(h<12)return"Bonjour";
+  if(h<18)return"Bon après-midi";
+  return"Bonsoir";
+}
+
+function getAgentMessage(agName, zone, shift){
+  const isNuit=shift&&(shift.startsWith("18")||shift.startsWith("19")||shift.startsWith("20")||shift.startsWith("22")||shift.startsWith("23"));
+  const messages=[
+    `La zone <strong>${zone}</strong> compte sur toi aujourd'hui. Sois vigilant, professionnel et réactif.`,
+    `Une nouvelle journée de terrain commence. Rappelle-toi : ta présence fait la différence pour les partenaires.`,
+    `Bonne ${isNuit?"nuit":"journée"} de travail ! Reste attentif aux infractions et sois rigoureux dans tes contrôles.`,
+    `Ta zone t'attend. Sois l'ambassadeur Glovo que nos partenaires méritent.`,
+    `Chaque contrôle compte. Chaque rapport compte. Tu fais un travail important.`,
+  ];
+  const idx=new Date().getDay()%messages.length;
+  return messages[idx];
+}
+
+function getManagerMessage(){
+  const msgs=[
+    "Votre équipe est en place. Bonne supervision et bonne journée opérationnelle.",
+    "Les agents sont sur le terrain. Votre vision stratégique guide chaque zone.",
+    "Une nouvelle journée d'opérations commence. L'équipe compte sur votre leadership.",
+  ];
+  return msgs[new Date().getDay()%msgs.length];
+}
+
+window.closeWelcome=()=>{
+  const ws=document.getElementById("welcomeScreen");
+  ws.style.opacity="0";
+  ws.style.transition="opacity .4s";
+  setTimeout(()=>{ws.style.display="none";ws.style.opacity="1";},400);
+};
+
+function showWelcome(type, agentData){
+  const ws=document.getElementById("welcomeScreen");
+  const greeting=getTimeGreeting();
+  const now=new Date();
+  const timeStr=now.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+  const dateStr=now.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+
+  if(type==="manager"){
+    document.getElementById("wAvatar").textContent="OE";
+    document.getElementById("wAvatar").style.background="#d97706";
+    document.getElementById("wGreeting").textContent=greeting;
+    document.getElementById("wName").textContent="Oussama ElHamali";
+    document.getElementById("wRole").textContent="Manager · OPS HQ";
+    document.getElementById("wMsgText").innerHTML=getManagerMessage();
+    document.getElementById("wChips").innerHTML=`
+      <span style="background:#e8f0f4;color:#0a3a54;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600"><i class="ti ti-clock" style="font-size:12px;margin-right:4px"></i>${timeStr}</span>
+      <span style="background:#fef9ec;color:#92580a;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600"><i class="ti ti-users" style="font-size:12px;margin-right:4px"></i>12 agents</span>
+      <span style="background:#e8f4f0;color:#0a5c3a;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600"><i class="ti ti-map-pin" style="font-size:12px;margin-right:4px"></i>5 zones</span>
+    `;
+  }else{
+    const ag=agentData;
+    const ini=ag.ini||ag.name.split(" ").map(w=>w[0]).join("").slice(0,3);
+    const zone=getAutoZone(ag.name,getMonday(now))||getAgentZone(ag.name);
+    const todayISO=iso(now);
+    const {val:shift}=getShiftVal(ag,todayISO);
+    const isOff=shift==="OFF"||!shift;
+
+    document.getElementById("wAvatar").textContent=ini;
+    document.getElementById("wAvatar").style.background=isOff?"#6b7280":"#0a3a54";
+    document.getElementById("wGreeting").textContent=greeting;
+    document.getElementById("wName").textContent=ag.name;
+    document.getElementById("wRole").textContent=`Agent On-Field · ${zone}`;
+    document.getElementById("wMsgText").innerHTML=isOff
+      ? `C'est ton jour de repos bien mérité ! Profites-en pour te reposer et revenir en forme.`
+      : getAgentMessage(ag.name, zone, shift);
+    document.getElementById("wChips").innerHTML=`
+      <span style="background:#e8f0f4;color:#0a3a54;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600"><i class="ti ti-clock" style="font-size:12px;margin-right:4px"></i>${timeStr}</span>
+      <span style="background:#e8f4f0;color:#0a5c3a;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600"><i class="ti ti-map-pin" style="font-size:12px;margin-right:4px"></i>${zone}</span>
+      <span style="background:${isOff?"#f2f2f2":"#e8f0f4"};color:${isOff?"#6b7280":"#0a3a54"};padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600"><i class="ti ti-${isOff?"moon":"sun"}" style="font-size:12px;margin-right:4px"></i>${isOff?"Jour OFF":shift}</span>
+    `;
+  }
+
+  ws.style.display="flex";
+  // Auto-close after 8 seconds
+  setTimeout(closeWelcome, 8000);
+}
+
 function showApp(){
   document.getElementById("loginPage").classList.remove("active");
   document.getElementById("appPage").classList.add("active");
@@ -1594,6 +1752,7 @@ window.go=(id,el)=>{
   if(id==="planning")renderWeekPlan();
   if(id==="monplanning")renderMyPlanning();
   if(id==="mesrapports")renderMyRapports();
+  if(id==="suggestions"||id==="boitesugg")window.renderSuggestions&&window.renderSuggestions();
 };
 
 async function loadAll(){
@@ -1617,6 +1776,7 @@ async function loadAll(){
     }else if(userRole==="agent"){
       renderMyPlanning();renderMyRapports();
     }
+    loadSuggestions();
   }catch(e){console.error(e);}
 }
 
@@ -1647,7 +1807,8 @@ function shiftCls(v){
 
 function shiftHtml(v){
   if(!v)return`<span class="sh-t" style="font-size:20px;font-weight:200;color:var(--border)">+</span>`;
-  if(["OFF","ABSENT","CONGE","MALADIE"].includes(v))return`<span class="sh-t">${v==="CONGE"?"CONGÉ":v}</span>`;
+  if(v==="OFF")return`<span class="sh-t">OFF</span>`;
+  if(["ABSENT","CONGE","MALADIE"].includes(v))return`<span class="sh-t">${v==="CONGE"?"CONGÉ":v}</span>`;
   if(v==="DOUBLE")return`<span class="sh-t">💰 DOUBLE</span>`;
   const h=calcH(v);const parts=v.split("-");
   return`<span class="sh-t">${parts[0]}→${parts[1]}</span><span class="sh-s">${h}h</span>`;
@@ -4022,6 +4183,115 @@ window.resetColors=()=>{
 // Load saved colors on start
 loadSavedColors();
 
+// ===== SUGGESTIONS SYSTEM =====
+let allSuggestions=[];
+
+window.sendSuggestion=async()=>{
+  if(!myAgent)return;
+  const type=document.getElementById("sugType").value;
+  const msg=document.getElementById("sugMessage").value.trim();
+  if(!msg){showAlert("sugAlert","Veuillez écrire un message.","error");return;}
+  try{
+    await addDoc(collection(db,"suggestions"),{
+      agent:myAgent.name,zone:getAgentZone(myAgent.name),
+      type,message:msg,lu:false,
+      createdAt:serverTimestamp(),
+      createdAtLocal:new Date().toISOString()
+    });
+    document.getElementById("sugMessage").value="";
+    showAlert("sugAlert","✅ Message envoyé avec succès !","success");
+    loadSuggestions();
+  }catch(e){showAlert("sugAlert","Erreur: "+e.message,"error");}
+};
+
+async function loadSuggestions(){
+  try{
+    const snap=await getDocs(query(collection(db,"suggestions"),orderBy("createdAt","desc")));
+    allSuggestions=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderSuggestions();
+    renderMySuggestions();
+    // Badge admin
+    const nonLus=allSuggestions.filter(s=>!s.lu).length;
+    const badge=document.getElementById("navBadgeSuggAdmin");
+    if(badge){badge.textContent=nonLus;badge.style.display=nonLus>0?"inline-flex":"none";}
+  }catch(e){console.error(e);}
+}
+
+window.renderSuggestions=()=>{
+  const list=document.getElementById("suggAdminList");
+  if(!list)return;
+  const typeF=document.getElementById("suggFilterType")?.value||"";
+  const statF=document.getElementById("suggFilterStatus")?.value||"";
+  let items=allSuggestions;
+  if(typeF)items=items.filter(s=>s.type===typeF);
+  if(statF==="new")items=items.filter(s=>!s.lu);
+  if(statF==="read")items=items.filter(s=>s.lu);
+  if(!items.length){list.innerHTML='<div class="empty"><i class="ti ti-inbox"></i><p>Aucune suggestion.</p></div>';return;}
+
+  const typeIcon={suggestion:"💡",reclamation:"⚠️",molahada:"📋",autre:"💬"};
+  const typeLabel={suggestion:"Suggestion",reclamation:"Réclamation",molahada:"Observation",autre:"Autre"};
+  const typeColor={suggestion:"#e8f0f4",reclamation:"#fdf0f0",molahada:"#fef9ec",autre:"#f2ece3"};
+  const typeBorder={suggestion:"#b8cfd8",reclamation:"#eab8b8",molahada:"#f0d88a",autre:"#e8e0d5"};
+  const typeText={suggestion:"#0a3a54",reclamation:"#8f1a1a",molahada:"#92580a",autre:"#374151"};
+
+  list.innerHTML=items.map(s=>{
+    const d=s.createdAtLocal?new Date(s.createdAtLocal).toLocaleString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
+    const icon=typeIcon[s.type]||"💬";
+    const lbl=typeLabel[s.type]||"Message";
+    const bg=typeColor[s.type]||"#f2ece3";
+    const bdr=typeBorder[s.type]||"#e8e0d5";
+    const txt=typeText[s.type]||"#374151";
+    return`<div style="background:#fff;border:1px solid #e8e0d5;border-radius:10px;padding:16px;margin-bottom:10px;border-left:4px solid ${bdr};opacity:${s.lu?.7:1}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:32px;height:32px;border-radius:8px;background:#0a3a54;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff">${(s.agent||"?").split(" ").map(w=>w[0]).join("").slice(0,2)}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#111827">${s.agent||"Agent"}</div>
+            <div style="font-size:11px;color:#9ca3af">${s.zone||""} · ${d}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="background:${bg};color:${txt};border:1px solid ${bdr};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">${icon} ${lbl}</span>
+          ${!s.lu?`<div onclick="window.markSuggLu&&window.markSuggLu('${s.id}')" style="background:#e8f4f0;border:1px solid #b8d8cc;color:#0a5c3a;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">✓ Marquer lu</div>`:`<span style="color:#9ca3af;font-size:11px">✓ Lu</span>`}
+        </div>
+      </div>
+      <div style="font-size:13px;color:#374151;line-height:1.6;background:#faf6f0;border-radius:8px;padding:12px">${s.message}</div>
+    </div>`;
+  }).join("");
+};
+
+window.markSuggLu=async(id)=>{
+  try{
+    await updateDoc(doc(db,"suggestions",id),{lu:true});
+    const s=allSuggestions.find(x=>x.id===id);
+    if(s)s.lu=true;
+    renderSuggestions();
+    const nonLus=allSuggestions.filter(x=>!x.lu).length;
+    const badge=document.getElementById("navBadgeSuggAdmin");
+    if(badge){badge.textContent=nonLus;badge.style.display=nonLus>0?"inline-flex":"none";}
+  }catch(e){console.error(e);}
+};
+
+function renderMySuggestions(){
+  if(!myAgent)return;
+  const list=document.getElementById("mySugList");
+  if(!list)return;
+  const mine=allSuggestions.filter(s=>s.agent===myAgent.name);
+  if(!mine.length){list.innerHTML='<div class="empty"><i class="ti ti-message-off"></i><p>Aucune demande envoyée.</p></div>';return;}
+  const typeIcon={suggestion:"💡",reclamation:"⚠️",molahada:"📋",autre:"💬"};
+  list.innerHTML=mine.map(s=>{
+    const d=s.createdAtLocal?new Date(s.createdAtLocal).toLocaleString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
+    return`<div style="background:#faf6f0;border:1px solid #e8e0d5;border-radius:8px;padding:12px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:700;color:#374151">${typeIcon[s.type]||"💬"} ${s.type||"message"}</span>
+        <span style="font-size:11px;color:#9ca3af">${d}</span>
+      </div>
+      <div style="font-size:12px;color:#6b7280">${s.message}</div>
+      <div style="margin-top:6px;font-size:11px">${s.lu?'<span style="color:#16a34a">\u2713 Lu par l\u2019encadrement</span>':'<span style="color:#d97706">\u23f3 En attente de lecture</span>'}</div>
+    </div>`;
+  }).join("");
+}
+
 document.querySelectorAll(".modal-ov").forEach(ov=>{
   ov.addEventListener("click",e=>{if(e.target===ov)ov.classList.remove("open");});
 });
@@ -4029,5 +4299,32 @@ document.getElementById("pmInput").addEventListener("keydown",e=>{
   if(e.key==="Enter")window.savePlanShift();
 });
 </script>
+<!-- WELCOME SCREEN -->
+<div id="welcomeScreen" style="display:none;position:fixed;inset:0;z-index:10000;background:#faf6f0;flex-direction:column;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <div id="welcomeContent" style="text-align:center;max-width:480px;padding:40px 30px;animation:wFadeIn .6s ease">
+    <!-- Avatar -->
+    <div id="wAvatar" style="width:80px;height:80px;border-radius:16px;background:#0a3a54;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;margin:0 auto 24px"></div>
+    <!-- Greeting -->
+    <div id="wGreeting" style="font-size:13px;font-weight:600;color:#9ca3af;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px"></div>
+    <div id="wName" style="font-size:32px;font-weight:900;color:#0a3a54;letter-spacing:-1px;margin-bottom:6px"></div>
+    <div id="wRole" style="font-size:14px;color:#6b7280;margin-bottom:32px"></div>
+    <!-- Message box -->
+    <div id="wMessage" style="background:#fff;border:1px solid #e8e0d5;border-radius:12px;padding:20px 24px;margin-bottom:32px;text-align:left;border-left:4px solid #0a3a54">
+      <div style="font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:2px;margin-bottom:10px">MESSAGE</div>
+      <div id="wMsgText" style="font-size:14px;color:#374151;line-height:1.7"></div>
+    </div>
+    <!-- Info chips -->
+    <div id="wChips" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:36px"></div>
+    <!-- CTA -->
+    <div onclick="closeWelcome()" style="display:inline-flex;align-items:center;gap:8px;background:#0a3a54;color:#fff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:10px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#0e4d6e'" onmouseout="this.style.background='#0a3a54'">
+      <i class="ti ti-arrow-right" style="font-size:16px"></i> Accéder à l'application
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes wFadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
 </body>
 </html>
