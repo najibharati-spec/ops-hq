@@ -855,7 +855,7 @@ hr,.sep{border-color:#e8e0d5 !important;}
     <!-- ABONNEMENTS -->
     <div class="section" id="sec-abonnements">
       <div class="topbar">
-        <div><div class="ptitle">Absences</div><div class="psub">Suivi des absences injustifiées</div></div>
+        <div><div class="ptitle">Absences</div><div class="psub" id="absPeriodLabel">Période en cours</div></div>
         <div class="btns">
           <div class="btn ro-allow" style="background:#FEF3E2;border-color:#FBD49C;color:#D9750A" onclick="openSalaireModal()"><i class="ti ti-cash"></i> Export Salaires</div>
           <div class="btn ro-allow" style="background:#E8F0FE;border-color:#A9C5F5;color:#1F4E78" onclick="openPointageModal()"><i class="ti ti-clipboard-list"></i> Pointage Simple</div>
@@ -920,7 +920,7 @@ hr,.sep{border-color:#e8e0d5 !important;}
       <div class="card">
         <div class="card-title"><span><i class="ti ti-history" style="margin-right:6px"></i>Historique</span></div>
         <div id="aboGrouped"></div>
-        <div class="empty" id="aboEmpty" style="display:none"><i class="ti ti-file-off"></i><p>Aucune absence enregistrée.</p></div>
+        <div class="empty" id="aboEmpty" style="display:none"><i class="ti ti-shield-check" style="font-size:36px;color:#16a34a;margin-bottom:8px"></i><p style="color:#16a34a;font-weight:700">Aucune absence cette période</p><p style="font-size:12px;color:#9ca3af;margin-top:4px">Tous les agents sont en règle ✅</p></div>
       </div>
     </div>
 
@@ -2973,7 +2973,32 @@ function diffDaysInclusive(d1,d2){
 const MOIS_LONG=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 
 function renderAbos(){
-  const list=allAbsences.slice().sort((a,b)=>(b.debut||"").localeCompare(a.debut||""));
+  // Période: du 21 du mois précédent au 20 du mois courant
+  const now=new Date();
+  let periodStart,periodEnd;
+  if(now.getDate()>=21){
+    // 21 ce mois → 20 mois prochain
+    periodStart=new Date(now.getFullYear(),now.getMonth(),21);
+    periodEnd=new Date(now.getFullYear(),now.getMonth()+1,20);
+  }else{
+    // 21 mois précédent → 20 ce mois
+    periodStart=new Date(now.getFullYear(),now.getMonth()-1,21);
+    periodEnd=new Date(now.getFullYear(),now.getMonth(),20);
+  }
+  const periodStartISO=iso(periodStart);
+  const periodEndISO=iso(periodEnd);
+
+  // Update period label
+  const fmtPeriod=d=>d.toLocaleDateString("fr-FR",{day:"2-digit",month:"long"});
+  const periodLbl=document.getElementById("absPeriodLabel");
+  if(periodLbl)periodLbl.textContent=`Période : ${fmtPeriod(periodStart)} → ${fmtPeriod(periodEnd)}`;
+
+  // Filter to current period only
+  const fullList=allAbsences.slice().sort((a,b)=>(b.debut||"").localeCompare(a.debut||""));
+  const list=fullList.filter(a=>{
+    const d=a.debut||"";
+    return d>=periodStartISO&&d<=periodEndISO;
+  });
   let totalJours=0,totalDeduit=0,totalPrime=0;
 
   // Group by month (based on debut date), then by agent
@@ -3050,8 +3075,9 @@ function renderAbos(){
   document.getElementById("aTotal").textContent=list.length;
   document.getElementById("aJours").textContent=totalJours;
   document.getElementById("aDeduit").textContent=
+    list.length===0?"—":
     (totalPrime>0?`+${Math.round(totalPrime*100)/100} DH prime  `:"")+
-    (totalDeduit>0?`-${Math.round(totalDeduit*100)/100} DH retenue`:"");
+    (totalDeduit>0?`-${Math.round(totalDeduit*100)/100} DH retenue`:"0 DH");
   document.getElementById("aboEmpty").style.display=list.length?"none":"block";
 }
 
@@ -4237,6 +4263,15 @@ function updatePointageUI(){
     dot.style.background="#9ca3af";
     time.textContent="";
     resetBtn.style.display="none";
+  }else if(pointageActif.motifDebut&&pointageActif.motifDebut!=="present"&&!pointageActif.debutLocal){
+    btn.innerHTML='<i class="ti ti-check" style="font-size:15px"></i> Pointage enregistré';
+    btn.style.background="#6b7280";btn.style.cursor="default";
+    const motifIcons={maladie:"🤒",absence:"🏠",autre:"💬"};
+    lbl.textContent=motifIcons[pointageActif.motifDebut]||"💬" +" "+pointageActif.motifDebut;
+    lbl.style.color="#6b7280";
+    dot.style.background="#d97706";
+    time.textContent="Déclaré ce jour";
+    resetBtn.style.display="inline-flex";
   }else if(pointageActif.debut&&!pointageActif.fin){
     btn.innerHTML='<i class="ti ti-player-stop" style="font-size:15px"></i> Terminer ma journée';
     btn.style.background="#dc2626";btn.style.cursor="pointer";
@@ -4268,16 +4303,8 @@ window.togglePointage=async()=>{
   const now=new Date();
 
   if(!pointageActif||(!pointageActif.debut)){
-    // Start
-    try{
-      const ref=await addDoc(collection(db,"pointages"),{
-        agent:myAgent.name,zone:getAgentZone(myAgent.name),
-        date:today,debut:serverTimestamp(),debutLocal:now.toISOString(),fin:null,finLocal:null,
-        createdAt:serverTimestamp()
-      });
-      pointageActif={id:ref.id,agent:myAgent.name,date:today,debutLocal:now.toISOString(),fin:null};
-      updatePointageUI();
-    }catch(e){console.error(e);}
+    // Open debut modal
+    document.getElementById("pointageDebutModal").classList.add("open");
   }else if(pointageActif.debut&&!pointageActif.fin){
     // Open fin modal
     document.getElementById("pointageFinModal").classList.add("open");
@@ -4364,6 +4391,40 @@ window.renderSuggestions=()=>{
       ${s.reponse?`<div style="margin-top:8px;background:#e8f0f4;border-left:3px solid #0a3a54;border-radius:0 8px 8px 0;padding:10px 12px;font-size:12px;color:#0a3a54"><span style="font-weight:700;font-size:10px;letter-spacing:1px;display:block;margin-bottom:4px">RÉPONSE ENCADREMENT</span>${s.reponse}</div>`:""}
     </div>`;
   }).join("");
+};
+
+window.confirmPointageDebut=async(motif)=>{
+  document.getElementById("pointageDebutModal").classList.remove("open");
+  if(!myAgent)return;
+  const today=iso(new Date());
+  const now=new Date();
+  let finalMotif=motif;
+  if(motif==="autre"){
+    const custom=document.getElementById("pointageDebutMotif").value.trim();
+    finalMotif=custom||"autre";
+  }
+  try{
+    const isPresent=motif==="present";
+    const ref=await addDoc(collection(db,"pointages"),{
+      agent:myAgent.name,zone:getAgentZone(myAgent.name),
+      date:today,
+      debut:isPresent?serverTimestamp():null,
+      debutLocal:isPresent?now.toISOString():null,
+      fin:isPresent?null:serverTimestamp(),
+      finLocal:isPresent?null:now.toISOString(),
+      motifDebut:finalMotif,
+      createdAt:serverTimestamp()
+    });
+    pointageActif={
+      id:ref.id,agent:myAgent.name,date:today,
+      debutLocal:isPresent?now.toISOString():null,
+      fin:isPresent?null:true,
+      finLocal:isPresent?null:now.toISOString(),
+      motifDebut:finalMotif,
+      motif:isPresent?null:finalMotif
+    };
+    updatePointageUI();
+  }catch(e){console.error(e);}
 };
 
 window.resetPointage=async()=>{
@@ -4457,6 +4518,36 @@ document.getElementById("pmInput").addEventListener("keydown",e=>{
   if(e.key==="Enter")window.savePlanShift();
 });
 </script>
+<!-- POINTAGE DEBUT MODAL -->
+<div class="modal-ov" id="pointageDebutModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-title"><i class="ti ti-player-play" style="color:var(--acc)"></i> Démarrer la journée</div>
+    <i class="ti ti-x modal-x" onclick="document.getElementById('pointageDebutModal').classList.remove('open')"></i>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:18px">Comment se présente votre journée ?</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div onclick="window.confirmPointageDebut&&window.confirmPointageDebut('present')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #b8d8cc;border-radius:10px;cursor:pointer;background:#e8f4f0;transition:all .15s" onmouseover="this.style.background='#d0ece4'" onmouseout="this.style.background='#e8f4f0'">
+        <span style="font-size:22px">🟢</span>
+        <div><div style="font-size:13px;font-weight:700;color:#0a5c3a">Je suis présent</div><div style="font-size:11px;color:#6b7280;margin-top:2px">Je commence mon shift maintenant</div></div>
+      </div>
+      <div onclick="window.confirmPointageDebut&&window.confirmPointageDebut('maladie')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #ddd6fe;border-radius:10px;cursor:pointer;background:#f5f3ff;transition:all .15s" onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">
+        <span style="font-size:22px">🤒</span>
+        <div><div style="font-size:13px;font-weight:700;color:#4a3080">Maladie</div><div style="font-size:11px;color:#6b7280;margin-top:2px">Je suis malade aujourd'hui</div></div>
+      </div>
+      <div onclick="window.confirmPointageDebut&&window.confirmPointageDebut('absence')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #f0d88a;border-radius:10px;cursor:pointer;background:#fef9ec;transition:all .15s" onmouseover="this.style.background='#fdf0d0'" onmouseout="this.style.background='#fef9ec'">
+        <span style="font-size:22px">🏠</span>
+        <div><div style="font-size:13px;font-weight:700;color:#92580a">Absence</div><div style="font-size:11px;color:#6b7280;margin-top:2px">Je ne serai pas sur le terrain</div></div>
+      </div>
+      <div onclick="window.confirmPointageDebut&&window.confirmPointageDebut('autre')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #e8e0d5;border-radius:10px;cursor:pointer;background:#faf6f0;transition:all .15s" onmouseover="this.style.background='#f2ece3'" onmouseout="this.style.background='#faf6f0'">
+        <span style="font-size:22px">💬</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#374151">Autre motif</div>
+          <input id="pointageDebutMotif" type="text" onclick="event.stopPropagation()" placeholder="Précisez..." style="margin-top:6px;width:100%;font-size:12px;padding:6px 10px;border:1px solid #e8e0d5;border-radius:6px;background:#fff"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- POINTAGE FIN MODAL -->
 <div class="modal-ov" id="pointageFinModal">
   <div class="modal" style="max-width:380px">
