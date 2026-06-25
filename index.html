@@ -717,6 +717,18 @@ hr,.sep{border-color:#e8e0d5 !important;}
 
     <!-- AGENT VIEW: MON PLANNING -->
     <div class="section" id="sec-monplanning">
+      <!-- POINTAGE BUTTON -->
+      <div id="pointageBar" style="margin-bottom:16px;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e8e0d5;border-radius:10px;padding:14px 18px">
+        <div id="pointageStatus" style="width:10px;height:10px;border-radius:50%;background:#9ca3af;flex-shrink:0"></div>
+        <div style="flex:1">
+          <div id="pointageLabel" style="font-size:13px;font-weight:700;color:#374151">Journée non commencée</div>
+          <div id="pointageTime" style="font-size:11px;color:#9ca3af;margin-top:2px"></div>
+        </div>
+        <div id="pointageBtn" onclick="window.togglePointage&&window.togglePointage()" style="display:inline-flex;align-items:center;gap:8px;background:#0a3a54;color:#fff;font-size:13px;font-weight:700;padding:10px 20px;border-radius:8px;cursor:pointer;transition:all .2s">
+          <i class="ti ti-player-play" style="font-size:15px"></i> Démarrer ma journée
+        </div>
+      </div>
+
       <div class="topbar">
         <div><div class="ptitle">Mon Planning</div><div class="psub" id="agentPlanWeekLabel">Semaine en cours</div></div>
         <div class="btns">
@@ -1775,6 +1787,7 @@ async function loadAll(){
       if(nonLus>0){nb.textContent=nonLus;nb.style.display="inline-block";}else{nb.style.display="none";}
     }else if(userRole==="agent"){
       renderMyPlanning();renderMyRapports();
+      loadPointage();
     }
     loadSuggestions();
   }catch(e){console.error(e);}
@@ -4183,6 +4196,94 @@ window.resetColors=()=>{
 // Load saved colors on start
 loadSavedColors();
 
+// ===== POINTAGE SYSTEM =====
+let pointageActif=null;
+
+async function loadPointage(){
+  if(!myAgent)return;
+  try{
+    const snap=await getDocs(query(collection(db,"pointages"),orderBy("createdAt","desc")));
+    const today=iso(new Date());
+    const todayPoint=snap.docs.map(d=>({id:d.id,...d.data()})).find(p=>p.agent===myAgent.name&&p.date===today);
+    pointageActif=todayPoint||null;
+    updatePointageUI();
+  }catch(e){console.error(e);}
+}
+
+function updatePointageUI(){
+  const btn=document.getElementById("pointageBtn");
+  const lbl=document.getElementById("pointageLabel");
+  const dot=document.getElementById("pointageStatus");
+  const time=document.getElementById("pointageTime");
+  if(!btn)return;
+
+  // Reset button (always show if pointage exists)
+  let resetBtn=document.getElementById("pointageResetBtn");
+  if(!resetBtn){
+    resetBtn=document.createElement("div");
+    resetBtn.id="pointageResetBtn";
+    resetBtn.title="Réinitialiser le pointage";
+    resetBtn.style.cssText="display:none;align-items:center;gap:6px;background:#faf6f0;border:1px solid #e8e0d5;color:#6b7280;font-size:12px;font-weight:600;padding:8px 12px;border-radius:8px;cursor:pointer;margin-left:4px";
+    resetBtn.innerHTML='<i class="ti ti-refresh" style="font-size:13px"></i> Modifier';
+    resetBtn.onclick=()=>window.resetPointage&&window.resetPointage();
+    btn.parentNode.insertBefore(resetBtn,btn.nextSibling);
+  }
+
+  if(!pointageActif){
+    btn.innerHTML='<i class="ti ti-player-play" style="font-size:15px"></i> Démarrer ma journée';
+    btn.style.background="#0a3a54";btn.style.cursor="pointer";
+    lbl.textContent="Journée non commencée";
+    lbl.style.color="#374151";
+    dot.style.background="#9ca3af";
+    time.textContent="";
+    resetBtn.style.display="none";
+  }else if(pointageActif.debut&&!pointageActif.fin){
+    btn.innerHTML='<i class="ti ti-player-stop" style="font-size:15px"></i> Terminer ma journée';
+    btn.style.background="#dc2626";btn.style.cursor="pointer";
+    lbl.textContent="En service";
+    lbl.style.color="#16a34a";
+    dot.style.background="#16a34a";
+    const d=new Date(pointageActif.debutLocal);
+    time.textContent="Démarré à "+d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+    resetBtn.style.display="inline-flex";
+  }else if(pointageActif.fin){
+    btn.innerHTML='<i class="ti ti-check" style="font-size:15px"></i> Journée terminée';
+    btn.style.background="#6b7280";btn.style.cursor="pointer";
+    lbl.textContent="Journée terminée";
+    lbl.style.color="#6b7280";
+    dot.style.background="#6b7280";
+    const debut=new Date(pointageActif.debutLocal);
+    const fin=new Date(pointageActif.finLocal);
+    const diff=Math.round((fin-debut)/60000);
+    const h=Math.floor(diff/60);const m=diff%60;
+    const motifStr=pointageActif.motif&&pointageActif.motif!=="normal"?" · "+pointageActif.motif:"";
+    time.textContent=debut.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+" → "+fin.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+" · "+h+"h"+String(m).padStart(2,"0")+motifStr;
+    resetBtn.style.display="inline-flex";
+  }
+}
+
+window.togglePointage=async()=>{
+  if(!myAgent)return;
+  const today=iso(new Date());
+  const now=new Date();
+
+  if(!pointageActif||(!pointageActif.debut)){
+    // Start
+    try{
+      const ref=await addDoc(collection(db,"pointages"),{
+        agent:myAgent.name,zone:getAgentZone(myAgent.name),
+        date:today,debut:serverTimestamp(),debutLocal:now.toISOString(),fin:null,finLocal:null,
+        createdAt:serverTimestamp()
+      });
+      pointageActif={id:ref.id,agent:myAgent.name,date:today,debutLocal:now.toISOString(),fin:null};
+      updatePointageUI();
+    }catch(e){console.error(e);}
+  }else if(pointageActif.debut&&!pointageActif.fin){
+    // Open fin modal
+    document.getElementById("pointageFinModal").classList.add("open");
+  }
+};
+
 // ===== SUGGESTIONS SYSTEM =====
 let allSuggestions=[];
 
@@ -4252,12 +4353,68 @@ window.renderSuggestions=()=>{
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span style="background:${bg};color:${txt};border:1px solid ${bdr};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">${icon} ${lbl}</span>
-          ${!s.lu?`<div onclick="window.markSuggLu&&window.markSuggLu('${s.id}')" style="background:#e8f4f0;border:1px solid #b8d8cc;color:#0a5c3a;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">✓ Marquer lu</div>`:`<span style="color:#9ca3af;font-size:11px">✓ Lu</span>`}
+          <div style="display:flex;gap:6px">
+            ${!s.lu?`<div onclick="window.markSuggLu&&window.markSuggLu('${s.id}')" style="background:#e8f4f0;border:1px solid #b8d8cc;color:#0a5c3a;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">✓ Lu</div>`:`<span style="color:#9ca3af;font-size:11px;padding:3px 6px">✓ Lu</span>`}
+            <div onclick="window.openSuggReply&&window.openSuggReply('${s.id}','${s.agent}')" style="background:#e8f0f4;border:1px solid #b8cfd8;color:#0a3a54;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer"><i class="ti ti-message-reply" style="font-size:11px"></i> Répondre</div>
+            <div onclick="window.deleteSugg&&window.deleteSugg('${s.id}')" style="background:#fdf0f0;border:1px solid #eab8b8;color:#8f1a1a;padding:3px 8px;border-radius:6px;font-size:11px;cursor:pointer"><i class="ti ti-trash" style="font-size:11px"></i></div>
+          </div>
         </div>
       </div>
       <div style="font-size:13px;color:#374151;line-height:1.6;background:#faf6f0;border-radius:8px;padding:12px">${s.message}</div>
+      ${s.reponse?`<div style="margin-top:8px;background:#e8f0f4;border-left:3px solid #0a3a54;border-radius:0 8px 8px 0;padding:10px 12px;font-size:12px;color:#0a3a54"><span style="font-weight:700;font-size:10px;letter-spacing:1px;display:block;margin-bottom:4px">RÉPONSE ENCADREMENT</span>${s.reponse}</div>`:""}
     </div>`;
   }).join("");
+};
+
+window.resetPointage=async()=>{
+  if(!pointageActif)return;
+  if(!confirm("Réinitialiser le pointage d'aujourd'hui ?"))return;
+  try{
+    await deleteDoc(doc(db,"pointages",pointageActif.id));
+    pointageActif=null;
+    updatePointageUI();
+  }catch(e){console.error(e);}
+};
+
+window.confirmPointageFin=async(motif)=>{
+  const now=new Date();
+  let finalMotif=motif;
+  if(motif==="autre"){
+    const custom=document.getElementById("pointageAutreMotif").value.trim();
+    finalMotif=custom||"autre";
+  }
+  document.getElementById("pointageFinModal").classList.remove("open");
+  try{
+    await updateDoc(doc(db,"pointages",pointageActif.id),{
+      fin:serverTimestamp(),finLocal:now.toISOString(),motif:finalMotif
+    });
+    pointageActif.fin=true;
+    pointageActif.finLocal=now.toISOString();
+    pointageActif.motif=finalMotif;
+    updatePointageUI();
+  }catch(e){console.error(e);}
+};
+
+window.openSuggReply=async(id, agentName)=>{
+  const rep=prompt(`Répondre à ${agentName} :`);
+  if(!rep||!rep.trim())return;
+  try{
+    await updateDoc(doc(db,"suggestions",id),{reponse:rep.trim(),lu:true});
+    const s=allSuggestions.find(x=>x.id===id);
+    if(s){s.reponse=rep.trim();s.lu=true;}
+    renderSuggestions();
+    renderMySuggestions();
+  }catch(e){console.error(e);}
+};
+
+window.deleteSugg=async(id)=>{
+  if(!confirm("Supprimer ce message ?"))return;
+  try{
+    await deleteDoc(doc(db,"suggestions",id));
+    allSuggestions=allSuggestions.filter(x=>x.id!==id);
+    renderSuggestions();
+    renderMySuggestions();
+  }catch(e){console.error(e);}
 };
 
 window.markSuggLu=async(id)=>{
@@ -4287,6 +4444,7 @@ function renderMySuggestions(){
         <span style="font-size:11px;color:#9ca3af">${d}</span>
       </div>
       <div style="font-size:12px;color:#6b7280">${s.message}</div>
+      ${s.reponse?`<div style="margin-top:8px;background:#e8f0f4;border-left:3px solid #0a3a54;border-radius:0 6px 6px 0;padding:8px 10px;font-size:12px;color:#0a3a54"><span style="font-weight:700;font-size:9px;letter-spacing:1px;display:block;margin-bottom:3px">RÉPONSE</span>${s.reponse}</div>`:""}
       <div style="margin-top:6px;font-size:11px">${s.lu?'<span style="color:#16a34a">\u2713 Lu par l\u2019encadrement</span>':'<span style="color:#d97706">\u23f3 En attente de lecture</span>'}</div>
     </div>`;
   }).join("");
@@ -4299,6 +4457,36 @@ document.getElementById("pmInput").addEventListener("keydown",e=>{
   if(e.key==="Enter")window.savePlanShift();
 });
 </script>
+<!-- POINTAGE FIN MODAL -->
+<div class="modal-ov" id="pointageFinModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-title"><i class="ti ti-clock-off" style="color:var(--acc)"></i> Fin de journée</div>
+    <i class="ti ti-x modal-x" onclick="document.getElementById('pointageFinModal').classList.remove('open')"></i>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:18px">Comment s'est passée votre journée ?</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div onclick="window.confirmPointageFin&&window.confirmPointageFin('normal')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #b8d8cc;border-radius:10px;cursor:pointer;background:#e8f4f0;transition:all .15s" onmouseover="this.style.background='#d0ece4'" onmouseout="this.style.background='#e8f4f0'">
+        <span style="font-size:22px">✅</span>
+        <div><div style="font-size:13px;font-weight:700;color:#0a5c3a">Journée normale</div><div style="font-size:11px;color:#6b7280;margin-top:2px">J'ai effectué mon shift complet</div></div>
+      </div>
+      <div onclick="window.confirmPointageFin&&window.confirmPointageFin('maladie')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #ddd6fe;border-radius:10px;cursor:pointer;background:#f5f3ff;transition:all .15s" onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">
+        <span style="font-size:22px">🤒</span>
+        <div><div style="font-size:13px;font-weight:700;color:#4a3080">Maladie</div><div style="font-size:11px;color:#6b7280;margin-top:2px">J'étais malade / indisposé</div></div>
+      </div>
+      <div onclick="window.confirmPointageFin&&window.confirmPointageFin('absence')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #f0d88a;border-radius:10px;cursor:pointer;background:#fef9ec;transition:all .15s" onmouseover="this.style.background='#fdf0d0'" onmouseout="this.style.background='#fef9ec'">
+        <span style="font-size:22px">🏠</span>
+        <div><div style="font-size:13px;font-weight:700;color:#92580a">Absence</div><div style="font-size:11px;color:#6b7280;margin-top:2px">Je n'étais pas sur le terrain</div></div>
+      </div>
+      <div onclick="window.confirmPointageFin&&window.confirmPointageFin('autre')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #e8e0d5;border-radius:10px;cursor:pointer;background:#faf6f0;transition:all .15s" onmouseover="this.style.background='#f2ece3'" onmouseout="this.style.background='#faf6f0'">
+        <span style="font-size:22px">💬</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#374151">Autre motif</div>
+          <input id="pointageAutreMotif" type="text" onclick="event.stopPropagation()" placeholder="Précisez..." style="margin-top:6px;width:100%;font-size:12px;padding:6px 10px;border:1px solid #e8e0d5;border-radius:6px;background:#fff"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- WELCOME SCREEN -->
 <div id="welcomeScreen" style="display:none;position:fixed;inset:0;z-index:10000;background:#faf6f0;flex-direction:column;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
   <div id="welcomeContent" style="text-align:center;max-width:480px;padding:40px 30px;animation:wFadeIn .6s ease">
