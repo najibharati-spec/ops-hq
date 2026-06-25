@@ -349,7 +349,7 @@ body{
 .hero-stat-num{color:#fbbf24 !important;}
 
 /* BUTTONS */
-.btn{background:#ffffff !important;border:1px solid #e2e8f0 !important;color:#6b7280 !important;border-radius:8px !important;font-weight:600 !important;transition:all .15s !important;}
+.btn{background:#ffffff !important;border:1px solid #e2e8f0 !important;color:#6b7280 !important;border-radius:8px !important;font-weight:600 !important;transition:all .15s !important;cursor:pointer !important;}
 .btn:hover{border-color:#9ca3af !important;color:#111827 !important;background:#f2ece3 !important;}
 .btn-primary{background:#0e4d6e !important;border:none !important;color:#fff !important;font-weight:800 !important;}
 .btn-primary:hover{background:#0a3a54 !important;}
@@ -648,13 +648,13 @@ hr,.sep{border-color:#e8e0d5 !important;}
             <span class="week-label" id="weekRange">—</span>
             <div class="btn btn-sm" onclick="nextWeek()"><i class="ti ti-chevron-right"></i></div>
           </div>
-          <div class="btn" onclick="openShiftTypeModal()"><i class="ti ti-settings"></i> Shifts</div>
-          <div class="btn" onclick="openColorModal()" style="gap:6px"><i class="ti ti-palette"></i> Couleurs</div>
-          <div class="btn" onclick="resetPlanning()" style="gap:6px;background:#fef2f2;border-color:#fca5a5;color:#dc2626"><i class="ti ti-trash"></i> Reset Planning</div>
-          <div class="btn" onclick="openResetAgentModal()" style="gap:6px;background:#fff7ed;border-color:#fed7aa;color:#c2410c"><i class="ti ti-refresh"></i> Reset Agent</div>
-          <div class="btn" onclick="copyPrevWeek()" style="gap:6px;background:var(--accbg);border-color:var(--accbdr);color:var(--acc)"><i class="ti ti-copy"></i> Copier sem. précédente</div>
-          <div class="btn btn-success ro-allow" onclick="exportExcel()"><i class="ti ti-table-export"></i> Excel</div>
-          <div class="btn btn-danger ro-allow" onclick="exportPDF()"><i class="ti ti-file-export"></i> PDF</div>
+          <div class="btn" onclick="openShiftTypeModal()" style="color:#0a3a54;border-color:#b8cfd8;background:#e8f0f4"><i class="ti ti-settings"></i> Shifts</div>
+          <div class="btn" onclick="openColorModal()" style="color:#0a3a54;border-color:#b8cfd8;background:#e8f0f4"><i class="ti ti-palette"></i> Couleurs</div>
+          <div class="btn" onclick="resetPlanning()" style="color:#8f1a1a;border-color:#eab8b8;background:#fdf0f0"><i class="ti ti-trash"></i> Reset Planning</div>
+          <div class="btn" onclick="openResetAgentModal()" style="color:#92580a;border-color:#f0d88a;background:#fef9ec"><i class="ti ti-refresh"></i> Reset Agent</div>
+          <div class="btn" onclick="copyPrevWeek()" style="color:#0a3a54;border-color:#b8cfd8;background:#e8f0f4"><i class="ti ti-copy"></i> Copier sem. précédente</div>
+          <div class="btn ro-allow" onclick="exportExcel()" style="color:#0a5c3a;border-color:#b8d8cc;background:#e8f4f0"><i class="ti ti-table-export"></i> Excel</div>
+          <div class="btn ro-allow" onclick="exportPDF()" style="color:#8f1a1a;border-color:#eab8b8;background:#fdf0f0"><i class="ti ti-file-export"></i> PDF</div>
         </div>
       </div>
       <div class="alert" id="planAlert"></div>
