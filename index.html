@@ -3182,17 +3182,7 @@ window.filtreAgentStats=()=>{
   const JNOMS=["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
   const JNOMS_FULL=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
 
-  // Build absence map from Firebase
-  const absMap={};
-  allAbsences.filter(a=>a.agent===agName).forEach(a=>{
-    const ds=new Date(a.debut+"T00:00:00");
-    const de=new Date((a.fin||a.debut)+"T00:00:00");
-    for(let d=new Date(ds);d<=de;d.setDate(d.getDate()+1)){
-      absMap[iso(d)]=a.type==="double"?"firebase_double":"firebase_abs";
-    }
-  });
-
-  // Day-by-day loop
+  // Day-by-day loop - planning only, no absences link
   let travailles=0,absences=0,doubles=0,offs=0;
   const rows=[];
   let idx=1;
@@ -3200,17 +3190,13 @@ window.filtreAgentStats=()=>{
     const dateISO=iso(d);
     const dow=d.getDay();
     const dIdx=dow===0?6:dow-1;
-    const isOffDay=dIdx===ag.offDay;
+    const monday=getMonday(d);
+    const wIdx=getWeekIndex(monday);
     const {val}=getShiftVal(ag,dateISO);
-    const absType=absMap[dateISO];
 
     let statut,badge,note="";
 
-    if(absType==="firebase_abs"){
-      statut="ABSENT"; absences++;
-      badge=`<span class="badge badge-red">❌ Absent</span>`;
-      note=`-${Math.round(rate*100)/100} DH`;
-    } else if(absType==="firebase_double"||val==="DOUBLE"){
+    if(val==="DOUBLE"){
       statut="DOUBLE"; doubles++; travailles++;
       badge=`<span class="badge badge-amber">💰 Double</span>`;
       note=`+${Math.round(rate*100)/100} DH`;
@@ -3220,14 +3206,17 @@ window.filtreAgentStats=()=>{
       statut="CONGÉ";
     } else if(val==="MALADIE"){
       statut="MALADIE";
+    } else if(val==="ABSENT"){
+      statut="ABSENT"; absences++;
+      badge=`<span class="badge badge-red">❌ Absent</span>`;
+      note=`-${Math.round(rate*100)/100} DH`;
     } else {
       travailles++;
-      if(isOffDay){doubles++; statut="DOUBLE_AUTO"; badge=`<span class="badge badge-amber">💰 Jour off travaillé</span>`;note=`+${Math.round(rate*100)/100} DH`;}
-      else{statut="TRAVAILLÉ";}
+      statut="TRAVAILLÉ";
     }
 
     // Afficher seulement absences et doubles
-    if(statut==="ABSENT"||statut==="DOUBLE"||statut==="DOUBLE_AUTO"){
+    if(statut==="ABSENT"||statut==="DOUBLE"){
       rows.push(`<tr>
         <td style="color:var(--t4);font-size:12px">${idx++}</td>
         <td style="font-weight:600">${d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})}</td>
