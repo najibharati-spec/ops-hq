@@ -559,6 +559,7 @@ hr,.sep{border-color:#e8e0d5 !important;}
     <span class="nav-sec admin-only">Gestion</span>
     <div class="nav-item admin-only" onclick="go('rapports',this)"><i class="ti ti-file-text"></i> Rapports <span id="navBadgeRap" style="margin-left:auto;display:none" class="badge badge-blue">0</span></div>
     <div class="nav-item admin-only" onclick="go('abonnements',this)"><i class="ti ti-calendar-x"></i> Absences</div>
+    <div class="nav-item admin-only" onclick="go('pointageadmin',this)"><i class="ti ti-clipboard-list"></i> Pointage</div>
     <div class="nav-item admin-only" onclick="go('boitesugg',this)"><i class="ti ti-inbox"></i> Suggestions <span id="navBadgeSuggAdmin" style="display:none;background:#d97706;color:#000;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;padding:0 4px;align-items:center;justify-content:center;margin-left:auto">0</span></div>
     <span class="nav-sec agent-only" style="display:none">Principal</span>
     <div class="nav-item agent-only active" style="display:none" onclick="go('monplanning',this)"><i class="ti ti-calendar"></i> Mon Planning</div>
@@ -779,6 +780,15 @@ hr,.sep{border-color:#e8e0d5 !important;}
 
 
     <!-- SUGGESTIONS SECTION (agent) -->
+    <!-- POINTAGE ADMIN VIEW -->
+    <div class="section" id="sec-pointageadmin">
+      <div class="topbar">
+        <div><div class="ptitle">Pointage</div><div class="psub" id="pointageAdminDate">Déclarations du jour</div></div>
+        <div class="btn" onclick="window.loadPointageAdmin&&window.loadPointageAdmin()" style="cursor:pointer"><i class="ti ti-refresh"></i> Actualiser</div>
+      </div>
+      <div id="pointageAdminList"><div class="empty"><i class="ti ti-clipboard"></i><p>Aucune déclaration aujourd'hui.</p></div></div>
+    </div>
+
     <!-- BOITE SUGGESTIONS (admin) -->
     <div class="section" id="sec-boitesugg">
       <div class="topbar">
@@ -1765,6 +1775,7 @@ window.go=(id,el)=>{
   if(id==="monplanning")renderMyPlanning();
   if(id==="mesrapports")renderMyRapports();
   if(id==="suggestions"||id==="boitesugg")window.renderSuggestions&&window.renderSuggestions();
+  if(id==="pointageadmin")window.loadPointageAdmin&&window.loadPointageAdmin();
 };
 
 async function loadAll(){
@@ -3764,20 +3775,6 @@ window.exportSalaires=()=>{
       }
     });
 
-    // Auto-detect off-day worked from planning
-    for(let d=new Date(debutD);d<=finD;d.setDate(d.getDate()+1)){
-      const dateISO=iso(d);
-      const {val}=getShiftVal(ag,dateISO);
-      if(!val||val==="")continue;
-      const isDouble=val==="DOUBLE";
-      const isWorked=!["OFF","ABSENT","CONGE","MALADIE","DOUBLE",""].includes(val);
-      const dow=d.getDay();const dIdx=dow===0?6:dow-1;
-      const isOffDay=dIdx===ag.offDay;
-      if(isDouble||(isWorked&&isOffDay)){
-        if(!doubleDates.includes(dateISO))doubleDates.push(dateISO);
-      }
-    }
-
     const absText=fmtGrouped(absDates);
     const dblText=fmtGrouped(doubleDates);
     agentRows.push({nom:ag.name,sal,
@@ -4396,6 +4393,78 @@ window.resetPointage=async()=>{
 };
 
 
+
+// ===== ADMIN POINTAGE VIEW =====
+window.loadPointageAdmin=async()=>{
+  const today=iso(new Date());
+  const lbl=document.getElementById("pointageAdminDate");
+  if(lbl)lbl.textContent="Déclarations du "+new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+  try{
+    const snap=await getDocs(query(collection(db,"pointages"),orderBy("createdAt","desc")));
+    const todayDecs=snap.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.date===today);
+    const list=document.getElementById("pointageAdminList");
+    if(!list)return;
+
+    const MOTIF={
+      present:{icon:"🟢",label:"Présent",bg:"#e8f4f0",border:"#b8d8cc",color:"#0a5c3a"},
+      maladie:{icon:"🤒",label:"Maladie",bg:"#f5f3ff",border:"#ddd6fe",color:"#4a3080"},
+      absence:{icon:"🏠",label:"Absence",bg:"#fef9ec",border:"#f0d88a",color:"#92580a"},
+      autre:{icon:"💬",label:"Autre",bg:"#faf6f0",border:"#e8e0d5",color:"#374151"},
+    };
+
+    // Show all agents — declared + not yet
+    const declaredAgents=todayDecs.map(d=>d.agent);
+    const allAgentsList=[...AGENTS];
+
+    if(!allAgentsList.length){list.innerHTML='<div class="empty"><i class="ti ti-clipboard"></i><p>Aucun agent.</p></div>';return;}
+
+    // Summary chips
+    const presCount=todayDecs.filter(d=>d.motif==="present").length;
+    const absCount=todayDecs.filter(d=>d.motif==="absence").length;
+    const malCount=todayDecs.filter(d=>d.motif==="maladie").length;
+    const autreCount=todayDecs.filter(d=>d.motif==="autre").length;
+    const nonDec=allAgentsList.length-todayDecs.length;
+
+    list.innerHTML=`
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+        <span style="background:#e8f4f0;border:1px solid #b8d8cc;color:#0a5c3a;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700">🟢 Présents: ${presCount}</span>
+        <span style="background:#fdf0f0;border:1px solid #eab8b8;color:#8f1a1a;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700">🏠 Absents: ${absCount}</span>
+        <span style="background:#f5f3ff;border:1px solid #ddd6fe;color:#4a3080;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700">🤒 Malades: ${malCount}</span>
+        ${autreCount?`<span style="background:#faf6f0;border:1px solid #e8e0d5;color:#374151;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700">💬 Autre: ${autreCount}</span>`:""}
+        ${nonDec?`<span style="background:#f2ece3;border:1px solid #e8e0d5;color:#9ca3af;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700">⏳ Non déclaré: ${nonDec}</span>`:""}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${allAgentsList.map(ag=>{
+          const dec=todayDecs.find(d=>d.agent===ag.name);
+          const zone=getAutoZone(ag.name,getMonday(new Date()))||getAgentZone(ag.name);
+          if(dec){
+            const cfg=MOTIF[dec.motif]||MOTIF.autre;
+            const t=dec.declaredAt?new Date(dec.declaredAt).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):"—";
+            return`<div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e8e0d5;border-radius:10px;padding:12px 16px;border-left:4px solid ${cfg.border}">
+              <div class="avatar" style="width:34px;height:34px;font-size:11px;flex-shrink:0">${ag.ini}</div>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:700;color:#111827">${ag.name}</div>
+                <div style="font-size:11px;color:#9ca3af">${zone}</div>
+              </div>
+              <div style="text-align:right">
+                <span style="background:${cfg.bg};color:${cfg.color};border:1px solid ${cfg.border};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700">${cfg.icon} ${cfg.label}${dec.motifDetail?" · "+dec.motifDetail:""}</span>
+                <div style="font-size:10px;color:#9ca3af;margin-top:3px">${t}</div>
+              </div>
+            </div>`;
+          }else{
+            return`<div style="display:flex;align-items:center;gap:12px;background:#faf6f0;border:1px solid #e8e0d5;border-radius:10px;padding:12px 16px;opacity:.6">
+              <div class="avatar" style="width:34px;height:34px;font-size:11px;flex-shrink:0;background:#9ca3af">${ag.ini}</div>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:600;color:#6b7280">${ag.name}</div>
+                <div style="font-size:11px;color:#9ca3af">${zone}</div>
+              </div>
+              <span style="font-size:11px;color:#9ca3af">⏳ Pas encore déclaré</span>
+            </div>`;
+          }
+        }).join("")}
+      </div>`;
+  }catch(e){console.error(e);}
+};
 
 window.openSuggReply=async(id, agentName)=>{
   const rep=prompt(`Répondre à ${agentName} :`);
