@@ -1329,10 +1329,10 @@ const ZONES=[
 const AGENTS=[
   // Hay Riad
   {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad",             shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:1, pin:"1234", salaire:5000},
-  {name:"Aymane Chlifane",  ini:"AC",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"18:00-01:00", horaireB:"10:00-17:00", offDay:0, pin:"2345", salaire:5000},
+  {name:"Aymane Chlifane",  ini:"AC",  zone:"Agdal - Soussi",       shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:0, pin:"2345", salaire:5000},
   // Agdal - Soussi
   {name:"Yahya Rhallab",    ini:"YR",  zone:"Hay Riad",             shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:3, pin:"3456", salaire:5000},
-  {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi",       shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:1, pin:"4567", salaire:5000},
+  {name:"Achraf Akhlij",    ini:"AA",  zone:"Agdal - Soussi",       shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:1, pin:"4567", salaire:5000},
   // Carrousel - Hay Fath
   {name:"Oussama El Atrach",ini:"OE",  zone:"Carrousel - Hay Fath", shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:3, pin:"5678", salaire:5000},
   {name:"Islam Elmardi",    ini:"IE",  zone:"Carrousel - Hay Fath", shiftType:"fix_nuit", horaireA:"18:00-01:00", horaireB:"18:00-01:00", offDay:2, pin:"6789", salaire:5000},
@@ -1518,6 +1518,7 @@ document.getElementById("loginPin").addEventListener("keydown",e=>{if(e.key==="E
   try{
     const ss=await getDocs(collection(db,"agentSettings"));
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
+    applyAgentSettingsOverrides();
   }catch(e){console.error(e);}
 })();
 
@@ -1791,6 +1792,7 @@ async function loadAll(){
     allAbsences=as.docs.map(d=>({id:d.id,...d.data()}));
     allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
+    applyAgentSettingsOverrides();
 
     if(userRole==="admin"){
       renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
@@ -1855,6 +1857,19 @@ function getAgentSetting(agName){
   const ag=AGENTS.find(x=>x.name===agName);
   // Always use shiftType from AGENTS array (source of truth)
   return {shiftType:ag?.shiftType||"variable",horaire:ag?.horaireA||""};
+}
+
+// Apply any saved overrides (shiftType, horaireA/B, zone) from Firebase agentSettings
+// onto the in-memory AGENTS array, so changes made via the edit modal persist after reload.
+function applyAgentSettingsOverrides(){
+  allAgentSettings.forEach(s=>{
+    const ag=AGENTS.find(x=>x.name===s.agent);
+    if(!ag)return;
+    if(s.shiftType)ag.shiftType=s.shiftType;
+    if(s.horaireA)ag.horaireA=s.horaireA;
+    if(s.horaireB)ag.horaireB=s.horaireB;
+    if(s.zone)ag.zone=s.zone;
+  });
 }
 
 function getVarShiftForWeek(agentName, mondayDate){
