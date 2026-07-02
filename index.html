@@ -390,6 +390,7 @@ body{
 
 /* BADGES */
 .total-h{background:rgba(74,154,186,.08) !important;border-color:rgba(74,154,186,.2) !important;color:#4a9aba !important;}
+.total-h.total-warn{background:#fef2f2 !important;border-color:#fca5a5 !important;color:#dc2626 !important;}
 .type-j{background:#e8f4f0 !important;color:#3a7d96 !important;border-color:#b8d8cc !important;}
 .type-n{background:#e8f0f4 !important;color:#3a7d96 !important;border-color:#b8cfd8 !important;}
 .type-v{background:#fef9ec !important;color:#92580a !important;border-color:#f0d88a !important;}
@@ -2704,12 +2705,12 @@ function renderWeekPlan(){
     }
     // ZONE after DIM
     cells+=`<td><span class="zone-badge ${zCls}" style="cursor:pointer" title="Cliquer pour changer la zone" onclick="openZoneModal('${ag.name}')">${agZone} <i class="ti ti-pencil" style="font-size:9px;opacity:.6"></i></span></td>`;
-    // TOTAL with color: red if !=44, green if ==44, grey if 0
-    let totalCls, totalStyle="";
+    // TOTAL with color: red if !=44, blue if ==44, grey if 0
+    let totalCls;
     if(totalH===0){totalCls="total-h total-0";}
     else if(totalH===44){totalCls="total-h";}
-    else{totalCls="total-h";totalStyle="background:#fef2f2;border-color:#fca5a5;color:#dc2626;";}
-    cells+=`<td><span class="${totalCls}" style="${totalStyle}">${totalH}h</span></td>`;
+    else{totalCls="total-h total-warn";}
+    cells+=`<td><span class="${totalCls}">${totalH}h</span></td>`;
     // TYPE
     cells+=`<td>${typeHtml(setting.shiftType)}</td>`;
     tr.innerHTML=cells;
@@ -2797,7 +2798,12 @@ window.savePlanShift=async()=>{
 
   try{
     // Save current shift (create override or update existing)
-    if(pmId){await updateDoc(doc(db,"planning2",pmId),data);}
+    if(pmId){
+      await updateDoc(doc(db,"planning2",pmId),data);
+      const existingLocal=allPlanning.find(p=>p.id===pmId);
+      if(existingLocal){existingLocal.val=val;}
+      else{allPlanning.push({id:pmId,...data});}
+    }
     else{data.createdAt=serverTimestamp();const ref=await addDoc(collection(db,"planning2"),data);allPlanning.push({id:ref.id,...data});}
 
     // Apply to all future weeks (same day-of-week) if checked
