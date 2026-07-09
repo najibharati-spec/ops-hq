@@ -6,6 +6,7 @@
   <title>OPS HQ - Planning & Agents</title>
   <!-- Icones Tabler Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  
   <style>
     :root {
       --bg: #0f172a;
@@ -17,20 +18,25 @@
       --acc-hover: #0ea5e9;
     }
 
-    body {
+    * {
+      box-sizing: border-box;
       margin: 0;
+      padding: 0;
+    }
+
+    body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--bg);
       color: var(--txt);
+      padding: 20px;
     }
 
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 20px;
     }
 
-    /* Navigation / Tabs */
+    /* Tabs Navigation */
     .nav-tabs {
       display: flex;
       gap: 10px;
@@ -57,7 +63,7 @@
       border-bottom: 2px solid var(--acc);
     }
 
-    /* Sections */
+    /* Sections Visibility */
     .section {
       display: none;
     }
@@ -66,7 +72,7 @@
       display: block;
     }
 
-    /* Topbar */
+    /* Topbar styling */
     .topbar {
       display: flex;
       justify-content: space-between;
@@ -84,7 +90,7 @@
       font-size: 14px;
     }
 
-    /* Buttons */
+    /* Buttons styling */
     .btn {
       background: var(--border);
       color: var(--txt);
@@ -107,7 +113,7 @@
       background: var(--acc-hover);
     }
 
-    /* Card & Table */
+    /* Card & Table design */
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -140,20 +146,20 @@
       font-weight: 600;
     }
 
-    /* Modals */
+    /* MODAL SYSTEM (Le problème venait d'ici) */
     .modal-ov {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(15, 23, 42, 0.85);
       display: flex;
       justify-content: center;
       align-items: center;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.2s ease;
       z-index: 999;
     }
 
@@ -166,9 +172,11 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       padding: 24px;
-      border-radius: 8px;
+      border-radius: 12px;
       position: relative;
       width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
     }
 
     .modal-title {
@@ -208,6 +216,7 @@
       border-radius: 6px;
       font-size: 15px;
       box-sizing: border-box;
+      width: 100%;
     }
 
     .modal-acts {
@@ -246,9 +255,7 @@
               <th>Horaire</th>
             </tr>
           </thead>
-          <tbody id="planningBody">
-            <!-- Data dynamically added -->
-          </tbody>
+          <tbody id="planningBody"></tbody>
         </table>
       </div>
     </div>
@@ -277,9 +284,7 @@
               <th>Type de Shift</th>
             </tr>
           </thead>
-          <tbody id="agentsBody">
-            <!-- Data dynamically added -->
-          </tbody>
+          <tbody id="agentsBody"></tbody>
         </table>
       </div>
     </div>
@@ -287,18 +292,18 @@
 
   <!-- MODAL ADD AGENT -->
   <div class="modal-ov" id="addAgentModal">
-    <div class="modal" style="max-width:420px">
+    <div class="modal">
       <div class="modal-title"><i class="ti ti-user-plus" style="color:var(--acc)"></i> Ajouter un nouvel agent</div>
       <i class="ti ti-x modal-x" onclick="closeAddAgentModal()"></i>
       
       <div class="mfield">
         <label>Nom complet</label>
-        <input type="text" id="newAgName" placeholder="Nom et Prénom" style="width:100%;"/>
+        <input type="text" id="newAgName" placeholder="Nom et Prénom"/>
       </div>
 
       <div class="mfield">
         <label>Zone</label>
-        <select id="newAgZone" style="width:100%;">
+        <select id="newAgZone">
           <option value="Temara">Temara</option>
           <option value="Agdal">Agdal</option>
           <option value="Hay Riad">Hay Riad</option>
@@ -308,12 +313,12 @@
 
       <div class="mfield">
         <label>Mot de passe / PIN</label>
-        <input type="text" id="newAgPin" placeholder="ex: 1234" maxlength="20" style="width:100%;"/>
+        <input type="text" id="newAgPin" placeholder="ex: 1234" maxlength="20"/>
       </div>
 
       <div class="mfield">
         <label>Type de shift</label>
-        <select id="newAgShiftType" style="width:100%;">
+        <select id="newAgShiftType">
           <option value="Variable">🔄 Variable</option>
           <option value="Fix Jour">☀️ Fix Jour</option>
           <option value="Fix Nuit">🌙 Fix Nuit</option>
@@ -321,30 +326,30 @@
       </div>
 
       <div class="modal-acts">
-        <div class="btn" onclick="closeAddAgentModal()">Annuler</div>
-        <div class="btn btn-primary" onclick="saveNewAgent()"><i class="ti ti-check"></i> Enregistrer</div>
+        <button class="btn" onclick="closeAddAgentModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveNewAgent()"><i class="ti ti-check"></i> Enregistrer</button>
       </div>
     </div>
   </div>
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
-    // Base de données locale (Exemple de départ)
+    // Base de données locale de test
     let agentsList = [
       { id: 1, name: "Youssef El Alami", zone: "Agdal", pin: "4412", shiftType: "Variable", horaire: "10:00 - 18:00" },
       { id: 2, name: "Amine Bennani", zone: "Hay Riad", pin: "9981", shiftType: "Fix Jour", horaire: "08:00 - 16:00" }
     ];
 
-    // Fonctions d'affichage des listes (Render)
     function renderAll() {
       const agentsBody = document.getElementById('agentsBody');
       const planningBody = document.getElementById('planningBody');
+      
+      if(!agentsBody || !planningBody) return;
       
       agentsBody.innerHTML = '';
       planningBody.innerHTML = '';
 
       agentsList.forEach(agent => {
-        // Ajouter à la liste des agents
         agentsBody.innerHTML += `
           <tr>
             <td><strong>${agent.name}</strong></td>
@@ -354,7 +359,6 @@
           </tr>
         `;
 
-        // Ajouter au planning
         planningBody.innerHTML += `
           <tr>
             <td><strong>${agent.name}</strong></td>
@@ -366,7 +370,6 @@
       });
     }
 
-    // Gestion du changement d'onglets (Tabs)
     function switchTab(sectionId) {
       document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
       document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
@@ -375,7 +378,6 @@
       event.currentTarget.classList.add('active');
     }
 
-    // Fonctions du Modal d'Ajout d'Agent
     function openAddAgentModal() {
       document.getElementById('newAgName').value = '';
       document.getElementById('newAgPin').value = '';
@@ -392,18 +394,15 @@
       const pin = document.getElementById('newAgPin').value.trim();
       const shiftType = document.getElementById('newAgShiftType').value;
 
-      // Validation basique
       if (!name || !pin) {
-        alert('⚠️ 3afak 3mmar smit l-agent w mot de passe dyalou!');
+        alert('⚠️ 3afak 3mmar l-m3lomat!');
         return;
       }
 
-      // Définir un horaire par défaut selon le shift choisi
       let horaireDefaut = "10:00 - 18:00";
       if(shiftType === "Fix Jour") horaireDefaut = "08:00 - 16:00";
       if(shiftType === "Fix Nuit") horaireDefaut = "18:00 - 02:00";
 
-      // Création du nouvel objet agent
       const newAgent = {
         id: Date.now(),
         name: name,
@@ -413,21 +412,11 @@
         horaire: horaireDefaut
       };
 
-      // Ajouter l'agent au tableau local
       agentsList.push(newAgent);
-
-      /* NOTE: Ila knti khdam b Firebase, hna fin t-ajouter l-code bhal:
-         firebase.database().ref('agents').push(newAgent);
-      */
-
-      // Rafraîchir l'affichage instantanément
       renderAll();
-
-      // Fermer le modal
       closeAddAgentModal();
     }
 
-    // Initialisation au chargement de la page
     window.onload = function() {
       renderAll();
     };
