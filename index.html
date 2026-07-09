@@ -1,41 +1,436 @@
-<!-- MODAL ADD AGENT -->
-<div class="modal-ov" id="addAgentModal">
-  <div class="modal" style="max-width:420px">
-    <div class="modal-title"><i class="ti ti-user-plus" style="color:var(--acc)"></i> Ajouter un nouvel agent</div>
-    <i class="ti ti-x modal-x" onclick="closeAddAgentModal()"></i>
-    
-    <div class="mfield">
-      <label>Nom complet</label>
-      <input type="text" id="newAgName" placeholder="Nom et Prénom" style="width:100%;"/>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPS HQ - Planning & Agents</title>
+  <!-- Icones Tabler Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --txt: #f8fafc;
+      --txt-mute: #94a3b8;
+      --border: #334155;
+      --acc: #38bdf8;
+      --acc-hover: #0ea5e9;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      color: var(--txt);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Navigation / Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .nav-tab {
+      background: none;
+      border: none;
+      color: var(--txt-mute);
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-tab.active {
+      color: var(--acc);
+      border-bottom: 2px solid var(--acc);
+    }
+
+    /* Sections */
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    /* Topbar */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .ptitle {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .psub {
+      color: var(--txt-mute);
+      font-size: 14px;
+    }
+
+    /* Buttons */
+    .btn {
+      background: var(--border);
+      color: var(--txt);
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--acc);
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background: var(--acc-hover);
+    }
+
+    /* Card & Table */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+    }
+
+    .tbl {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .tbl th, .tbl td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tbl th {
+      color: var(--txt-mute);
+      font-weight: 600;
+    }
+
+    /* Modals */
+    .modal-ov {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 999;
+    }
+
+    .modal-ov.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 24px;
+      border-radius: 8px;
+      position: relative;
+      width: 100%;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-x {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      cursor: pointer;
+      font-size: 20px;
+      color: var(--txt-mute);
+    }
+
+    .mfield {
+      margin-bottom: 16px;
+    }
+
+    .mfield label {
+      display: block;
+      color: var(--txt-mute);
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .mfield input, .mfield select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--txt);
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    .modal-acts {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Tabs Nav -->
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('sec-planning')"><i class="ti ti-calendar"></i> Planning</button>
+      <button class="nav-tab" onclick="switchTab('sec-agents')"><i class="ti ti-users"></i> Agents</button>
     </div>
 
-    <div class="mfield">
-      <label>Zone</label>
-      <select id="newAgZone" style="width:100%;">
-        <option value="Temara">Temara</option>
-        <option value="Agdal">Agdal</option>
-        <option value="Hay Riad">Hay Riad</option>
-        <option value="Salé">Salé</option>
-      </select>
+    <!-- SECTION PLANNING -->
+    <div class="section active" id="sec-planning">
+      <div class="topbar">
+        <div>
+          <div class="ptitle">Planning Suivi</div>
+          <div class="psub">Gestion des shifts journaliers</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-calendar-time" style="margin-right:6px"></i>Planning des Agents</div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Zone</th>
+              <th>Type Shift</th>
+              <th>Horaire</th>
+            </tr>
+          </thead>
+          <tbody id="planningBody">
+            <!-- Data dynamically added -->
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="mfield">
-      <label>Mot de passe / PIN</label>
-      <input type="text" id="newAgPin" placeholder="ex: 1234" maxlength="20" style="width:100%;"/>
-    </div>
-
-    <div class="mfield">
-      <label>Type de shift</label>
-      <select id="newAgShiftType" style="width:100%;">
-        <option value="variable">🔄 Variable</option>
-        <option value="fix_jour">☀️ Fix Jour</option>
-        <option value="fix_nuit">🌙 Fix Nuit</option>
-      </select>
-    </div>
-
-    <div class="modal-acts">
-      <div class="btn" onclick="closeAddAgentModal()">Annuler</div>
-      <div class="btn btn-primary" onclick="saveNewAgent()"><i class="ti ti-check"></i> Enregistrer</div>
+    <!-- SECTION AGENTS -->
+    <div class="section" id="sec-agents">
+      <div class="topbar">
+        <div>
+          <div class="ptitle">Agents</div>
+          <div class="psub">Liste des agents On-Field</div>
+        </div>
+        <div class="btns">
+          <button class="btn btn-primary" onclick="openAddAgentModal()">
+            <i class="ti ti-user-plus"></i> Ajouter Agent
+          </button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Liste des agents</span></div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Zone</th>
+              <th>Mot de passe</th>
+              <th>Type de Shift</th>
+            </tr>
+          </thead>
+          <tbody id="agentsBody">
+            <!-- Data dynamically added -->
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
-</div>
+
+  <!-- MODAL ADD AGENT -->
+  <div class="modal-ov" id="addAgentModal">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-title"><i class="ti ti-user-plus" style="color:var(--acc)"></i> Ajouter un nouvel agent</div>
+      <i class="ti ti-x modal-x" onclick="closeAddAgentModal()"></i>
+      
+      <div class="mfield">
+        <label>Nom complet</label>
+        <input type="text" id="newAgName" placeholder="Nom et Prénom" style="width:100%;"/>
+      </div>
+
+      <div class="mfield">
+        <label>Zone</label>
+        <select id="newAgZone" style="width:100%;">
+          <option value="Temara">Temara</option>
+          <option value="Agdal">Agdal</option>
+          <option value="Hay Riad">Hay Riad</option>
+          <option value="Salé">Salé</option>
+        </select>
+      </div>
+
+      <div class="mfield">
+        <label>Mot de passe / PIN</label>
+        <input type="text" id="newAgPin" placeholder="ex: 1234" maxlength="20" style="width:100%;"/>
+      </div>
+
+      <div class="mfield">
+        <label>Type de shift</label>
+        <select id="newAgShiftType" style="width:100%;">
+          <option value="Variable">🔄 Variable</option>
+          <option value="Fix Jour">☀️ Fix Jour</option>
+          <option value="Fix Nuit">🌙 Fix Nuit</option>
+        </select>
+      </div>
+
+      <div class="modal-acts">
+        <div class="btn" onclick="closeAddAgentModal()">Annuler</div>
+        <div class="btn btn-primary" onclick="saveNewAgent()"><i class="ti ti-check"></i> Enregistrer</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Base de données locale (Exemple de départ)
+    let agentsList = [
+      { id: 1, name: "Youssef El Alami", zone: "Agdal", pin: "4412", shiftType: "Variable", horaire: "10:00 - 18:00" },
+      { id: 2, name: "Amine Bennani", zone: "Hay Riad", pin: "9981", shiftType: "Fix Jour", horaire: "08:00 - 16:00" }
+    ];
+
+    // Fonctions d'affichage des listes (Render)
+    function renderAll() {
+      const agentsBody = document.getElementById('agentsBody');
+      const planningBody = document.getElementById('planningBody');
+      
+      agentsBody.innerHTML = '';
+      planningBody.innerHTML = '';
+
+      agentsList.forEach(agent => {
+        // Ajouter à la liste des agents
+        agentsBody.innerHTML += `
+          <tr>
+            <td><strong>${agent.name}</strong></td>
+            <td><span style="color:var(--acc)">${agent.zone}</span></td>
+            <td><code>${agent.pin}</code></td>
+            <td>${agent.shiftType}</td>
+          </tr>
+        `;
+
+        // Ajouter au planning
+        planningBody.innerHTML += `
+          <tr>
+            <td><strong>${agent.name}</strong></td>
+            <td>${agent.zone}</td>
+            <td>${agent.shiftType}</td>
+            <td><span style="background:var(--border); padding:4px 8px; border-radius:4px; font-size:13px">${agent.horaire}</span></td>
+          </tr>
+        `;
+      });
+    }
+
+    // Gestion du changement d'onglets (Tabs)
+    function switchTab(sectionId) {
+      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+      
+      document.getElementById(sectionId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    // Fonctions du Modal d'Ajout d'Agent
+    function openAddAgentModal() {
+      document.getElementById('newAgName').value = '';
+      document.getElementById('newAgPin').value = '';
+      document.getElementById('addAgentModal').classList.add('open');
+    }
+
+    function closeAddAgentModal() {
+      document.getElementById('addAgentModal').classList.remove('open');
+    }
+
+    function saveNewAgent() {
+      const name = document.getElementById('newAgName').value.trim();
+      const zone = document.getElementById('newAgZone').value;
+      const pin = document.getElementById('newAgPin').value.trim();
+      const shiftType = document.getElementById('newAgShiftType').value;
+
+      // Validation basique
+      if (!name || !pin) {
+        alert('⚠️ 3afak 3mmar smit l-agent w mot de passe dyalou!');
+        return;
+      }
+
+      // Définir un horaire par défaut selon le shift choisi
+      let horaireDefaut = "10:00 - 18:00";
+      if(shiftType === "Fix Jour") horaireDefaut = "08:00 - 16:00";
+      if(shiftType === "Fix Nuit") horaireDefaut = "18:00 - 02:00";
+
+      // Création du nouvel objet agent
+      const newAgent = {
+        id: Date.now(),
+        name: name,
+        zone: zone,
+        pin: pin,
+        shiftType: shiftType,
+        horaire: horaireDefaut
+      };
+
+      // Ajouter l'agent au tableau local
+      agentsList.push(newAgent);
+
+      /* NOTE: Ila knti khdam b Firebase, hna fin t-ajouter l-code bhal:
+         firebase.database().ref('agents').push(newAgent);
+      */
+
+      // Rafraîchir l'affichage instantanément
+      renderAll();
+
+      // Fermer le modal
+      closeAddAgentModal();
+    }
+
+    // Initialisation au chargement de la page
+    window.onload = function() {
+      renderAll();
+    };
+  </script>
+</body>
+</html>
