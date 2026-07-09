@@ -1,47 +1,41 @@
-// Fonctions pour le Modal d'Ajout d'Agent
-function openAddAgentModal() {
-  document.getElementById('newAgName').value = '';
-  document.getElementById('newAgPin').value = '';
-  document.getElementById('addAgentModal').classList.add('open');
-}
+<!-- MODAL ADD AGENT -->
+<div class="modal-ov" id="addAgentModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title"><i class="ti ti-user-plus" style="color:var(--acc)"></i> Ajouter un nouvel agent</div>
+    <i class="ti ti-x modal-x" onclick="closeAddAgentModal()"></i>
+    
+    <div class="mfield">
+      <label>Nom complet</label>
+      <input type="text" id="newAgName" placeholder="Nom et Prénom" style="width:100%;"/>
+    </div>
 
-function closeAddAgentModal() {
-  document.getElementById('addAgentModal').classList.remove('open');
-}
+    <div class="mfield">
+      <label>Zone</label>
+      <select id="newAgZone" style="width:100%;">
+        <option value="Temara">Temara</option>
+        <option value="Agdal">Agdal</option>
+        <option value="Hay Riad">Hay Riad</option>
+        <option value="Salé">Salé</option>
+      </select>
+    </div>
 
-function saveNewAgent() {
-  const name = document.getElementById('newAgName').value.trim();
-  const zone = document.getElementById('newAgZone').value;
-  const pin = document.getElementById('newAgPin').value.trim();
-  const shiftType = document.getElementById('newAgShiftType').value;
+    <div class="mfield">
+      <label>Mot de passe / PIN</label>
+      <input type="text" id="newAgPin" placeholder="ex: 1234" maxlength="20" style="width:100%;"/>
+    </div>
 
-  if (!name || !pin) {
-    alert('⚠️ Khass ek t3mmer l-smit w l-mot de passe!');
-    return;
-  }
+    <div class="mfield">
+      <label>Type de shift</label>
+      <select id="newAgShiftType" style="width:100%;">
+        <option value="variable">🔄 Variable</option>
+        <option value="fix_jour">☀️ Fix Jour</option>
+        <option value="fix_nuit">🌙 Fix Nuit</option>
+      </select>
+    </div>
 
-  // 1. Logique pour enregistrer dans Firebase / Tableau local 
-  // Hna ghadi t-ajouter l-agent f l-tableau dyal l-agents li khdam bih (ex: localAgents ou database)
-  console.log("Nouvel Agent:", { name, zone, pin, shiftType });
-
-  /* Exemple si tu as un tableau local :
-  const newAgentObj = {
-    id: 'ag_' + Date.now(),
-    name: name,
-    zone: zone,
-    pin: pin,
-    shiftType: shiftType,
-    horaireA: '10:00-17:00' // horaire par défaut
-  };
-  
-  // push dans ta base de données Firebase ou Array local :
-  // firebase.database().ref('agents').push(newAgentObj);
-  */
-
-  // 2. Refraîchir l-affichage du planning et des agents
-  if (window.loadAgents) window.loadAgents(); // Idem pour ta fonction de render
-  if (window.renderPlanning) window.renderPlanning(); 
-
-  // 3. Sedd l-modal
-  closeAddAgentModal();
-}
+    <div class="modal-acts">
+      <div class="btn" onclick="closeAddAgentModal()">Annuler</div>
+      <div class="btn btn-primary" onclick="saveNewAgent()"><i class="ti ti-check"></i> Enregistrer</div>
+    </div>
+  </div>
+</div>
