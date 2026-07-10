@@ -1361,13 +1361,14 @@ const app=initializeApp(FC);
 const auth=getAuth(app);
 const db=getFirestore(app);
 
-const ZONES=[
+const INITIAL_ZONES=[
   {name:"Hay Riad",            cls:"z-hay"},
   {name:"Agdal - Soussi",      cls:"z-agdal"},
   {name:"Carrousel - Hay Fath",cls:"z-carr"},
   {name:"Temara",              cls:"z-temara"},
   {name:"Salé - Medina",       cls:"z-sale"},
 ];
+let ZONES = [...INITIAL_ZONES];
 
 let AGENTS=[
   // Hay Riad
@@ -1827,17 +1828,31 @@ window.go=(id,el)=>{
 
 async function loadAll(){
   try{
-    const[rs,as,ps,ss,ags]=await Promise.all([
+    const[rs,as,ps,ss,ags,zs]=await Promise.all([
       getDocs(query(collection(db,"rapports"),orderBy("createdAt","desc"))),
       getDocs(collection(db,"absences")),
       getDocs(collection(db,"planning2")),
       getDocs(collection(db,"agentSettings")),
-      getDocs(collection(db,"agents_db"))
+      getDocs(collection(db,"agents_db")),
+      getDocs(collection(db,"zones_db"))
     ]);
     allRapports=rs.docs.map(d=>({id:d.id,...d.data()}));
     allAbsences=as.docs.map(d=>({id:d.id,...d.data()}));
     allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
+
+    // Merge database zones
+    const dbZones = zs.docs.map(d => d.data());
+    ZONES = [...INITIAL_ZONES];
+    dbZones.forEach(dbz => {
+      if(!ZONES.find(z => z.name === dbz.name)) {
+        ZONES.push(dbz);
+        // Inject styles for custom zones
+        const style=document.createElement("style");
+        style.textContent=`.${dbz.cls}{background:rgba(148,163,184,.1);color:#3a7d96;border:1px solid rgba(58,125,150,.3)}`;
+        document.head.appendChild(style);
+      }
+    });
 
     // Merge database agents
     const dbAgents = ags.docs.map(d => ({id:d.id, ...d.data()}));
@@ -4125,10 +4140,15 @@ window.saveAgentZone=async()=>{
     if(!newZone){document.getElementById("newZoneName").focus();return;}
     if(!ZONES.find(z=>z.name===newZone)){
       const cls="z-custom-"+newZone.toLowerCase().replace(/[^a-z0-9]/g,"-").slice(0,12);
-      ZONES.push({name:newZone,cls});
-      const style=document.createElement("style");
-      style.textContent=`.${cls}{background:rgba(148,163,184,.1);color:#94a3b8;border:1px solid rgba(148,163,184,.25)}`;
-      document.head.appendChild(style);
+      const zoneData = { name: newZone, cls };
+      // Save zone permanently to Firestore
+      try {
+        await addDoc(collection(db, "zones_db"), zoneData);
+        ZONES.push(zoneData);
+        const style=document.createElement("style");
+        style.textContent=`.${cls}{background:rgba(148,163,184,.1);color:#3a7d96;border:1px solid rgba(58,125,150,.3)}`;
+        document.head.appendChild(style);
+      } catch(e) { console.error("Error saving zone:", e); }
     }
   }
 
@@ -4152,11 +4172,12 @@ window.saveAgentZone=async()=>{
     } else {
       // Updating existing
       const ag=AGENTS.find(x=>x.name===zCurrentAgent);
-      if(ag.id) {
-        // Was from DB
+      if(ag && ag.id) {
+        // Was from DB - Update it
         await updateDoc(doc(db, "agents_db", ag.id), agentData);
       } else {
-        // Was hardcoded, save as override or save to DB?
+        // Was hardcoded - Hide original and save new version to DB
+        await addDoc(collection(db, "agents_deleted"), { name: zCurrentAgent, deletedAt: serverTimestamp() });
         await addDoc(collection(db, "agents_db"), { ...agentData, createdAt: serverTimestamp() });
       }
       showAlert("planAlert",`✅ Agent ${newName} mis à jour`,"success");
@@ -4172,16 +4193,24 @@ window.saveAgentZone=async()=>{
 
 window.deleteAgent = async () => {
   if(!zCurrentAgent) return;
-  if(!confirm(`Êtes-vous sûr de vouloir supprimer l'agent ${zCurrentAgent} ?`)) return;
+  
+  const ag=AGENTS.find(x=>x.name===zCurrentAgent);
+  if(!ag) return;
+
+  if(!confirm(`Êtes-vous sûr de vouloir supprimer l'agent ${zCurrentAgent} ?\n\nAttention: Cela supprimera l'agent de la liste et ses accès, mais ses rapports passés resteront archivés.`)) return;
 
   try {
-    const ag=AGENTS.find(x=>x.name===zCurrentAgent);
-    if(ag && ag.id) {
+    if(ag.id) {
+      // It's a DB agent
       await deleteDoc(doc(db, "agents_db", ag.id));
+      // Also delete his settings/PIN
+      const sett = allAgentSettings.find(s => s.agent === zCurrentAgent);
+      if(sett) await deleteDoc(doc(db, "agentSettings", sett.id));
     } else {
-      alert("Note: Les agents par défaut ne peuvent pas être supprimés définitivement via cette interface.");
-      return;
+      // Hardcoded agent - we mark as "deleted" in Firebase to hide him
+      await addDoc(collection(db, "agents_deleted"), { name: zCurrentAgent, deletedAt: serverTimestamp() });
     }
+    
     closeZoneModal();
     await loadAll();
     renderWeekPlan();
@@ -4790,5 +4819,5 @@ document.getElementById("pmInput").addEventListener("keydown",e=>{
 @keyframes wFadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 </style>
 
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1883aea3a5a146b',t:'MTc4MzYwOTU2MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1883aea3a5a146b',t:'MTc4MzYwOTU2MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a18fa405ff68a631',t:'MTc4MzY4NzI2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
