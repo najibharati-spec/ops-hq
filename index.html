@@ -677,13 +677,6 @@ hr,.sep{border-color:#e8e0d5 !important;}
           <!-- Export buttons -->
           <div id="tbExcel" onclick="window.exportExcel&&window.exportExcel()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid #b8d8cc;background:#e8f4f0;color:#0a5c3a;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#d0ece4'" onmouseout="this.style.background='#e8f4f0'"><i class="ti ti-table-export" style="font-size:14px"></i> Excel</div>
           <div id="tbPDF" onclick="window.exportPDF&&window.exportPDF()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid #eab8b8;background:#fdf0f0;color:#8f1a1a;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#fae0e0'" onmouseout="this.style.background='#fdf0f0'"><i class="ti ti-file-export" style="font-size:14px"></i> PDF</div>
-
-          <!-- Separator -->
-          <div style="width:1px;height:24px;background:#e8e0d5;margin:0 2px"></div>
-
-          <!-- Demo/Add Agent buttons -->
-          <div class="btn btn-success" onclick="window.openAddAgentModal && window.openAddAgentModal()"><i class="ti ti-user-plus"></i> Ajouter Agent</div>
-          <div class="btn" style="background:#f2eefb;border-color:#d3c5f0;color:#7c5cbf" onclick="window.seedDummyData && window.seedDummyData()"><i class="ti ti-database"></i> Remplir Démo</div>
         </div>
       </div>
       <div class="alert" id="planAlert"></div>
@@ -715,19 +708,10 @@ hr,.sep{border-color:#e8e0d5 !important;}
     <!-- AGENTS -->
     <div class="section" id="sec-agents">
       <div class="topbar">
-        <div><div class="ptitle">Agents</div><div class="psub" id="agentCountSub">12 agents On-Field</div></div>
+        <div><div class="ptitle">Agents</div><div class="psub" id="agentsCountLabel">12 agents On-Field</div></div>
         <div class="btns">
-          <div class="btn" style="background:#fdf0f0; border-color:#eab8b8; color:#8f1a1a;" onclick="window.toggleDeletedAgents && window.toggleDeletedAgents()"><i class="ti ti-trash"></i> Agents supprimés (<span id="delCount">0</span>)</div>
-          <div class="btn btn-primary" onclick="window.openAddAgentModal && window.openAddAgentModal()"><i class="ti ti-user-plus"></i> Ajouter un agent</div>
+          <div class="btn btn-primary" onclick="window.openAddAgentModal&&window.openAddAgentModal()"><i class="ti ti-user-plus"></i> Ajouter Agent</div>
         </div>
-      </div>
-
-      <!-- DELETED AGENTS LIST (Hidden by default) -->
-      <div id="deletedAgentsWrap" style="display:none; margin-bottom:20px; background:#fdf0f0; border:1px solid #eab8b8; border-radius:10px; padding:16px;">
-        <div style="font-size:12px; font-weight:700; color:#8f1a1a; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
-          <i class="ti ti-trash"></i> AGENTS DANS LA CORBEILLE (Markés comme supprimés)
-        </div>
-        <div id="deletedAgentsList" style="display:flex; flex-direction:column; gap:8px;"></div>
       </div>
       <div class="card">
         <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Liste des agents</span></div>
@@ -889,7 +873,10 @@ hr,.sep{border-color:#e8e0d5 !important;}
       <div class="topbar">
         <div><div class="ptitle">Absences</div><div class="psub" id="absPeriodLabel">Période en cours</div></div>
         <div class="btns">
-          <div class="btn ro-allow" style="background:#EEF2F6;border-color:#DCE3EA;color:#5E7A93" onclick="window.toggleAllAbos && window.toggleAllAbos()" id="btnToggleAbos"><i class="ti ti-list"></i> Voir tout l'historique</div>
+          <div class="btn ro-allow" onclick="prevAbsPeriod()" title="Période précédente"><i class="ti ti-chevron-left"></i></div>
+          <div class="btn ro-allow" onclick="resetAbsPeriod()" title="Période en cours">Aujourd'hui</div>
+          <div class="btn ro-allow" onclick="nextAbsPeriod()" title="Période suivante"><i class="ti ti-chevron-right"></i></div>
+          <div class="btn ro-allow" id="absShowAllBtn" onclick="toggleAbsShowAll()" title="Voir toutes les absences, toutes périodes confondues">Toutes les périodes</div>
           <div class="btn ro-allow" style="background:#FEF3E2;border-color:#FBD49C;color:#D9750A" onclick="openSalaireModal()"><i class="ti ti-cash"></i> Export Salaires</div>
           <div class="btn ro-allow" style="background:#E8F0FE;border-color:#A9C5F5;color:#1F4E78" onclick="openPointageModal()"><i class="ti ti-clipboard-list"></i> Pointage Simple</div>
         </div>
@@ -1086,85 +1073,132 @@ hr,.sep{border-color:#e8e0d5 !important;}
   </div>
 </div>
 
-<!-- MODAL ZONE / AGENT -->
+<!-- MODAL ZONE -->
 <div class="modal-ov" id="zoneModal">
   <div class="modal" style="max-width:460px">
-    <div class="modal-title"><i class="ti ti-user-cog" style="color:var(--acc)"></i> <span id="agentModalTitle">Paramètres agent</span></div>
+    <div class="modal-title"><i class="ti ti-settings" style="color:var(--acc)"></i> Paramètres agent</div>
     <i class="ti ti-x modal-x" onclick="closeZoneModal()"></i>
     <div id="zAgentName" style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:16px;padding:10px 14px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)"></div>
 
-    <div style="max-height:60vh; overflow-y:auto; padding-right:5px;">
-      <!-- Nom -->
+    <!-- Nom -->
+    <div class="mfield">
+      <label>Nom complet</label>
+      <input type="text" id="agEditName" placeholder="Nom de l'agent" style="width:100%;"/>
+    </div>
+
+    <!-- Zone -->
+    <div class="mfield">
+      <label>Zone</label>
+      <select id="zoneSelect" style="width:100%;"></select>
+    </div>
+    <div class="mfield" id="newZoneWrap" style="display:none">
+      <label>Nom de la nouvelle zone</label>
+      <input type="text" id="newZoneName" placeholder="ex: Hassan - Centre" style="width:100%;"/>
+    </div>
+
+    <!-- Shift type -->
+    <div class="mfield">
+      <label>Type de shift</label>
+      <select id="agEditShiftType" style="width:100%;">
+        <option value="variable">🔄 Variable (JOUR/NUIT alternés)</option>
+        <option value="fix_jour">☀️ Fix Jour</option>
+        <option value="fix_nuit">🌙 Fix Nuit</option>
+      </select>
+    </div>
+
+    <!-- Horaire A -->
+    <div class="grid2">
       <div class="mfield">
-        <label>Nom complet</label>
-        <input type="text" id="agEditName" placeholder="Nom de l'agent" style="width:100%;"/>
+        <label id="labelHoraireA">Horaire A (ou fixe)</label>
+        <input type="text" id="agEditHoraireA" placeholder="ex: 10:00-17:00" style="width:100%;"/>
       </div>
-
-      <div class="grid2">
-        <div class="mfield">
-          <label>Initiales</label>
-          <input type="text" id="agEditIni" placeholder="ex: AB" style="width:100%;"/>
-        </div>
-        <div class="mfield">
-          <label>PIN (Mot de passe)</label>
-          <input type="text" id="agEditPin" placeholder="ex: 1234" style="width:100%;"/>
-        </div>
-      </div>
-
-      <!-- Zone -->
-      <div class="mfield">
-        <label>Zone</label>
-        <select id="zoneSelect" style="width:100%;"></select>
-      </div>
-      <div class="mfield" id="newZoneWrap" style="display:none">
-        <label>Nom de la nouvelle zone</label>
-        <input type="text" id="newZoneName" placeholder="ex: Hassan - Centre" style="width:100%;"/>
-      </div>
-
-      <div class="grid2">
-        <!-- Shift type -->
-        <div class="mfield">
-          <label>Type de shift</label>
-          <select id="agEditShiftType" style="width:100%;">
-            <option value="variable">🔄 Variable</option>
-            <option value="fix_jour">☀️ Fix Jour</option>
-            <option value="fix_nuit">🌙 Fix Nuit</option>
-          </select>
-        </div>
-        <!-- Off Day -->
-        <div class="mfield">
-          <label>Jour OFF</label>
-          <select id="agEditOffDay" style="width:100%;">
-            <option value="0">Lundi</option>
-            <option value="1">Mardi</option>
-            <option value="2">Mercredi</option>
-            <option value="3">Jeudi</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Horaire A -->
-      <div class="grid2">
-        <div class="mfield">
-          <label id="labelHoraireA">Horaire A (ou fixe)</label>
-          <input type="text" id="agEditHoraireA" placeholder="ex: 10:00-17:00" style="width:100%;"/>
-        </div>
-        <div class="mfield" id="horaireB_wrap">
-          <label>Horaire B (alternance)</label>
-          <input type="text" id="agEditHoraireB" placeholder="ex: 18:00-01:00" style="width:100%;"/>
-        </div>
-      </div>
-
-      <div class="mfield">
-        <label>Salaire (DH)</label>
-        <input type="number" id="agEditSalaire" placeholder="ex: 5000" style="width:100%;"/>
+      <div class="mfield" id="horaireB_wrap">
+        <label>Horaire B (alternance)</label>
+        <input type="text" id="agEditHoraireB" placeholder="ex: 18:00-01:00" style="width:100%;"/>
       </div>
     </div>
 
     <div class="modal-acts">
-      <div id="btnDeleteAgent" class="btn btn-danger" style="display:none; margin-right:auto;" onclick="deleteAgent()"><i class="ti ti-trash"></i></div>
       <div class="btn" onclick="closeZoneModal()">Annuler</div>
       <div class="btn btn-primary" onclick="saveAgentZone()"><i class="ti ti-device-floppy"></i> Enregistrer</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJOUTER AGENT -->
+<div class="modal-ov" id="addAgentModal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title"><i class="ti ti-user-plus" style="color:var(--acc)"></i> Ajouter un agent</div>
+    <i class="ti ti-x modal-x" onclick="closeAddAgentModal()"></i>
+    <div class="alert" id="addAgentAlert" style="display:none"></div>
+
+    <!-- Nom -->
+    <div class="mfield">
+      <label>Nom complet</label>
+      <input type="text" id="newAgName" placeholder="ex: Karim Bouazza" style="width:100%;"/>
+    </div>
+
+    <!-- Zone -->
+    <div class="mfield">
+      <label>Zone</label>
+      <select id="newAgZoneSelect" style="width:100%;"></select>
+    </div>
+    <div class="mfield" id="newAgZoneWrap" style="display:none">
+      <label>Nom de la nouvelle zone</label>
+      <input type="text" id="newAgZoneName" placeholder="ex: Hassan - Centre" style="width:100%;"/>
+    </div>
+
+    <!-- Shift type -->
+    <div class="mfield">
+      <label>Type de shift</label>
+      <select id="newAgShiftType" style="width:100%;">
+        <option value="variable">🔄 Variable (JOUR/NUIT alternés)</option>
+        <option value="fix_jour">☀️ Fix Jour</option>
+        <option value="fix_nuit">🌙 Fix Nuit</option>
+      </select>
+    </div>
+
+    <!-- Horaires -->
+    <div class="grid2">
+      <div class="mfield">
+        <label id="newAgLabelHoraireA">Horaire A (ou fixe)</label>
+        <input type="text" id="newAgHoraireA" placeholder="ex: 10:00-17:00" style="width:100%;"/>
+      </div>
+      <div class="mfield" id="newAgHoraireB_wrap">
+        <label>Horaire B (alternance)</label>
+        <input type="text" id="newAgHoraireB" placeholder="ex: 18:00-01:00" style="width:100%;"/>
+      </div>
+    </div>
+
+    <!-- Off day + PIN -->
+    <div class="grid2">
+      <div class="mfield">
+        <label>Jour de repos</label>
+        <select id="newAgOffDay" style="width:100%;">
+          <option value="0">Lundi</option>
+          <option value="1">Mardi</option>
+          <option value="2">Mercredi</option>
+          <option value="3">Jeudi</option>
+          <option value="4">Vendredi</option>
+          <option value="5">Samedi</option>
+          <option value="6">Dimanche</option>
+        </select>
+      </div>
+      <div class="mfield">
+        <label>Code PIN (4 chiffres)</label>
+        <input type="text" id="newAgPin" maxlength="4" placeholder="ex: 1478" style="width:100%;"/>
+      </div>
+    </div>
+
+    <!-- Salaire -->
+    <div class="mfield">
+      <label>Salaire (DH)</label>
+      <input type="number" id="newAgSalaire" value="5000" style="width:100%;"/>
+    </div>
+
+    <div class="modal-acts">
+      <div class="btn" onclick="closeAddAgentModal()">Annuler</div>
+      <div class="btn btn-primary" onclick="saveNewAgent()"><i class="ti ti-device-floppy"></i> Créer l'agent</div>
     </div>
   </div>
 </div>
@@ -1371,16 +1405,15 @@ const app=initializeApp(FC);
 const auth=getAuth(app);
 const db=getFirestore(app);
 
-const INITIAL_ZONES=[
+const ZONES=[
   {name:"Hay Riad",            cls:"z-hay"},
   {name:"Agdal - Soussi",      cls:"z-agdal"},
   {name:"Carrousel - Hay Fath",cls:"z-carr"},
   {name:"Temara",              cls:"z-temara"},
   {name:"Salé - Medina",       cls:"z-sale"},
 ];
-let ZONES = [...INITIAL_ZONES];
 
-let AGENTS=[
+const AGENTS=[
   // Hay Riad
   {name:"Youssef Derkaoui", ini:"YD",  zone:"Hay Riad",             shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:1, pin:"1234", salaire:5000},
   {name:"Aymane Chlifane",  ini:"AC",  zone:"Agdal - Soussi",       shiftType:"fix_jour", horaireA:"10:00-17:00", horaireB:"10:00-17:00", offDay:0, pin:"2345", salaire:5000},
@@ -1400,8 +1433,6 @@ let AGENTS=[
   {name:"Charaf Loummihi",  ini:"CL",  zone:"Salé - Medina",        shiftType:"variable", horaireA:"10:00-17:00", horaireB:"18:00-01:00", offDay:2, pin:"2468", salaire:5000},
 ];
 
-const INITIAL_AGENTS = [...AGENTS];
-
 // Salaire admin/manager (Najib Harati)
 const ADMIN_SALAIRE=7000;
 const ADMIN_NAME="Najib Harati";
@@ -1412,8 +1443,7 @@ const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 let currentUser=null,userDisplayName="";
 let userRole="guest"; // "admin" | "agent"
 let myAgent=null; // for agent role: the AGENTS object
-let allRapports=[],allAbsences=[],allPlanning=[],allAgentSettings=[], allDeletedAgents=[];
-let showAllAbos = false;
+let allRapports=[],allAbsences=[],allPlanning=[],allAgentSettings=[];
 let weekStart=getMonday(new Date());
 let dragSrcAgent=null;
 let pmAgent2=null,pmDate3=null,pmId=null,curRapId=null;
@@ -1570,12 +1600,31 @@ document.getElementById("eyeBtn").onclick=()=>{
 };
 document.getElementById("loginPin").addEventListener("keydown",e=>{if(e.key==="Enter")window.doLogin();});
 
-// Load agent PIN overrides early so login PIN checks work before full loadAll
+// Load custom (dynamically-added) agents + PIN overrides early so login works before full loadAll
 (async()=>{
   try{
-    const ss=await getDocs(collection(db,"agentSettings"));
+    const [caSnap,ss]=await Promise.all([
+      getDocs(collection(db,"customAgents")),
+      getDocs(collection(db,"agentSettings"))
+    ]);
+    // Merge any agents created via "Ajouter Agent" into the live AGENTS array
+    caSnap.docs.forEach(d=>{
+      const data=d.data();
+      if(!AGENTS.find(a=>a.name===data.name)){
+        AGENTS.push({...data,_customId:d.id});
+      }
+      if(data.zone&&!ZONES.find(z=>z.name===data.zone)){
+        const cls="z-custom-"+data.zone.toLowerCase().replace(/[^a-z0-9]/g,"-").slice(0,12);
+        ZONES.push({name:data.zone,cls});
+        const style=document.createElement("style");
+        style.textContent=`.${cls}{background:rgba(148,163,184,.1);color:#94a3b8;border:1px solid rgba(148,163,184,.25)}`;
+        document.head.appendChild(style);
+      }
+    });
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
     applyAgentSettingsOverrides();
+    // Rebuild login grid in case it was already drawn before agents arrived
+    if(document.getElementById("profileGrid"))buildProfileGrid();
   }catch(e){console.error(e);}
 })();
 
@@ -1729,8 +1778,8 @@ function showWelcome(type, agentData){
     document.getElementById("wMsgText").innerHTML=getManagerMessage();
     document.getElementById("wChips").innerHTML=`
       <span style="background:#e8f0f4;color:#3a7d96;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600"><i class="ti ti-clock" style="font-size:12px;margin-right:4px"></i>${timeStr}</span>
-      <span style="background:#fef9ec;color:#92580a;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600"><i class="ti ti-users" style="font-size:12px;margin-right:4px"></i>12 agents</span>
-      <span style="background:#e8f4f0;color:#0a5c3a;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600"><i class="ti ti-map-pin" style="font-size:12px;margin-right:4px"></i>5 zones</span>
+      <span style="background:#fef9ec;color:#92580a;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600"><i class="ti ti-users" style="font-size:12px;margin-right:4px"></i>${AGENTS.length} agents</span>
+      <span style="background:#e8f4f0;color:#0a5c3a;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600"><i class="ti ti-map-pin" style="font-size:12px;margin-right:4px"></i>${ZONES.length} zones</span>
     `;
   }else{
     const ag=agentData;
@@ -1839,48 +1888,17 @@ window.go=(id,el)=>{
 
 async function loadAll(){
   try{
-    const[rs,as,ps,ss,ags,zs,adels]=await Promise.all([
+    const[rs,as,ps,ss]=await Promise.all([
       getDocs(query(collection(db,"rapports"),orderBy("createdAt","desc"))),
       getDocs(collection(db,"absences")),
       getDocs(collection(db,"planning2")),
-      getDocs(collection(db,"agentSettings")),
-      getDocs(collection(db,"agents_db")),
-      getDocs(collection(db,"zones_db")),
-      getDocs(collection(db,"agents_deleted"))
+      getDocs(collection(db,"agentSettings"))
     ]);
     allRapports=rs.docs.map(d=>({id:d.id,...d.data()}));
     allAbsences=as.docs.map(d=>({id:d.id,...d.data()}));
     allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
-    allDeletedAgents=adels.docs.map(d=>({id:d.id,...d.data()}));
-
-    // Merge database zones
-    const dbZones = zs.docs.map(d => d.data());
-    ZONES = [...INITIAL_ZONES];
-    dbZones.forEach(dbz => {
-      if(!ZONES.find(z => z.name === dbz.name)) {
-        ZONES.push(dbz);
-        // Inject styles for custom zones
-        const style=document.createElement("style");
-        style.textContent=`.${dbz.cls}{background:rgba(148,163,184,.1);color:#3a7d96;border:1px solid rgba(58,125,150,.3)}`;
-        document.head.appendChild(style);
-      }
-    });
-
-    // Merge database agents
-    const dbAgents = ags.docs.map(d => ({id:d.id, ...d.data()}));
-    const deletedNames = allDeletedAgents.map(d => d.name);
-
-    AGENTS = [...INITIAL_AGENTS].filter(a => !deletedNames.includes(a.name));
-    dbAgents.forEach(dba => {
-      if(!AGENTS.find(a => a.name === dba.name) && !deletedNames.includes(dba.name)) {
-        AGENTS.push(dba);
-      }
-    });
-
     applyAgentSettingsOverrides();
-    updateDropdowns();
-    renderDeletedAgents();
 
     if(userRole==="admin"){
       renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
@@ -1893,19 +1911,6 @@ async function loadAll(){
     }
     loadSuggestions();
   }catch(e){console.error(e);}
-}
-
-function updateDropdowns(){
-  AGENTS.forEach(ag=>{
-    ["aAgent","rfAgent","filtreAgent"].forEach(id=>{
-      const sel=document.getElementById(id);
-      if(sel&&!sel.querySelector(`option[value="${ag.name}"]`)){
-        const o=document.createElement("option");
-        o.value=ag.name;o.textContent=ag.name;
-        sel.appendChild(o);
-      }
-    });
-  });
 }
 
 function getMonday(d){const c=new Date(d);const day=c.getDay();c.setDate(c.getDate()-day+(day===0?-6:1));c.setHours(0,0,0,0);return c;}
@@ -1935,11 +1940,11 @@ function shiftCls(v){
 
 function shiftHtml(v){
   if(!v)return`<span class="sh-t" style="font-size:20px;font-weight:200;color:var(--border)">+</span>`;
-  if(v==="OFF")return`<span class="sh-t" style="font-weight:800">OFF</span>`;
+  if(v==="OFF")return`<span class="sh-t">OFF</span>`;
   if(["ABSENT","CONGE","MALADIE"].includes(v))return`<span class="sh-t">${v==="CONGE"?"CONGÉ":v}</span>`;
   if(v==="DOUBLE")return`<span class="sh-t">💰 DOUBLE</span>`;
   const h=calcH(v);const parts=v.split("-");
-  return`<span class="sh-t" style="font-size:11px">${parts[0]}→${parts[1]}</span><span class="sh-s" style="font-size:10px;margin-top:2px;opacity:0.7">${h}h</span>`;
+  return`<span class="sh-t">${parts[0]}→${parts[1]}</span><span class="sh-s">${h}h</span>`;
 }
 
 function getZoneCls(zoneName){
@@ -2804,10 +2809,10 @@ function renderWeekPlan(){
     const displayName=localStorage.getItem(wkKey)||ag.displayName||ag.name;
     let cells=`<td>
       <div class="ag-row">
-        <div class="avatar" style="width:36px; height:36px; font-size:12px;">${ag.ini}</div>
-        <div style="display:flex;flex-direction:column;gap:1px">
-          <span onclick="openRenameModal('${ag.name}')" style="font-size:13px;color:var(--t1);font-weight:700;cursor:pointer;">${displayName}</span>
-          <span onclick="resetAgentShifts('${ag.name}')" style="font-size:9px;color:#d97706;cursor:pointer;display:inline-flex;align-items:center;gap:3px;font-weight:600;"><i class="ti ti-refresh" style="font-size:10px"></i> reset auto</span>
+        <div class="avatar">${ag.ini}</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span onclick="openRenameModal('${ag.name}')" style="font-size:13px;color:var(--t1);font-weight:600;cursor:pointer;border-bottom:1px dashed rgba(201,168,76,.3)" title="Cliquer pour modifier le nom">${displayName}</span>
+          ${hasOverrides?`<span onclick="resetAgentShifts('${ag.name}')" title="Supprimer les overrides manuels" style="font-size:10px;color:#f59e0b;cursor:pointer;display:inline-flex;align-items:center;gap:3px;width:fit-content"><i class="ti ti-refresh" style="font-size:10px"></i> reset auto</span>`:''}
         </div>
       </div>
     </td>`;
@@ -2820,7 +2825,7 @@ function renderWeekPlan(){
         ${shiftHtml(v)}</span></td>`;
     }
     // ZONE after DIM
-    cells+=`<td><span class="zone-badge ${zCls}" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; font-size:11px;" title="Cliquer pour changer la zone" onclick="openZoneModal('${ag.name}')">${agZone} <i class="ti ti-pencil" style="font-size:10px; opacity:0.5;"></i></span></td>`;
+    cells+=`<td><span class="zone-badge ${zCls}" style="cursor:pointer" title="Cliquer pour changer la zone" onclick="openZoneModal('${ag.name}')">${agZone} <i class="ti ti-pencil" style="font-size:9px;opacity:.6"></i></span></td>`;
     // TOTAL with color: red if !=44, blue if ==44, grey if 0
     let totalCls;
     if(totalH===0){totalCls="total-h total-0";}
@@ -2981,8 +2986,8 @@ function getAgentPin(agName){
 
 function renderAgents(){
   const tb=document.getElementById("agentsBody");tb.innerHTML="";
-  const sub = document.getElementById("agentCountSub");
-  if(sub) sub.textContent = `${AGENTS.length} agents On-Field`;
+  const countLbl=document.getElementById("agentsCountLabel");
+  if(countLbl)countLbl.textContent=`${AGENTS.length} agents On-Field`;
   AGENTS.forEach(ag=>{
     const rc=allRapports.filter(r=>r.agentName===ag.name).length;
     const aboCount=allAbsences.filter(a=>a.agent===ag.name).length;
@@ -3107,16 +3112,26 @@ function diffDaysInclusive(d1,d2){
 
 const MOIS_LONG=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 
+let absPeriodOffset=0;
+let absShowAll=false;
+
+window.prevAbsPeriod=()=>{absShowAll=false;absPeriodOffset--;renderAbos();};
+window.nextAbsPeriod=()=>{absShowAll=false;absPeriodOffset++;renderAbos();};
+window.resetAbsPeriod=()=>{absShowAll=false;absPeriodOffset=0;renderAbos();};
+window.toggleAbsShowAll=()=>{absShowAll=!absShowAll;renderAbos();};
+
 function renderAbos(){
-  // Période: du 21 du mois précédent au 20 du mois courant
+  // Période: du 21 du mois précédent au 20 du mois courant (décalable via absPeriodOffset)
   const now=new Date();
   let periodStart,periodEnd;
   if(now.getDate()>=21){
-    periodStart=new Date(now.getFullYear(),now.getMonth(),21);
-    periodEnd=new Date(now.getFullYear(),now.getMonth()+1,20);
+    // 21 ce mois → 20 mois prochain
+    periodStart=new Date(now.getFullYear(),now.getMonth()+absPeriodOffset,21);
+    periodEnd=new Date(now.getFullYear(),now.getMonth()+1+absPeriodOffset,20);
   }else{
-    periodStart=new Date(now.getFullYear(),now.getMonth()-1,21);
-    periodEnd=new Date(now.getFullYear(),now.getMonth(),20);
+    // 21 mois précédent → 20 ce mois
+    periodStart=new Date(now.getFullYear(),now.getMonth()-1+absPeriodOffset,21);
+    periodEnd=new Date(now.getFullYear(),now.getMonth()+absPeriodOffset,20);
   }
   const periodStartISO=iso(periodStart);
   const periodEndISO=iso(periodEnd);
@@ -3124,12 +3139,18 @@ function renderAbos(){
   // Update period label
   const fmtPeriod=d=>d.toLocaleDateString("fr-FR",{day:"2-digit",month:"long"});
   const periodLbl=document.getElementById("absPeriodLabel");
-  if(periodLbl) periodLbl.textContent= showAllAbos ? "Tout l'historique" : `Période : ${fmtPeriod(periodStart)} → ${fmtPeriod(periodEnd)}`;
+  const showAllBtn=document.getElementById("absShowAllBtn");
+  if(showAllBtn)showAllBtn.style.background=absShowAll?"var(--acc)":"";
+  if(showAllBtn)showAllBtn.style.color=absShowAll?"#fff":"";
+  if(periodLbl){
+    periodLbl.textContent=absShowAll
+      ? `Toutes les périodes (${allAbsences.length} absence${allAbsences.length>1?"s":""} au total)`
+      : `Période : ${fmtPeriod(periodStart)} → ${fmtPeriod(periodEnd)}`;
+  }
 
-  // Filter to current period only (or all if showAllAbos is true)
+  // Filter to current period only (unless "Toutes les périodes" is active)
   const fullList=allAbsences.slice().sort((a,b)=>(b.debut||"").localeCompare(a.debut||""));
-  const list=fullList.filter(a=>{
-    if(showAllAbos) return true;
+  const list=absShowAll?fullList:fullList.filter(a=>{
     const d=a.debut||"";
     return d>=periodStartISO&&d<=periodEndISO;
   });
@@ -4037,70 +4058,17 @@ window.importSeedWeek=async()=>{
 // ── ZONE MODAL ──
 let zCurrentAgent=null;
 
-window.openAddAgentModal = () => {
-  zCurrentAgent = null; // null means adding
-  document.getElementById("agentModalTitle").textContent = "Ajouter un agent";
-  document.getElementById("zAgentName").style.display = "none";
-  document.getElementById("btnDeleteAgent").style.display = "none";
-
-  // Clear fields
-  document.getElementById("agEditName").value = "";
-  document.getElementById("agEditIni").value = "";
-  document.getElementById("agEditPin").value = "";
-  document.getElementById("agEditShiftType").value = "variable";
-  document.getElementById("agEditOffDay").value = "0";
-  document.getElementById("agEditHoraireA").value = "10:00-17:00";
-  document.getElementById("agEditHoraireB").value = "18:00-01:00";
-  document.getElementById("agEditSalaire").value = "5000";
-
-  // Fill zone select
-  const sel=document.getElementById("zoneSelect");
-  sel.innerHTML="";
-  ZONES.forEach(z=>{
-    const o=document.createElement("option");
-    o.value=z.name;o.textContent=z.name;
-    sel.appendChild(o);
-  });
-  const oNew=document.createElement("option");
-  oNew.value="__new__";oNew.textContent="➕ Nouvelle zone...";
-  sel.appendChild(oNew);
-  sel.onchange=()=>{
-    document.getElementById("newZoneWrap").style.display=sel.value==="__new__"?"block":"none";
-  };
-  document.getElementById("newZoneWrap").style.display="none";
-
-  const updateHoraireB=()=>{
-    const st=document.getElementById("agEditShiftType").value;
-    document.getElementById("horaireB_wrap").style.display=st==="variable"?"block":"none";
-    document.getElementById("labelHoraireA").textContent=st==="variable"?"Horaire A":"Horaire fixe";
-  };
-  document.getElementById("agEditShiftType").onchange=updateHoraireB;
-  updateHoraireB();
-
-  document.getElementById("zoneModal").classList.add("open");
-};
-
 window.openZoneModal=(agentName)=>{
   zCurrentAgent=agentName;
   const ag=AGENTS.find(x=>x.name===agentName);
   if(!ag)return;
   const curZone=getAgentZone(agentName);
 
-  document.getElementById("agentModalTitle").textContent = "Paramètres agent";
-  document.getElementById("zAgentName").style.display = "block";
   document.getElementById("zAgentName").innerHTML=
     `<i class="ti ti-user" style="margin-right:6px;color:var(--acc)"></i>${agentName}`;
-  document.getElementById("btnDeleteAgent").style.display = "inline-flex";
 
-  // Fill fields
+  // Fill name
   document.getElementById("agEditName").value=agentName;
-  document.getElementById("agEditIni").value=ag.ini||"";
-  document.getElementById("agEditPin").value=getAgentPin(agentName);
-  document.getElementById("agEditShiftType").value=ag.shiftType||"variable";
-  document.getElementById("agEditOffDay").value=ag.offDay!==undefined?ag.offDay:0;
-  document.getElementById("agEditHoraireA").value=ag.horaireA||"";
-  document.getElementById("agEditHoraireB").value=ag.horaireB||"";
-  document.getElementById("agEditSalaire").value=ag.salaire||5000;
 
   // Fill zone select
   const sel=document.getElementById("zoneSelect");
@@ -4120,6 +4088,13 @@ window.openZoneModal=(agentName)=>{
   document.getElementById("newZoneWrap").style.display="none";
   document.getElementById("newZoneName").value="";
 
+  // Fill shift type
+  document.getElementById("agEditShiftType").value=ag.shiftType||"variable";
+
+  // Fill horaires
+  document.getElementById("agEditHoraireA").value=ag.horaireA||"";
+  document.getElementById("agEditHoraireB").value=ag.horaireB||"";
+
   // Show/hide horaireB based on shiftType
   const updateHoraireB=()=>{
     const st=document.getElementById("agEditShiftType").value;
@@ -4135,142 +4110,163 @@ window.openZoneModal=(agentName)=>{
 window.closeZoneModal=()=>document.getElementById("zoneModal").classList.remove("open");
 
 window.saveAgentZone=async()=>{
+  if(!zCurrentAgent)return;
+  const ag=AGENTS.find(x=>x.name===zCurrentAgent);
+  if(!ag)return;
+
   // Get values
   const newName=document.getElementById("agEditName").value.trim();
-  const newIni=document.getElementById("agEditIni").value.trim().toUpperCase();
-  const newPin=document.getElementById("agEditPin").value.trim();
   let newZone=document.getElementById("zoneSelect").value;
   const newShiftType=document.getElementById("agEditShiftType").value;
-  const newOffDay=parseInt(document.getElementById("agEditOffDay").value);
   const newHoraireA=document.getElementById("agEditHoraireA").value.trim();
   const newHoraireB=document.getElementById("agEditHoraireB").value.trim();
-  const newSalaire=parseInt(document.getElementById("agEditSalaire").value)||5000;
 
   if(!newName){document.getElementById("agEditName").focus();return;}
-  if(!newIni){document.getElementById("agEditIni").focus();return;}
-  if(!newPin){document.getElementById("agEditPin").focus();return;}
 
   if(newZone==="__new__"){
     newZone=document.getElementById("newZoneName").value.trim();
     if(!newZone){document.getElementById("newZoneName").focus();return;}
     if(!ZONES.find(z=>z.name===newZone)){
       const cls="z-custom-"+newZone.toLowerCase().replace(/[^a-z0-9]/g,"-").slice(0,12);
-      const zoneData = { name: newZone, cls };
-      // Save zone permanently to Firestore
-      try {
-        await addDoc(collection(db, "zones_db"), zoneData);
-        ZONES.push(zoneData);
-        const style=document.createElement("style");
-        style.textContent=`.${cls}{background:rgba(148,163,184,.1);color:#3a7d96;border:1px solid rgba(58,125,150,.3)}`;
-        document.head.appendChild(style);
-      } catch(e) { console.error("Error saving zone:", e); }
+      ZONES.push({name:newZone,cls});
+      const style=document.createElement("style");
+      style.textContent=`.${cls}{background:rgba(148,163,184,.1);color:#94a3b8;border:1px solid rgba(148,163,184,.25)}`;
+      document.head.appendChild(style);
     }
   }
 
-  const agentData = {
-    name: newName,
-    ini: newIni,
-    pin: newPin,
-    zone: newZone,
-    shiftType: newShiftType,
-    offDay: newOffDay,
-    horaireA: newHoraireA,
-    horaireB: newHoraireB,
-    salaire: newSalaire
-  };
+  // Update AGENTS array in memory
+  const oldName=zCurrentAgent;
+  ag.name=newName;
+  ag.zone=newZone;
+  ag.shiftType=newShiftType;
+  ag.horaireA=newHoraireA||ag.horaireA;
+  ag.horaireB=newHoraireB||ag.horaireB;
 
+  // Save to Firebase agentSettings
+  const existing=allAgentSettings.find(s=>s.agent===oldName);
   try{
-    if(!zCurrentAgent) {
-      // Adding new
-      await addDoc(collection(db, "agents_db"), { ...agentData, createdAt: serverTimestamp() });
-      showAlert("planAlert", `✅ Agent ${newName} ajouté !`, "success");
-    } else {
-      // Updating existing
-      const ag=AGENTS.find(x=>x.name===zCurrentAgent);
-      if(ag && ag.id) {
-        // Was from DB - Update it
-        await updateDoc(doc(db, "agents_db", ag.id), agentData);
-      } else {
-        // Was hardcoded - Hide original and save new version to DB
-        await addDoc(collection(db, "agents_deleted"), { name: zCurrentAgent, deletedAt: serverTimestamp() });
-        await addDoc(collection(db, "agents_db"), { ...agentData, createdAt: serverTimestamp() });
-      }
-      showAlert("planAlert",`✅ Agent ${newName} mis à jour`,"success");
+    if(existing){
+      await updateDoc(doc(db,"agentSettings",existing.id),{
+        agent:newName,zone:newZone,shiftType:newShiftType,
+        horaireA:newHoraireA,horaireB:newHoraireB
+      });
+      existing.agent=newName;existing.zone=newZone;
+      existing.shiftType=newShiftType;
+    }else{
+      const ref=await addDoc(collection(db,"agentSettings"),{
+        agent:newName,zone:newZone,shiftType:newShiftType,
+        horaireA:newHoraireA,horaireB:newHoraireB
+      });
+      allAgentSettings.push({id:ref.id,agent:newName,zone:newZone,shiftType:newShiftType});
     }
-
+    // Update zCurrentAgent if name changed
+    zCurrentAgent=newName;
     closeZoneModal();
-    await loadAll();
+    showAlert("planAlert",`✅ Agent ${newName} mis à jour`,"success");
     renderWeekPlan();
     renderAgents();
-    buildProfileGrid();
   }catch(e){showAlert("planAlert","Erreur: "+e.message,"error");}
 };
 
-window.deleteAgent = async () => {
-  if(!zCurrentAgent) return;
-  
-  const ag=AGENTS.find(x=>x.name===zCurrentAgent);
-  if(!ag) return;
+// ── AJOUTER AGENT ──
+window.openAddAgentModal=()=>{
+  document.getElementById("newAgName").value="";
+  document.getElementById("newAgPin").value="";
+  document.getElementById("newAgSalaire").value="5000";
+  document.getElementById("newAgHoraireA").value="";
+  document.getElementById("newAgHoraireB").value="";
+  document.getElementById("newAgShiftType").value="variable";
+  document.getElementById("newAgOffDay").value="6";
+  document.getElementById("addAgentAlert").style.display="none";
 
-  if(!confirm(`Êtes-vous sûr de vouloir supprimer l'agent ${zCurrentAgent} ?\n\nAttention: Cela supprimera l'agent de la liste et ses accès, mais ses rapports passés resteront archivés.`)) return;
+  const sel=document.getElementById("newAgZoneSelect");
+  sel.innerHTML="";
+  ZONES.forEach(z=>{
+    const o=document.createElement("option");
+    o.value=z.name;o.textContent=z.name;
+    sel.appendChild(o);
+  });
+  const oNew=document.createElement("option");
+  oNew.value="__new__";oNew.textContent="➕ Nouvelle zone...";
+  sel.appendChild(oNew);
+  sel.onchange=()=>{
+    document.getElementById("newAgZoneWrap").style.display=sel.value==="__new__"?"block":"none";
+  };
+  document.getElementById("newAgZoneWrap").style.display="none";
+  document.getElementById("newAgZoneName").value="";
 
-  try {
-    if(ag.id) {
-      // It's a DB agent
-      await deleteDoc(doc(db, "agents_db", ag.id));
-      // Also delete his settings/PIN
-      const sett = allAgentSettings.find(s => s.agent === zCurrentAgent);
-      if(sett) await deleteDoc(doc(db, "agentSettings", sett.id));
-    } else {
-      // Hardcoded agent - we mark as "deleted" in Firebase to hide him
-      await addDoc(collection(db, "agents_deleted"), { name: zCurrentAgent, deletedAt: serverTimestamp() });
-    }
-    
-    closeZoneModal();
-    await loadAll();
-    renderWeekPlan();
-    renderAgents();
-    buildProfileGrid();
-    showAlert("planAlert", `🗑️ Agent ${zCurrentAgent} supprimé.`, "success");
-  } catch(e) { showAlert("planAlert", "Erreur: "+e.message, "error"); }
+  const updateHoraireB=()=>{
+    const st=document.getElementById("newAgShiftType").value;
+    document.getElementById("newAgHoraireB_wrap").style.display=st==="variable"?"block":"none";
+    document.getElementById("newAgLabelHoraireA").textContent=st==="variable"?"Horaire A":"Horaire fixe";
+  };
+  document.getElementById("newAgShiftType").onchange=updateHoraireB;
+  updateHoraireB();
+
+  document.getElementById("addAgentModal").classList.add("open");
 };
 
-window.seedDummyData = async () => {
-  if(!confirm("⚠️ Remplir l'application avec des données de démonstration complètes (Rapports, Absences, Suggestions) ?")) return;
-  showAlert("planAlert", "⏳ Remplissage en cours...", "success");
-  try {
-    const today = new Date();
-    const todayISO = iso(today);
+window.closeAddAgentModal=()=>document.getElementById("addAgentModal").classList.remove("open");
 
-    // 1. Add some Rapports
-    const rapData = [
-      { agentName: "Youssef Derkaoui", titre: "Contrôle Agdal réussi", contenu: "Pas d'infractions majeures constatées aujourd'hui. Partenaires satisfaits.", lu: false },
-      { agentName: "Aymane Chlifane", titre: "Incident Carrousel", contenu: "Un coursier a refusé de porter son équipement. Signalement effectué.", lu: true },
-      { agentName: "Achraf Akhlij", titre: "Fin de service Rabat", contenu: "Rapport de fin de journée. Tout est en ordre.", lu: false },
-      { agentName: "Yahya Rhallab", titre: "Rapport de nuit Hay Riad", contenu: "Tournée effectuée. 3 rappels à l'ordre pour stationnement.", lu: false },
-      { agentName: "Oussama El Atrach", titre: "Briefing matin", contenu: "Équipe prête pour la journée.", lu: true }
-    ];
-    await Promise.all(rapData.map(r => addDoc(collection(db, "rapports"), { ...r, createdAt: serverTimestamp() })));
+function showAddAgentError(msg){
+  const el=document.getElementById("addAgentAlert");
+  el.textContent=msg;el.className="alert error";el.style.display="block";
+}
 
-    // 2. Add some Absences
-    const absData = [
-      { agent: "Mourad Cherradi", type: "injustifiee", debut: todayISO, fin: todayISO },
-      { agent: "Hassan Azgoune", type: "double", debut: iso(addDays(today, -2)), fin: iso(addDays(today, -2)) },
-      { agent: "Ayoub Abssi", type: "injustifiee", debut: iso(addDays(today, -5)), fin: iso(addDays(today, -4)) }
-    ];
-    await Promise.all(absData.map(a => addDoc(collection(db, "absences"), { ...a, createdAt: serverTimestamp() })));
+window.saveNewAgent=async()=>{
+  const name=document.getElementById("newAgName").value.trim();
+  let zone=document.getElementById("newAgZoneSelect").value;
+  const shiftType=document.getElementById("newAgShiftType").value;
+  const horaireA=document.getElementById("newAgHoraireA").value.trim();
+  const horaireB=document.getElementById("newAgHoraireB").value.trim();
+  const offDay=parseInt(document.getElementById("newAgOffDay").value,10);
+  const pin=document.getElementById("newAgPin").value.trim();
+  const salaire=parseFloat(document.getElementById("newAgSalaire").value)||5000;
 
-    // 3. Add some Suggestions
-    const sugData = [
-      { agent: "Zakariae Benali", type: "suggestion", message: "On devrait avoir de nouveaux gilets fluorescents pour la nuit.", lu: false, zone: "Salé - Medina" },
-      { agent: "Islam Elmardi", type: "reclamation", message: "Problème de connexion récurrent dans la zone Hay Riad.", lu: false, zone: "Carrousel - Hay Fath" },
-      { agent: "Charaf Loummihi", type: "suggestion", message: "Possibilité d'avoir une bouteille d'eau par shift ?", lu: true, zone: "Salé - Medina" }
-    ];
-    await Promise.all(sugData.map(s => addDoc(collection(db, "suggestions"), { ...s, createdAt: serverTimestamp(), createdAtLocal: new Date().toISOString() })));
+  if(!name){showAddAgentError("⚠️ Le nom est obligatoire.");document.getElementById("newAgName").focus();return;}
+  if(AGENTS.find(a=>a.name.toLowerCase()===name.toLowerCase())){showAddAgentError("⚠️ Un agent avec ce nom existe déjà.");return;}
+  if(!horaireA){showAddAgentError("⚠️ L'horaire est obligatoire.");document.getElementById("newAgHoraireA").focus();return;}
+  if(!/^\d{4}$/.test(pin)){showAddAgentError("⚠️ Le PIN doit contenir 4 chiffres.");document.getElementById("newAgPin").focus();return;}
 
-    showAlert("planAlert", "✅ L'application est maintenant remplie ! Rechargez pour tout voir.", "success");
-    await loadAll();
-  } catch(e) { showAlert("planAlert", "Erreur: " + e.message, "error"); }
+  if(zone==="__new__"){
+    zone=document.getElementById("newAgZoneName").value.trim();
+    if(!zone){showAddAgentError("⚠️ Le nom de la nouvelle zone est obligatoire.");document.getElementById("newAgZoneName").focus();return;}
+  }
+  if(!ZONES.find(z=>z.name===zone)){
+    const cls="z-custom-"+zone.toLowerCase().replace(/[^a-z0-9]/g,"-").slice(0,12);
+    ZONES.push({name:zone,cls});
+    const style=document.createElement("style");
+    style.textContent=`.${cls}{background:rgba(148,163,184,.1);color:#94a3b8;border:1px solid rgba(148,163,184,.25)}`;
+    document.head.appendChild(style);
+  }
+
+  // Auto-generate initials (unique-ish) from the name
+  const parts=name.split(" ").filter(Boolean);
+  let ini=(parts[0]?.[0]||"")+(parts[1]?.[0]||"");
+  ini=ini.toUpperCase()||"AG";
+  if(AGENTS.find(a=>a.ini===ini)){
+    ini=(parts.map(p=>p[0]).join("")).toUpperCase().slice(0,3)||ini;
+  }
+
+  const newAgent={
+    name,ini,zone,shiftType,
+    horaireA,
+    horaireB:shiftType==="variable"?(horaireB||horaireA):horaireA,
+    offDay,pin,salaire
+  };
+
+  try{
+    const ref=await addDoc(collection(db,"customAgents"),newAgent);
+    newAgent._customId=ref.id;
+    AGENTS.push(newAgent);
+
+    closeAddAgentModal();
+    renderAgents();
+    if(typeof renderWeekPlan==="function"&&document.getElementById("sec-planning")?.classList.contains("active"))renderWeekPlan();
+    if(document.getElementById("profileGrid"))buildProfileGrid();
+    showAlert("planAlert",`✅ Agent ${name} ajouté ! Tous les boutons (Planning, Rapports, Absences...) sont déjà actifs pour lui.`,"success");
+  }catch(e){showAddAgentError("Erreur: "+e.message);}
 };
 
 // ── COLOR SYSTEM ──
@@ -4630,71 +4626,6 @@ window.confirmPointageDebut=async(motif)=>{
   }catch(e){console.error(e);}
 };
 
-window.toggleAllAbos = () => {
-  showAllAbos = !showAllAbos;
-  const btn = document.getElementById("btnToggleAbos");
-  if(showAllAbos) {
-    btn.innerHTML = '<i class="ti ti-filter"></i> Filtrer période courante';
-    btn.style.background = "var(--accbg)";
-    btn.style.color = "var(--acc)";
-    btn.style.borderColor = "var(--accbdr)";
-  } else {
-    btn.innerHTML = '<i class="ti ti-list"></i> Voir tout l\'historique';
-    btn.style.background = "#EEF2F6";
-    btn.style.color = "#5E7A93";
-    btn.style.borderColor = "#DCE3EA";
-  }
-  renderAbos();
-};
-
-window.toggleDeletedAgents = () => {
-  const wrap = document.getElementById("deletedAgentsWrap");
-  wrap.style.display = wrap.style.display === "none" ? "block" : "none";
-};
-
-function renderDeletedAgents() {
-  const list = document.getElementById("deletedAgentsList");
-  if(!list) return;
-  
-  const count = allDeletedAgents.length;
-  document.getElementById("delCount").textContent = count;
-  
-  if(count === 0) {
-    list.innerHTML = '<div style="font-size:12px; color:#9ca3af; text-align:center; padding:10px;">La corbeille est vide.</div>';
-    return;
-  }
-  
-  list.innerHTML = allDeletedAgents.map(ag => `
-    <div style="display:flex; align-items:center; gap:12px; background:#fff; border-radius:8px; padding:10px 14px; border:1px solid #eab8b8;">
-      <div style="width:30px; height:30px; border-radius:50%; background:#8f1a1a; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">${(ag.name||"?").charAt(0)}</div>
-      <div style="flex:1;">
-        <div style="font-size:13px; font-weight:700; color:#111827;">${ag.name}</div>
-        <div style="font-size:10px; color:#9ca3af;">Supprimé le ${ag.deletedAt?.toDate ? ag.deletedAt.toDate().toLocaleDateString() : "période inconnue"}</div>
-      </div>
-      <div class="btn btn-sm btn-success" onclick="window.restoreAgent('${ag.id}', '${ag.name}')"><i class="ti ti-refresh"></i> Restaurer</div>
-    </div>
-  `).join("");
-}
-
-window.restoreAgent = async (docId, name) => {
-  if(!confirm(`Restaurer l'agent ${name} ?`)) return;
-  try {
-    // If it was a hardcoded agent, we just remove it from deleted list
-    if(docId) {
-      await deleteDoc(doc(db, "agents_deleted", docId));
-    } else {
-      // Find the docId manually by name if it wasn't provided (fallback)
-      const d = allDeletedAgents.find(x => x.name === name);
-      if(d) await deleteDoc(doc(db, "agents_deleted", d.id));
-    }
-    showAlert("planAlert", `✅ Agent ${name} restauré !`, "success");
-    await loadAll();
-    renderWeekPlan();
-    renderAgents();
-    buildProfileGrid();
-  } catch(e) { showAlert("planAlert", "Erreur: "+e.message, "error"); }
-};
-
 window.resetPointage=async()=>{
   if(!pointageActif)return;
   if(!confirm("Réinitialiser le pointage d'aujourd'hui ?"))return;
@@ -4899,5 +4830,5 @@ document.getElementById("pmInput").addEventListener("keydown",e=>{
 @keyframes wFadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 </style>
 
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1883aea3a5a146b',t:'MTc4MzYwOTU2MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
