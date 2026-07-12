@@ -908,6 +908,16 @@ hr,.sep{border-color:#e8e0d5 !important;}
         <div class="stat-card"><div class="slabel">Déductions cumulées</div><div class="sval" style="color:var(--red)" id="aDeduit">0 DH</div></div>
       </div>
 
+      <!-- EXPORT PAR PERIODE PERSONNALISEE -->
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-file-export" style="margin-right:6px"></i>Exporter absences (période personnalisée)</span></div>
+        <div class="grid2" style="align-items:flex-end">
+          <div class="mfield"><label>Du</label><input type="date" id="exportAbsFrom" style="width:100%;"/></div>
+          <div class="mfield"><label>Au</label><input type="date" id="exportAbsTo" style="width:100%;"/></div>
+        </div>
+        <div class="btn btn-success" onclick="exportAbsencesRange()"><i class="ti ti-table-export"></i> Exporter Excel (tous les agents)</div>
+      </div>
+
       <!-- FILTRE PAR AGENT -->
       <div class="card">
         <div class="card-title"><span><i class="ti ti-user-search" style="margin-right:6px"></i>Recherche par agent</span></div>
@@ -1887,19 +1897,30 @@ window.go=(id,el)=>{
 };
 
 async function loadAll(){
-  try{
-    const[rs,as,ps,ss]=await Promise.all([
-      getDocs(query(collection(db,"rapports"),orderBy("createdAt","desc"))),
-      getDocs(collection(db,"absences")),
-      getDocs(collection(db,"planning2")),
-      getDocs(collection(db,"agentSettings"))
-    ]);
-    allRapports=rs.docs.map(d=>({id:d.id,...d.data()}));
-    allAbsences=as.docs.map(d=>({id:d.id,...d.data()}));
-    allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
-    allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
-    applyAgentSettingsOverrides();
+  const results=await Promise.allSettled([
+    getDocs(query(collection(db,"rapports"),orderBy("createdAt","desc"))),
+    getDocs(collection(db,"absences")),
+    getDocs(collection(db,"planning2")),
+    getDocs(collection(db,"agentSettings"))
+  ]);
+  const [rs,as,ps,ss]=results;
+  const errors=[];
 
+  if(rs.status==="fulfilled")allRapports=rs.value.docs.map(d=>({id:d.id,...d.data()}));
+  else{console.error("rapports:",rs.reason);errors.push("Rapports: "+(rs.reason?.message||rs.reason));}
+
+  if(as.status==="fulfilled")allAbsences=as.value.docs.map(d=>({id:d.id,...d.data()}));
+  else{console.error("absences:",as.reason);errors.push("Absences: "+(as.reason?.message||as.reason));}
+
+  if(ps.status==="fulfilled")allPlanning=ps.value.docs.map(d=>({id:d.id,...d.data()}));
+  else{console.error("planning2:",ps.reason);errors.push("Planning: "+(ps.reason?.message||ps.reason));}
+
+  if(ss.status==="fulfilled")allAgentSettings=ss.value.docs.map(d=>({id:d.id,...d.data()}));
+  else{console.error("agentSettings:",ss.reason);errors.push("Réglages agents: "+(ss.reason?.message||ss.reason));}
+
+  applyAgentSettingsOverrides();
+
+  try{
     if(userRole==="admin"){
       renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
       const nonLus=allRapports.filter(r=>!r.lu).length;
@@ -1910,7 +1931,18 @@ async function loadAll(){
       loadPointage();
     }
     loadSuggestions();
-  }catch(e){console.error(e);}
+  }catch(e){
+    console.error("render:",e);
+    errors.push("Affichage: "+(e?.message||e));
+  }
+
+  if(errors.length){
+    const msg="⚠️ Certaines données n'ont pas pu être chargées :\n"+errors.join("\n");
+    console.error(msg);
+    const alertId=userRole==="admin"?"planAlert":"planAlert";
+    const el=document.getElementById(alertId);
+    if(el){el.textContent=msg;el.className="alert error";el.style.display="block";}
+  }
 }
 
 function getMonday(d){const c=new Date(d);const day=c.getDay();c.setDate(c.getDate()-day+(day===0?-6:1));c.setHours(0,0,0,0);return c;}
@@ -3235,6 +3267,47 @@ function renderAbos(){
     (totalDeduit>0?`-${Math.round(totalDeduit*100)/100} DH retenue`:"0 DH");
   document.getElementById("aboEmpty").style.display=list.length?"none":"block";
 }
+
+window.exportAbsencesRange=()=>{
+  const from=document.getElementById("exportAbsFrom").value;
+  const to=document.getElementById("exportAbsTo").value;
+  if(!from||!to){showAlert("aboAlert","⚠️ Choisis une date de début et une date de fin.","error");return;}
+  if(from>to){showAlert("aboAlert","⚠️ La date de début doit être avant la date de fin.","error");return;}
+
+  // Any absence that overlaps the [from,to] range at all
+  const list=allAbsences.filter(a=>{
+    const d1=a.debut||"";
+    const d2=a.fin||a.debut||"";
+    return d2>=from&&d1<=to;
+  }).sort((a,b)=>(a.debut||"").localeCompare(b.debut||""));
+
+  if(!list.length){showAlert("aboAlert",`Aucune absence trouvée entre ${from} et ${to}.`,"error");return;}
+
+  const headers=["Agent","Zone","Type","Date début","Date fin","Jours","Montant (DH)"];
+  const rows=list.map(a=>{
+    const ag=AGENTS.find(x=>x.name===a.agent);
+    const rate=(ag?.salaire||5000)/SALAIRE_BASE_JOURS;
+    const jours=diffDaysInclusive(a.debut,a.fin||a.debut);
+    const isDouble=a.type==="double";
+    const montant=Math.round(jours*rate*100)/100;
+    return[
+      a.agent||"—",
+      getAgentZone(a.agent||"")||"—",
+      isDouble?"Jour Double / Férié":"Absence injustifiée",
+      a.debut||"—",
+      a.fin||a.debut||"—",
+      jours,
+      (isDouble?"+":"-")+montant
+    ];
+  });
+
+  const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+  ws["!cols"]=[{wch:20},{wch:20},{wch:22},{wch:14},{wch:14},{wch:8},{wch:14}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Absences");
+  XLSX.writeFile(wb,`Absences_${from}_${to}.xlsx`);
+  showAlert("aboAlert",`✅ ${list.length} absence(s) exportée(s) entre ${from} et ${to}.`,"success");
+};
 
 window.calcJoursAbs=()=>{
   const d=document.getElementById("aDebut").value;
