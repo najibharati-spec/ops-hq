@@ -717,8 +717,17 @@ hr,.sep{border-color:#e8e0d5 !important;}
       <div class="topbar">
         <div><div class="ptitle">Agents</div><div class="psub" id="agentCountSub">12 agents On-Field</div></div>
         <div class="btns">
+          <div class="btn" style="background:#fdf0f0; border-color:#eab8b8; color:#8f1a1a;" onclick="window.toggleDeletedAgents && window.toggleDeletedAgents()"><i class="ti ti-trash"></i> Agents supprimés (<span id="delCount">0</span>)</div>
           <div class="btn btn-primary" onclick="window.openAddAgentModal && window.openAddAgentModal()"><i class="ti ti-user-plus"></i> Ajouter un agent</div>
         </div>
+      </div>
+
+      <!-- DELETED AGENTS LIST (Hidden by default) -->
+      <div id="deletedAgentsWrap" style="display:none; margin-bottom:20px; background:#fdf0f0; border:1px solid #eab8b8; border-radius:10px; padding:16px;">
+        <div style="font-size:12px; font-weight:700; color:#8f1a1a; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+          <i class="ti ti-trash"></i> AGENTS DANS LA CORBEILLE (Markés comme supprimés)
+        </div>
+        <div id="deletedAgentsList" style="display:flex; flex-direction:column; gap:8px;"></div>
       </div>
       <div class="card">
         <div class="card-title"><span><i class="ti ti-users" style="margin-right:6px"></i>Liste des agents</span></div>
@@ -880,6 +889,7 @@ hr,.sep{border-color:#e8e0d5 !important;}
       <div class="topbar">
         <div><div class="ptitle">Absences</div><div class="psub" id="absPeriodLabel">Période en cours</div></div>
         <div class="btns">
+          <div class="btn ro-allow" style="background:#EEF2F6;border-color:#DCE3EA;color:#5E7A93" onclick="window.toggleAllAbos && window.toggleAllAbos()" id="btnToggleAbos"><i class="ti ti-list"></i> Voir tout l'historique</div>
           <div class="btn ro-allow" style="background:#FEF3E2;border-color:#FBD49C;color:#D9750A" onclick="openSalaireModal()"><i class="ti ti-cash"></i> Export Salaires</div>
           <div class="btn ro-allow" style="background:#E8F0FE;border-color:#A9C5F5;color:#1F4E78" onclick="openPointageModal()"><i class="ti ti-clipboard-list"></i> Pointage Simple</div>
         </div>
@@ -1402,7 +1412,8 @@ const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 let currentUser=null,userDisplayName="";
 let userRole="guest"; // "admin" | "agent"
 let myAgent=null; // for agent role: the AGENTS object
-let allRapports=[],allAbsences=[],allPlanning=[],allAgentSettings=[];
+let allRapports=[],allAbsences=[],allPlanning=[],allAgentSettings=[], allDeletedAgents=[];
+let showAllAbos = false;
 let weekStart=getMonday(new Date());
 let dragSrcAgent=null;
 let pmAgent2=null,pmDate3=null,pmId=null,curRapId=null;
@@ -1828,18 +1839,20 @@ window.go=(id,el)=>{
 
 async function loadAll(){
   try{
-    const[rs,as,ps,ss,ags,zs]=await Promise.all([
+    const[rs,as,ps,ss,ags,zs,adels]=await Promise.all([
       getDocs(query(collection(db,"rapports"),orderBy("createdAt","desc"))),
       getDocs(collection(db,"absences")),
       getDocs(collection(db,"planning2")),
       getDocs(collection(db,"agentSettings")),
       getDocs(collection(db,"agents_db")),
-      getDocs(collection(db,"zones_db"))
+      getDocs(collection(db,"zones_db")),
+      getDocs(collection(db,"agents_deleted"))
     ]);
     allRapports=rs.docs.map(d=>({id:d.id,...d.data()}));
     allAbsences=as.docs.map(d=>({id:d.id,...d.data()}));
     allPlanning=ps.docs.map(d=>({id:d.id,...d.data()}));
     allAgentSettings=ss.docs.map(d=>({id:d.id,...d.data()}));
+    allDeletedAgents=adels.docs.map(d=>({id:d.id,...d.data()}));
 
     // Merge database zones
     const dbZones = zs.docs.map(d => d.data());
@@ -1856,15 +1869,18 @@ async function loadAll(){
 
     // Merge database agents
     const dbAgents = ags.docs.map(d => ({id:d.id, ...d.data()}));
-    AGENTS = [...INITIAL_AGENTS];
+    const deletedNames = allDeletedAgents.map(d => d.name);
+
+    AGENTS = [...INITIAL_AGENTS].filter(a => !deletedNames.includes(a.name));
     dbAgents.forEach(dba => {
-      if(!AGENTS.find(a => a.name === dba.name)) {
+      if(!AGENTS.find(a => a.name === dba.name) && !deletedNames.includes(dba.name)) {
         AGENTS.push(dba);
       }
     });
 
     applyAgentSettingsOverrides();
     updateDropdowns();
+    renderDeletedAgents();
 
     if(userRole==="admin"){
       renderDashboard();renderAgents();renderRapports();renderAbos();renderWeekPlan();
@@ -3096,11 +3112,9 @@ function renderAbos(){
   const now=new Date();
   let periodStart,periodEnd;
   if(now.getDate()>=21){
-    // 21 ce mois → 20 mois prochain
     periodStart=new Date(now.getFullYear(),now.getMonth(),21);
     periodEnd=new Date(now.getFullYear(),now.getMonth()+1,20);
   }else{
-    // 21 mois précédent → 20 ce mois
     periodStart=new Date(now.getFullYear(),now.getMonth()-1,21);
     periodEnd=new Date(now.getFullYear(),now.getMonth(),20);
   }
@@ -3110,11 +3124,12 @@ function renderAbos(){
   // Update period label
   const fmtPeriod=d=>d.toLocaleDateString("fr-FR",{day:"2-digit",month:"long"});
   const periodLbl=document.getElementById("absPeriodLabel");
-  if(periodLbl)periodLbl.textContent=`Période : ${fmtPeriod(periodStart)} → ${fmtPeriod(periodEnd)}`;
+  if(periodLbl) periodLbl.textContent= showAllAbos ? "Tout l'historique" : `Période : ${fmtPeriod(periodStart)} → ${fmtPeriod(periodEnd)}`;
 
-  // Filter to current period only
+  // Filter to current period only (or all if showAllAbos is true)
   const fullList=allAbsences.slice().sort((a,b)=>(b.debut||"").localeCompare(a.debut||""));
   const list=fullList.filter(a=>{
+    if(showAllAbos) return true;
     const d=a.debut||"";
     return d>=periodStartISO&&d<=periodEndISO;
   });
@@ -4615,6 +4630,71 @@ window.confirmPointageDebut=async(motif)=>{
   }catch(e){console.error(e);}
 };
 
+window.toggleAllAbos = () => {
+  showAllAbos = !showAllAbos;
+  const btn = document.getElementById("btnToggleAbos");
+  if(showAllAbos) {
+    btn.innerHTML = '<i class="ti ti-filter"></i> Filtrer période courante';
+    btn.style.background = "var(--accbg)";
+    btn.style.color = "var(--acc)";
+    btn.style.borderColor = "var(--accbdr)";
+  } else {
+    btn.innerHTML = '<i class="ti ti-list"></i> Voir tout l\'historique';
+    btn.style.background = "#EEF2F6";
+    btn.style.color = "#5E7A93";
+    btn.style.borderColor = "#DCE3EA";
+  }
+  renderAbos();
+};
+
+window.toggleDeletedAgents = () => {
+  const wrap = document.getElementById("deletedAgentsWrap");
+  wrap.style.display = wrap.style.display === "none" ? "block" : "none";
+};
+
+function renderDeletedAgents() {
+  const list = document.getElementById("deletedAgentsList");
+  if(!list) return;
+  
+  const count = allDeletedAgents.length;
+  document.getElementById("delCount").textContent = count;
+  
+  if(count === 0) {
+    list.innerHTML = '<div style="font-size:12px; color:#9ca3af; text-align:center; padding:10px;">La corbeille est vide.</div>';
+    return;
+  }
+  
+  list.innerHTML = allDeletedAgents.map(ag => `
+    <div style="display:flex; align-items:center; gap:12px; background:#fff; border-radius:8px; padding:10px 14px; border:1px solid #eab8b8;">
+      <div style="width:30px; height:30px; border-radius:50%; background:#8f1a1a; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">${(ag.name||"?").charAt(0)}</div>
+      <div style="flex:1;">
+        <div style="font-size:13px; font-weight:700; color:#111827;">${ag.name}</div>
+        <div style="font-size:10px; color:#9ca3af;">Supprimé le ${ag.deletedAt?.toDate ? ag.deletedAt.toDate().toLocaleDateString() : "période inconnue"}</div>
+      </div>
+      <div class="btn btn-sm btn-success" onclick="window.restoreAgent('${ag.id}', '${ag.name}')"><i class="ti ti-refresh"></i> Restaurer</div>
+    </div>
+  `).join("");
+}
+
+window.restoreAgent = async (docId, name) => {
+  if(!confirm(`Restaurer l'agent ${name} ?`)) return;
+  try {
+    // If it was a hardcoded agent, we just remove it from deleted list
+    if(docId) {
+      await deleteDoc(doc(db, "agents_deleted", docId));
+    } else {
+      // Find the docId manually by name if it wasn't provided (fallback)
+      const d = allDeletedAgents.find(x => x.name === name);
+      if(d) await deleteDoc(doc(db, "agents_deleted", d.id));
+    }
+    showAlert("planAlert", `✅ Agent ${name} restauré !`, "success");
+    await loadAll();
+    renderWeekPlan();
+    renderAgents();
+    buildProfileGrid();
+  } catch(e) { showAlert("planAlert", "Erreur: "+e.message, "error"); }
+};
+
 window.resetPointage=async()=>{
   if(!pointageActif)return;
   if(!confirm("Réinitialiser le pointage d'aujourd'hui ?"))return;
@@ -4819,5 +4899,5 @@ document.getElementById("pmInput").addEventListener("keydown",e=>{
 @keyframes wFadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 </style>
 
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1883aea3a5a146b',t:'MTc4MzYwOTU2MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a18fa405ff68a631',t:'MTc4MzY4NzI2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1883aea3a5a146b',t:'MTc4MzYwOTU2MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
