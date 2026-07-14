@@ -431,7 +431,7 @@ function attemptLogin(){
   errEl.textContent = 'Connexion...';
   // Admin/manager profiles use Firebase Auth (email/password).
   // Convention: profile.id + "@opshq.local" as the auth email.
-  const email = `${selectedProfile.id}@opshq.local`;
+  const email = `${selectedProfile.id}@opshq.ma`;
   auth.signInWithEmailAndPassword(email, pass)
     .then(() => {
       errEl.textContent = '';
@@ -548,7 +548,7 @@ function renderAgentsTable(weekIdx){
 /* ================= AUTH STATE (persist session on refresh) ================= */
 auth.onAuthStateChanged(user => {
   if(user){
-    const uid = user.email.split('@')[0];
+    const uid = user.email.split('@opshq.ma')[0];
     const profile = PROFILES.find(p => p.id === uid);
     if(profile) enterApp(profile);
   }
