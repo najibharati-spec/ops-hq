@@ -257,7 +257,7 @@ window.handleLogin=async()=>{
     userRole="admin";
     enterApp();
   }catch(e){
-    errEl.textContent="Identifiant ou mot de passe incorrect.";
+    errEl.textContent="Erreur : "+(e.code||e.message||"inconnue");
     errEl.style.display="block";
   }
 };
