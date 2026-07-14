@@ -234,6 +234,50 @@ tr:last-child td{ border-bottom:none; }
   .sidebar-brand h2, .nav-item span, .user-chip-text, .logout-btn span{ display:none; }
   .nav-item{ justify-content:center; }
 }
+
+/* ============ VIEW HEADER / BUTTONS ============ */
+.view-header{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom: 18px; gap: 16px;
+}
+.view-subtitle{ font-size: 13px; color: var(--ink-soft); }
+.btn-primary{
+  background: var(--mustard); color: #fff; font-weight: 700; font-size: 13px;
+  padding: 10px 18px; border-radius: var(--radius); white-space: nowrap;
+  transition: background .15s;
+}
+.btn-primary:hover{ background: var(--mustard-deep); }
+.btn-ghost{
+  background: transparent; color: var(--ink-soft); font-weight: 600; font-size: 13px;
+  padding: 10px 16px; border-radius: var(--radius);
+}
+.btn-ghost:hover{ background: var(--sand); color: var(--ink); }
+.icon-btn{
+  width: 28px; height: 28px; border-radius: 7px; background: transparent;
+  display:inline-flex; align-items:center; justify-content:center; color: var(--ink-soft);
+  transition: all .12s;
+}
+.icon-btn:hover{ background: var(--sand); color: var(--ink); }
+.icon-btn svg{ width: 15px; height: 15px; }
+.icon-btn.danger:hover{ background: rgba(196,89,58,0.12); color: var(--red); }
+.row-actions{ display:flex; gap: 4px; justify-content:flex-end; }
+
+/* ============ MODAL ============ */
+.modal-overlay{
+  position: fixed; inset: 0; background: rgba(30,58,90,0.35);
+  display:flex; align-items:center; justify-content:center; z-index: 100;
+  padding: 20px;
+}
+.modal-card{
+  width: 100%; max-width: 420px; background: var(--paper);
+  border-radius: 16px; padding: 28px 26px 22px;
+  box-shadow: 0 24px 60px -20px rgba(30,58,90,0.35);
+}
+.modal-card h3{ font-size: 17px; font-weight: 800; margin-bottom: 18px; }
+.form-label{ display:block; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); text-transform:uppercase; letter-spacing:.03em; margin-bottom: 6px; margin-top: 12px; }
+.form-label:first-of-type{ margin-top: 0; }
+.modal-error{ font-size: 12.5px; color: var(--red); min-height: 16px; margin-top: 6px; }
+.modal-actions{ display:flex; justify-content:flex-end; gap: 8px; margin-top: 16px; }
 </style>
 </head>
 <body>
@@ -313,7 +357,7 @@ tr:last-child td{ border-bottom:none; }
           <div class="stat-card">
             <div class="label">Agents actifs</div>
             <div class="value" id="statActive">—</div>
-            <div class="sub">sur 12 au total</div>
+            <div class="sub">enregistrés</div>
           </div>
           <div class="stat-card">
             <div class="label">En shift JOUR</div>
@@ -338,11 +382,20 @@ tr:last-child td{ border-bottom:none; }
 
       <!-- AGENTS -->
       <section class="view hidden" id="view-agents">
-        <div class="card">
+        <div class="view-header">
+          <p class="view-subtitle">Gérez la liste des agents de terrain et leur configuration de rotation.</p>
+          <button class="btn-primary" id="openAddAgentBtn">+ Ajouter un agent</button>
+        </div>
+        <div class="card" id="agentsCard">
           <table>
-            <thead><tr><th>Agent</th><th>Zone</th><th>Type</th><th>Shift fixe</th></tr></thead>
+            <thead><tr><th>Agent</th><th>Zone</th><th>Type</th><th>Shift fixe</th><th></th></tr></thead>
             <tbody id="agentsTableBody"></tbody>
           </table>
+          <div class="placeholder-view hidden" id="agentsEmptyState">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="8" r="3.5"/><path d="M2 21c0-4 3-6.5 7-6.5S16 17 16 21"/><circle cx="18" cy="9" r="2.5"/><path d="M22 21c0-3-1.8-5-4.5-5.3"/></svg>
+            <h3>Aucun agent pour l'instant</h3>
+            <p>Cliquez sur "Ajouter un agent" pour commencer à construire votre équipe.</p>
+          </div>
         </div>
       </section>
 
@@ -374,20 +427,9 @@ const db = firebase.firestore();
 /* ================= AGENTS DATA ================= */
 // shiftType: "FIX" (never alternates) or "VAR" (alternates JOUR/NUIT weekly by weekIdx parity)
 // fixedPeriod only applies when shiftType === "FIX"
-const AGENTS = [
-  { id: "achraf",   name: "Achraf Akhlij",     zone: "Agdal-Soussi",       shiftType: "VAR", fixedPeriod: null },
-  { id: "youssef",  name: "Youssef Derkaoui",  zone: "Hay Riad",           shiftType: "VAR", fixedPeriod: null },
-  { id: "aymane",   name: "Aymane Chlifane",   zone: "Carrousel-Hay Fath", shiftType: "VAR", fixedPeriod: null },
-  { id: "ayoub_a",  name: "Ayoub Abssi",       zone: "Hay Riad",           shiftType: "FIX", fixedPeriod: "JOUR" },
-  { id: "mourad",   name: "Mourad Cherradi",   zone: "Agdal-Soussi",       shiftType: "FIX", fixedPeriod: "NUIT" },
-  { id: "yahya",    name: "Yahya Rhallab",     zone: "Carrousel-Hay Fath", shiftType: "VAR", fixedPeriod: null },
-  { id: "hassan",   name: "Hassan Azgoune",    zone: "Salé-Medina",        shiftType: "VAR", fixedPeriod: null },
-  { id: "ayoub_b",  name: "Ayoub Ben Malek",   zone: "Salé-Medina",        shiftType: "VAR", fixedPeriod: null },
-  { id: "charaf",   name: "Charaf Loummihi",   zone: "Salé-Medina",        shiftType: "VAR", fixedPeriod: null },
-  { id: "zakariae", name: "Zakariae Benali",   zone: "Salé-Medina",        shiftType: "VAR", fixedPeriod: null },
-  { id: "islam",    name: "Islam Elmardi",     zone: "Temara",             shiftType: "FIX", fixedPeriod: "NUIT" },
-  { id: "oussama",  name: "Oussama El Atrach", zone: "Temara",             shiftType: "FIX", fixedPeriod: "JOUR" },
-];
+// L'app démarre vide — les agents sont ajoutés par l'utilisateur et stockés dans Firestore (collection "agents").
+let AGENTS = [];
+let agentsUnsub = null;
 const ZONES = ["Hay Riad", "Agdal-Soussi", "Carrousel-Hay Fath", "Temara", "Salé-Medina"];
 
 // Login profiles shown on the lock screen (admin + leads)
@@ -448,7 +490,8 @@ function enterApp(profile){
   document.getElementById('app').style.display = 'block';
   document.getElementById('sidebarUserName').textContent = profile.name;
   document.getElementById('sidebarUserRole').textContent = profile.role;
-  initDashboard();
+  populateZoneSelect();
+  listenAgents();
 }
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -503,6 +546,18 @@ function getAgentPeriod(agent, weekIdx){
   return (weekIdx % 2 === 0) ? 'JOUR' : 'NUIT';
 }
 
+/* ================= FIRESTORE: AGENTS LISTENER ================= */
+function listenAgents(){
+  if(agentsUnsub) agentsUnsub();
+  agentsUnsub = db.collection('agents').orderBy('name').onSnapshot(snap => {
+    AGENTS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    initDashboard();
+    renderAgentsTable();
+  }, err => {
+    console.error('Erreur de lecture des agents:', err);
+  });
+}
+
 /* ================= DASHBOARD ================= */
 function initDashboard(){
   const weekIdx = getWeekIndex();
@@ -514,7 +569,8 @@ function initDashboard(){
   document.getElementById('statActive').textContent = AGENTS.length;
   document.getElementById('statJour').textContent = jourCount;
   document.getElementById('statNuit').textContent = nuitCount;
-  document.getElementById('statZones').textContent = ZONES.length;
+  const zonesCovered = new Set(AGENTS.map(a => a.zone)).size;
+  document.getElementById('statZones').textContent = `${zonesCovered}`;
 
   const zoneGrid = document.getElementById('zoneGrid');
   zoneGrid.innerHTML = '';
@@ -525,13 +581,23 @@ function initDashboard(){
     card.innerHTML = `<h3>${zone}</h3><div class="count">${count}</div><div class="count-label">agent${count>1?'s':''} assigné${count>1?'s':''}</div>`;
     zoneGrid.appendChild(card);
   });
-
-  renderAgentsTable(weekIdx);
 }
 
-function renderAgentsTable(weekIdx){
+function renderAgentsTable(){
+  const weekIdx = getWeekIndex();
   const tbody = document.getElementById('agentsTableBody');
+  const emptyState = document.getElementById('agentsEmptyState');
+  const table = document.querySelector('#agentsCard table');
   tbody.innerHTML = '';
+
+  if(AGENTS.length === 0){
+    table.classList.add('hidden');
+    emptyState.classList.remove('hidden');
+    return;
+  }
+  table.classList.remove('hidden');
+  emptyState.classList.add('hidden');
+
   AGENTS.forEach(a => {
     const period = getAgentPeriod(a, weekIdx);
     const tr = document.createElement('tr');
@@ -540,9 +606,94 @@ function renderAgentsTable(weekIdx){
       <td>${a.zone}</td>
       <td><span class="badge ${a.shiftType === 'FIX' ? 'fix' : 'var'}">${a.shiftType === 'FIX' ? 'Fixe' : 'Alternant'}</span></td>
       <td><span class="badge ${period === 'JOUR' ? 'jour' : 'nuit'}">${period}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" data-edit="${a.id}" title="Modifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+          <button class="icon-btn danger" data-delete="${a.id}" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></button>
+        </div>
+      </td>
     `;
     tbody.appendChild(tr);
   });
+
+  tbody.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => openAgentModal(btn.dataset.edit)));
+  tbody.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', () => deleteAgent(btn.dataset.delete)));
+}
+
+/* ================= AGENT MODAL (Add / Edit) ================= */
+function populateZoneSelect(){
+  const sel = document.getElementById('agentZoneInput');
+  sel.innerHTML = ZONES.map(z => `<option value="${z}">${z}</option>`).join('');
+}
+
+let editingAgentId = null;
+
+function openAgentModal(agentId = null){
+  editingAgentId = agentId;
+  const overlay = document.getElementById('agentModalOverlay');
+  const title = document.getElementById('agentModalTitle');
+  const nameInput = document.getElementById('agentNameInput');
+  const zoneInput = document.getElementById('agentZoneInput');
+  const shiftTypeInput = document.getElementById('agentShiftTypeInput');
+  const fixedPeriodInput = document.getElementById('agentFixedPeriodInput');
+  document.getElementById('agentModalError').textContent = '';
+
+  if(agentId){
+    const agent = AGENTS.find(a => a.id === agentId);
+    title.textContent = 'Modifier l\'agent';
+    nameInput.value = agent.name;
+    zoneInput.value = agent.zone;
+    shiftTypeInput.value = agent.shiftType;
+    fixedPeriodInput.value = agent.fixedPeriod || 'JOUR';
+  } else {
+    title.textContent = 'Ajouter un agent';
+    nameInput.value = '';
+    zoneInput.selectedIndex = 0;
+    shiftTypeInput.value = 'VAR';
+    fixedPeriodInput.value = 'JOUR';
+  }
+  toggleFixedPeriodVisibility();
+  overlay.classList.remove('hidden');
+  nameInput.focus();
+}
+
+function closeAgentModal(){
+  document.getElementById('agentModalOverlay').classList.add('hidden');
+  editingAgentId = null;
+}
+
+function toggleFixedPeriodVisibility(){
+  const isFix = document.getElementById('agentShiftTypeInput').value === 'FIX';
+  document.getElementById('fixedPeriodGroup').classList.toggle('hidden', !isFix);
+}
+
+document.getElementById('openAddAgentBtn').addEventListener('click', () => openAgentModal(null));
+document.getElementById('cancelAgentBtn').addEventListener('click', closeAgentModal);
+document.getElementById('agentModalOverlay').addEventListener('click', e => { if(e.target.id === 'agentModalOverlay') closeAgentModal(); });
+document.getElementById('agentShiftTypeInput').addEventListener('change', toggleFixedPeriodVisibility);
+
+document.getElementById('saveAgentBtn').addEventListener('click', () => {
+  const name = document.getElementById('agentNameInput').value.trim();
+  const zone = document.getElementById('agentZoneInput').value;
+  const shiftType = document.getElementById('agentShiftTypeInput').value;
+  const fixedPeriod = shiftType === 'FIX' ? document.getElementById('agentFixedPeriodInput').value : null;
+  const errEl = document.getElementById('agentModalError');
+
+  if(!name){ errEl.textContent = 'Entrez le nom de l\'agent.'; return; }
+
+  const payload = { name, zone, shiftType, fixedPeriod };
+  const promise = editingAgentId
+    ? db.collection('agents').doc(editingAgentId).update(payload)
+    : db.collection('agents').add(payload);
+
+  promise.then(() => closeAgentModal())
+    .catch(err => { errEl.textContent = 'Erreur lors de l\'enregistrement.'; console.error(err); });
+});
+
+function deleteAgent(agentId){
+  const agent = AGENTS.find(a => a.id === agentId);
+  if(!confirm(`Supprimer ${agent ? agent.name : 'cet agent'} ?`)) return;
+  db.collection('agents').doc(agentId).delete().catch(err => console.error(err));
 }
 
 /* ================= AUTH STATE (persist session on refresh) ================= */
@@ -555,6 +706,38 @@ auth.onAuthStateChanged(user => {
 });
 
 renderProfiles();
-</script>
+</script><!-- AGENT MODAL -->
+<div class="modal-overlay hidden" id="agentModalOverlay">
+  <div class="modal-card">
+    <h3 id="agentModalTitle">Ajouter un agent</h3>
+    <label class="form-label">Nom complet</label>
+    <input type="text" id="agentNameInput" class="login-input" placeholder="Ex: Achraf Akhlij">
+
+    <label class="form-label">Zone</label>
+    <select id="agentZoneInput" class="login-input"></select>
+
+    <label class="form-label">Type de rotation</label>
+    <select id="agentShiftTypeInput" class="login-input">
+      <option value="VAR">Alternant (change JOUR/NUIT chaque semaine)</option>
+      <option value="FIX">Fixe (toujours le même)</option>
+    </select>
+
+    <div id="fixedPeriodGroup" class="hidden">
+      <label class="form-label">Période fixe</label>
+      <select id="agentFixedPeriodInput" class="login-input">
+        <option value="JOUR">JOUR</option>
+        <option value="NUIT">NUIT</option>
+      </select>
+    </div>
+
+    <div class="modal-error" id="agentModalError"></div>
+
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelAgentBtn">Annuler</button>
+      <button class="login-submit" id="saveAgentBtn" style="width:auto; padding:12px 22px;">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
