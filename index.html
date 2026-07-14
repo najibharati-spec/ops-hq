@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>OPS HQ — Planning V2</title>
+<title>OPS HQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,367 +15,321 @@
   --acc:#0E5C97;--acc2:#1478C2;--accbg:#E6F1FB;--accbdr:#A8CFEC;
   --energy:#F59E0B;--energybg:#FEF3E2;--energybdr:#FBD49C;
   --green:#0F9D6E;--gbg:#E7F9F1;--gbdr:#9CE8CC;
-  --amber:#D9750A;--abg:#FEF3E2;--abdr:#FBD49C;
   --red:#D64550;--rbg:#FDEEEF;--rbdr:#F3B7BC;
-  --purple:#7C5CBF;--pbg:#F2EEFB;--pbdr:#D3C5F0;
-  --night:#1E3A5F;--nightbg:#EAF0F7;--nightbdr:#B9CBE0;
   --shadow:0 1px 3px rgba(14,42,71,.07),0 1px 2px rgba(14,42,71,.04);
-  --shadow-md:0 4px 6px -1px rgba(14,42,71,.08),0 2px 4px -2px rgba(14,42,71,.05);
   --r:8px;--rl:12px;
   --font-display:'Space Grotesk',sans-serif;--font-body:'Inter',-apple-system,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size:14px;padding:24px}
-.wrap{max-width:1400px;margin:0 auto}
-.topbar{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:22px}
-.title{font-family:var(--font-display);font-size:24px;font-weight:700;letter-spacing:.3px}
-.title .v{font-size:11px;font-weight:700;color:var(--acc2);background:var(--accbg);border:1px solid var(--accbdr);padding:2px 9px;border-radius:20px;margin-left:8px;vertical-align:middle}
-.sub{font-size:12px;color:var(--t4);margin-top:3px}
-.week-nav{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:6px;box-shadow:var(--shadow)}
-.week-nav button{border:none;background:var(--bg3);color:var(--t2);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
-.week-nav button:hover{background:var(--accbg);color:var(--acc)}
-.week-nav input[type=date]{border:none;background:transparent;font-family:var(--font-body);font-weight:600;color:var(--t1);font-size:13px;padding:4px}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:var(--r);font-size:12.5px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--t2);font-weight:600;box-shadow:var(--shadow);transition:all .15s}
-.btn:hover{background:var(--bg);border-color:var(--t4)}
-.btn-primary{background:var(--acc);border-color:var(--acc);color:#fff}
+body{font-family:var(--font-body);background:var(--bg);color:var(--t1);font-size:14px}
+.page{display:none;min-height:100vh}.page.active{display:flex}
+
+/* LOGIN */
+.login-page{align-items:center;justify-content:center;background:linear-gradient(135deg,#0E2A47 0%,#0E5C97 55%,#0EA5E9 100%);width:100%}
+.login-card{background:#fff;border-radius:16px;padding:36px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(14,42,71,.35)}
+.logo-text{font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--acc);letter-spacing:4px;text-align:center;display:block}
+.logo-sub{font-size:11px;color:var(--t4);letter-spacing:2px;text-align:center;margin-top:4px;margin-bottom:26px;text-transform:uppercase;display:block}
+.profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.profile-btn{background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:12px 6px;text-align:center;cursor:pointer;transition:all .15s}
+.profile-btn:hover{border-color:var(--acc);background:var(--accbg)}
+.profile-avatar{width:36px;height:36px;border-radius:50%;background:var(--accbg);color:var(--acc);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:12px;margin:0 auto 6px}
+.profile-name{font-size:10.5px;font-weight:600;color:var(--t2);line-height:1.2}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600}
+.field input,.field select{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:11px 12px;font-size:14px;outline:none}
+.field input:focus{border-color:var(--acc);background:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 16px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--t2);transition:all .15s}
+.btn:hover{background:var(--bg)}
+.btn-primary{width:100%;background:var(--acc);border-color:var(--acc);color:#fff}
 .btn-primary:hover{background:var(--acc2)}
-.btn-ghost{background:var(--bg3);border-color:var(--border)}
+.btn-link{background:none;border:none;color:var(--t4);font-size:12px;text-align:center;width:100%;margin-top:12px;cursor:pointer}
+.err-msg{background:var(--rbg);border:1px solid var(--rbdr);color:var(--red);border-radius:var(--r);padding:9px 12px;font-size:12.5px;margin-bottom:12px;display:none}
 
-.summary{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
-.scard{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;box-shadow:var(--shadow)}
-.slabel{font-size:10px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:6px}
-.sval{font-family:var(--font-display);font-size:22px;font-weight:700}
+/* APP SHELL */
+.app-page{flex-direction:row;width:100%}
+.sidebar{width:220px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:100vh;position:sticky;top:0;height:100vh;flex-shrink:0}
+.sb-logo{padding:20px 18px;border-bottom:1px solid var(--border)}
+.sb-logo .logo-text{font-size:16px;letter-spacing:2px;text-align:left}
+.sb-logo .logo-sub{text-align:left;margin:2px 0 0;font-size:9px}
+.nav-sec{padding:16px 18px 4px;font-size:9.5px;color:var(--t4);letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 18px;font-size:13px;color:var(--t3);cursor:pointer;border-left:2px solid transparent;font-weight:500}
+.nav-item:hover{color:var(--t2);background:var(--bg)}
+.nav-item.active{color:var(--acc);background:var(--accbg);border-left-color:var(--energy)}
+.sb-user{margin-top:auto;padding:16px 18px;border-top:1px solid var(--border)}
+.sb-user .uname{font-size:13px;font-weight:600;font-family:var(--font-display)}
+.sb-user .urole{font-size:11px;color:var(--t4);margin-top:2px}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;margin-top:6px}
+.badge-blue{background:var(--accbg);color:var(--acc2)}
 
-.card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}
-.card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.card-head .ct{font-size:11px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
-.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--t3);padding:10px 18px;border-bottom:1px solid var(--border);background:var(--bg3)}
-.legend span{display:inline-flex;align-items:center;gap:5px}
-.dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+.main{flex:1;padding:28px 32px;overflow-y:auto;max-height:100vh}
+.topbar{margin-bottom:24px}
+.ptitle{font-family:var(--font-display);font-size:22px;font-weight:700}
+.psub{font-size:12px;color:var(--t4);margin-top:3px}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);box-shadow:var(--shadow)}
+.empty-card{text-align:center;padding:60px 24px;color:var(--t4)}
+.empty-card i{font-size:40px;display:block;margin-bottom:12px;opacity:.5}
+.empty-card .l1{font-size:14px;color:var(--t3)}
+.empty-card .l2{font-size:12px;margin-top:4px}
+.section{display:none}.section.active{display:block}
 
-table{width:100%;border-collapse:collapse}
-th{background:var(--acc);color:#fff;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;padding:11px 8px;text-align:center;font-weight:700;white-space:nowrap}
-th.agent-col{text-align:left;padding-left:16px}
-td{padding:6px;text-align:center;border-bottom:1px solid var(--border);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--bg3)}
-.agent-cell{text-align:left;padding-left:16px;display:flex;align-items:center;gap:10px}
-.avatar{width:30px;height:30px;border-radius:50%;background:var(--accbg);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--font-display);flex-shrink:0}
-.agent-name{font-weight:600;color:var(--t1);font-size:13px}
-.agent-grp{font-size:10px;color:var(--t4);margin-top:1px}
-
-select.cell-sel{width:100%;min-width:100px;border:1.5px solid var(--border);border-radius:7px;padding:7px 4px;font-size:11.5px;font-weight:700;text-align:center;text-align-last:center;cursor:pointer;font-family:var(--font-body);color:var(--t2);background:#fff;outline:none;transition:all .15s;appearance:none}
-select.cell-sel:focus{border-color:var(--acc)}
-select.st-off{background:var(--t1);color:#fff;border-color:var(--t1)}
-select.st-morning{background:var(--gbg);color:var(--green);border-color:var(--gbdr)}
-select.st-night{background:var(--nightbg);color:var(--night);border-color:var(--nightbdr)}
-select.st-absent{background:var(--rbg);color:var(--red);border-color:var(--rbdr)}
-select.st-conge{background:var(--abg);color:var(--amber);border-color:var(--abdr)}
-select.st-empty{background:var(--bg3);color:var(--t4);border-style:dashed}
-
-select.zone-sel{width:100%;min-width:150px;border:1px solid var(--border);border-radius:7px;padding:7px 8px;font-size:11.5px;font-weight:600;color:var(--t2);background:#fff;cursor:pointer}
-
-.total-badge{display:inline-block;font-family:var(--font-display);font-size:13px;font-weight:700;padding:5px 10px;border-radius:7px;min-width:44px}
-.total-ok{background:var(--gbg);color:var(--green)}
-.total-warn{background:var(--abg);color:var(--amber)}
-.total-over{background:var(--rbg);color:var(--red)}
-
-.grp-sep td{border-bottom:2px solid var(--border)}
-.grp-label{font-size:9.5px;color:var(--t4);letter-spacing:1.2px;text-transform:uppercase;font-weight:700;padding:10px 16px 4px}
-
-.foot-note{font-size:11px;color:var(--t4);padding:12px 18px;border-top:1px solid var(--border);background:var(--bg3)}
-.pill{display:inline-block;background:var(--energybg);color:var(--amber);border:1px solid var(--energybdr);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.4px}
-
-@media(max-width:900px){.summary{grid-template-columns:repeat(2,1fr)}.card{overflow-x:auto}}
+@media(max-width:800px){.sidebar{width:70px}.sidebar .nav-item span,.sb-logo .logo-sub,.sb-user{display:none}.nav-sec{display:none}}
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="topbar">
-    <div>
-      <div class="title">Planning <span class="v">V2 · Version 1</span></div>
-      <div class="sub">Base propre — 13 agents, 5 zones, contrôle manuel total. Rotation automatique arrive en V2.</div>
+<!-- LOGIN PAGE -->
+<div class="page login-page active" id="loginPage">
+  <div class="login-card">
+    <span class="logo-text">OPS HQ</span>
+    <span class="logo-sub">Field Management System</span>
+
+    <div id="profilePickerView">
+      <div class="profile-grid" id="profileGrid"></div>
+      <div class="btn" style="width:100%;justify-content:center" onclick="showAdminLogin()"><i class="ti ti-shield-lock"></i> Connexion Admin</div>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-      <div class="week-nav">
-        <button onclick="shiftWeek(-7)"><i class="ti ti-chevron-left"></i></button>
-        <input type="date" id="weekPicker" onchange="onWeekPick()"/>
-        <button onclick="shiftWeek(7)"><i class="ti ti-chevron-right"></i></button>
+
+    <div id="pinView" style="display:none">
+      <div class="field">
+        <label id="pinAgentName">Agent</label>
+        <input type="password" id="pinInput" placeholder="Code PIN" maxlength="20" inputmode="numeric"/>
       </div>
-      <div class="actions">
-        <span class="btn btn-ghost" onclick="copyPrevWeek()"><i class="ti ti-copy"></i> Copier semaine précédente</span>
-        <span class="btn btn-ghost" onclick="resetWeek()"><i class="ti ti-eraser"></i> Vider la semaine</span>
-        <span class="btn btn-primary" onclick="saveWeek(true)"><i class="ti ti-device-floppy"></i> Enregistrer</span>
+      <div class="err-msg" id="pinError"></div>
+      <div class="btn btn-primary" onclick="submitPin()">Déverrouiller</div>
+      <div class="btn-link" onclick="backToProfiles()">← Retour</div>
+    </div>
+
+    <div id="adminView" style="display:none">
+      <div class="field">
+        <label>Identifiant</label>
+        <input type="text" id="loginEmail" placeholder="votre.nom@opshq.ma" autocomplete="username"/>
       </div>
+      <div class="field">
+        <label>Mot de passe</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <div class="err-msg" id="loginError"></div>
+      <div class="btn btn-primary" onclick="handleLogin()">Se connecter</div>
+      <div class="btn-link" onclick="backToProfiles()">← Retour</div>
     </div>
   </div>
-
-  <div class="summary" id="summaryGrid"></div>
-
-  <div class="card">
-    <div class="card-head">
-      <span class="ct">Semaine du <span id="weekRangeLabel">—</span></span>
-      <span class="pill" id="saveStatus">Enregistré localement</span>
-    </div>
-    <div class="legend">
-      <span><span class="dot" style="background:var(--green)"></span> Morning</span>
-      <span><span class="dot" style="background:var(--night)"></span> Night</span>
-      <span><span class="dot" style="background:var(--t1)"></span> OFF</span>
-      <span><span class="dot" style="background:var(--red)"></span> Absent</span>
-      <span><span class="dot" style="background:var(--amber)"></span> Congé</span>
-      <span style="margin-left:auto;color:var(--t4)">Cible : 4×7h + 2×8h (Ven/Sam) + 1 OFF = 44h</span>
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th class="agent-col">Agent</th>
-          <th>Lundi</th><th>Mardi</th><th>Mercredi</th><th>Jeudi</th><th>Vendredi</th><th>Samedi</th><th>Dimanche</th>
-          <th>Zone</th>
-          <th>Total</th>
-        </tr>
-      </thead>
-      <tbody id="planBody"></tbody>
-    </table>
-    <div class="foot-note">
-      💡 Zones fixes : <b>Zakariae Benali</b> → Technopolis · <b>Charaf, Ayoub Ben Malek, Hassan</b> → Salé-Medina. Les 9 autres agents tournent par groupes de 3 sur Agdal-Carrousel / Hay Riad-Soussi / Temara-Oulad Mtaa — la rotation automatique de ces zones arrive en V2, pour l'instant tu les changes toi-même via le menu Zone.
-    </div>
-  </div>
-
 </div>
 
+<!-- APP PAGE -->
+<div class="page app-page" id="appPage">
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <span class="logo-text">OPS HQ</span>
+      <span class="logo-sub">Field Management</span>
+    </div>
+
+    <div class="admin-only">
+      <span class="nav-sec">Principal</span>
+      <div class="nav-item active" onclick="go('dashboard',this)"><i class="ti ti-layout-dashboard"></i><span> Dashboard</span></div>
+      <div class="nav-item" onclick="go('planning',this)"><i class="ti ti-calendar"></i><span> Planning</span></div>
+      <div class="nav-item" onclick="go('agents',this)"><i class="ti ti-users"></i><span> Agents</span></div>
+      <span class="nav-sec">Gestion</span>
+      <div class="nav-item" onclick="go('rapports',this)"><i class="ti ti-file-text"></i><span> Rapports</span></div>
+      <div class="nav-item" onclick="go('absences',this)"><i class="ti ti-calendar-x"></i><span> Absences</span></div>
+      <div class="nav-item" onclick="go('pointage',this)"><i class="ti ti-clipboard-list"></i><span> Pointage</span></div>
+      <div class="nav-item" onclick="go('suggestions',this)"><i class="ti ti-message-2"></i><span> Suggestions</span></div>
+    </div>
+
+    <div class="agent-only" style="display:none">
+      <span class="nav-sec">Principal</span>
+      <div class="nav-item active" onclick="go('monplanning',this)"><i class="ti ti-calendar"></i><span> Mon Planning</span></div>
+      <div class="nav-item" onclick="go('mesrapports',this)"><i class="ti ti-file-text"></i><span> Mes Rapports</span></div>
+      <div class="nav-item" onclick="go('mespointage',this)"><i class="ti ti-clipboard-list"></i><span> Pointage</span></div>
+      <div class="nav-item" onclick="go('messuggestions',this)"><i class="ti ti-message-2"></i><span> Suggestions</span></div>
+    </div>
+
+    <div class="sb-user">
+      <div class="uname" id="sbUserName">—</div>
+      <div class="urole" id="sbUserRole">—</div>
+      <span class="badge badge-blue" id="sbUserBadge"></span>
+      <br/><br/>
+      <span class="btn" style="cursor:pointer;width:100%;justify-content:center" onclick="doLogout()"><i class="ti ti-logout"></i> Déconnexion</span>
+    </div>
+  </aside>
+
+  <main class="main" id="mainContent">
+    <!-- Chaque section est vide pour l'instant : on les reconstruit une par une -->
+    <div class="section active" id="sec-dashboard" data-title="Dashboard"></div>
+    <div class="section" id="sec-planning" data-title="Planning"></div>
+    <div class="section" id="sec-agents" data-title="Agents"></div>
+    <div class="section" id="sec-rapports" data-title="Rapports"></div>
+    <div class="section" id="sec-absences" data-title="Absences"></div>
+    <div class="section" id="sec-pointage" data-title="Pointage"></div>
+    <div class="section" id="sec-suggestions" data-title="Suggestions"></div>
+    <div class="section" id="sec-monplanning" data-title="Mon Planning"></div>
+    <div class="section" id="sec-mesrapports" data-title="Mes Rapports"></div>
+    <div class="section" id="sec-mespointage" data-title="Pointage"></div>
+    <div class="section" id="sec-messuggestions" data-title="Suggestions"></div>
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
 // ============================================================
-// OPS HQ — PLANNING V2 (V1 : base propre, contrôle manuel)
+// Connexion Firebase — inchangée, aucune donnée touchée
+// (SDK "compat" chargé en <script> classique : marche même en ouvrant
+//  le fichier directement en double-clic, pas besoin de serveur)
 // ============================================================
+const FC={apiKey:"AIzaSyDWL5H3OcGVRUpdpKu1T-8_P-5ieCtALBQ",authDomain:"ops-hq-v2.firebaseapp.com",projectId:"ops-hq-v2",storageBucket:"ops-hq-v2.firebasestorage.app",messagingSenderId:"651634935763",appId:"1:651634935763:web:57299286c5d0464d3ad126"};
+firebase.initializeApp(FC);
+const auth=firebase.auth();
+const db=firebase.firestore();
 
-const DAYS = ["mon","mar","mer","jeu","ven","sam","dim"];
-const DAY_LABELS = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
-
-const ZONES = ["Agdal - Carrousel","Hay Riad - Soussi","Salé - Medina","Technopolis","Temara - Oulad Mtaa"];
-
-// Shift catalogue: value -> {label, hours, kind}
-const SHIFTS = {
-  ""            : {label:"—",            hours:0, kind:"empty"},
-  "OFF"         : {label:"OFF",           hours:0, kind:"off"},
-  "10:00-17:00" : {label:"10:00-17:00",   hours:7, kind:"morning"},
-  "10:00-18:00" : {label:"10:00-18:00",   hours:8, kind:"morning"},
-  "17:00-00:00" : {label:"17:00-00:00",   hours:7, kind:"night"},
-  "17:00-01:00" : {label:"17:00-01:00",   hours:8, kind:"night"},
-  "18:00-01:00" : {label:"18:00-01:00",   hours:7, kind:"night"},
-  "18:00-02:00" : {label:"18:00-02:00",   hours:8, kind:"night"},
-  "ABSENT"      : {label:"ABSENT",        hours:0, kind:"absent"},
-  "CONGE"       : {label:"CONGÉ",         hours:0, kind:"conge"},
-};
-const KIND_CLASS = {empty:"st-empty",off:"st-off",morning:"st-morning",night:"st-night",absent:"st-absent",conge:"st-conge"};
-
-// 13 agents, grouped exactly as discussed with Najib
-const GROUPS = [
-  {label:"Groupe Temara (rotation)", zone:"Temara - Oulad Mtaa", agents:["Yahya Rhallah","Aymane Chlifane","Mehdi Ait Jebour"]},
-  {label:"Groupe Hay Riad (rotation)", zone:"Hay Riad - Soussi", agents:["Achraf Akhlij","Islam Elmardi","Oussama El Atrach"]},
-  {label:"Groupe Agdal (rotation)", zone:"Agdal - Carrousel", agents:["Youssef Derkoui","Mourad Cherradi","Ayoub Abssi"]},
-  {label:"Salé-Medina (zone fixe, shift tournant)", zone:"Salé - Medina", agents:["Ayoub Ben Malek","Hassan Azgoune","Charaf Loummihi"]},
-  {label:"Technopolis (fixe)", zone:"Technopolis", agents:["Zakariae Benali"]},
+// ============================================================
+// Roster — les 13 agents (données de base, pas une "fonctionnalité")
+// ============================================================
+const AGENTS=[
+  {name:"Yahya Rhallah",    ini:"YR",  zone:"Temara - Oulad Mtaa", pin:"3456"},
+  {name:"Aymane Chlifane",  ini:"AC",  zone:"Temara - Oulad Mtaa", pin:"2345"},
+  {name:"Mehdi Ait Jebour", ini:"MAJ", zone:"Temara - Oulad Mtaa", pin:"2244"},
+  {name:"Achraf Akhlij",    ini:"AA",  zone:"Hay Riad - Soussi",   pin:"4567"},
+  {name:"Islam Elmardi",    ini:"IE",  zone:"Hay Riad - Soussi",   pin:"6789"},
+  {name:"Oussama El Atrach",ini:"OE",  zone:"Hay Riad - Soussi",   pin:"5678"},
+  {name:"Youssef Derkoui",  ini:"YD",  zone:"Agdal - Carrousel",   pin:"1234"},
+  {name:"Mourad Cherradi",  ini:"MC",  zone:"Agdal - Carrousel",   pin:"8901"},
+  {name:"Ayoub Abssi",      ini:"ABS", zone:"Agdal - Carrousel",   pin:"7890"},
+  {name:"Ayoub Ben Malek",  ini:"ABM", zone:"Salé - Medina",       pin:"9012"},
+  {name:"Hassan Azgoune",   ini:"HA",  zone:"Salé - Medina",       pin:"0123"},
+  {name:"Charaf Loummihi",  ini:"CL",  zone:"Salé - Medina",       pin:"2468"},
+  {name:"Zakariae Benali",  ini:"ZB",  zone:"Technopolis",         pin:"1357"},
 ];
-const AGENTS = GROUPS.flatMap(g => g.agents.map(name => ({name, defaultZone:g.zone, group:g.label})));
 
-function initials(name){
-  return name.split(" ").map(w=>w[0]).join("").slice(0,3).toUpperCase();
+let pinTarget=null, userRole=null, myAgent=null;
+
+function initials(name){ return name.split(" ").map(w=>w[0]).join("").slice(0,3).toUpperCase(); }
+
+function buildProfileGrid(){
+  const grid=document.getElementById("profileGrid");
+  grid.innerHTML="";
+  AGENTS.forEach(ag=>{
+    const btn=document.createElement("div");
+    btn.className="profile-btn";
+    btn.innerHTML=`<div class="profile-avatar">${ag.ini}</div><div class="profile-name">${ag.name}</div>`;
+    btn.onclick=()=>openPinView(ag);
+    grid.appendChild(btn);
+  });
 }
-
-// ---------- Week handling ----------
-function getMonday(d){
-  const c = new Date(d); const day = c.getDay();
-  c.setDate(c.getDate() - day + (day===0?-6:1)); c.setHours(0,0,0,0);
-  return c;
+function openPinView(ag){
+  pinTarget=ag;
+  document.getElementById("profilePickerView").style.display="none";
+  document.getElementById("pinView").style.display="block";
+  document.getElementById("pinAgentName").textContent=ag.name;
+  document.getElementById("pinInput").value="";
+  document.getElementById("pinError").style.display="none";
+  setTimeout(()=>document.getElementById("pinInput").focus(),100);
 }
-function addDays(d,n){ const r = new Date(d); r.setDate(r.getDate()+n); return r; }
-function iso(d){ const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,"0"); const day=String(d.getDate()).padStart(2,"0"); return `${y}-${m}-${day}`; }
-function fmt(d){ return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"}); }
-
-let weekStart = getMonday(new Date());
-
-// ---------- Seed data (semaine de référence donnée par Najib) ----------
-const SEED_MONDAY = "2026-07-13";
-const SEED = {
-  "Yahya Rhallah":     {zone:"Temara - Oulad Mtaa", days:["OFF","18:00-01:00","18:00-01:00","18:00-01:00","18:00-02:00","18:00-02:00","18:00-01:00"]},
-  "Aymane Chlifane":   {zone:"Temara - Oulad Mtaa", days:["10:00-17:00","OFF","10:00-17:00","10:00-17:00","10:00-18:00","10:00-18:00","10:00-17:00"]},
-  "Mehdi Ait Jebour":  {zone:"Temara - Oulad Mtaa", days:["18:00-01:00","18:00-01:00","OFF","18:00-01:00","18:00-02:00","18:00-02:00","18:00-01:00"]},
-  "Achraf Akhlij":     {zone:"Hay Riad - Soussi",   days:["OFF","18:00-01:00","18:00-01:00","18:00-01:00","18:00-02:00","18:00-02:00","18:00-01:00"]},
-  "Islam Elmardi":     {zone:"Hay Riad - Soussi",   days:["18:00-01:00","OFF","18:00-01:00","18:00-01:00","18:00-02:00","18:00-02:00","18:00-01:00"]},
-  "Oussama El Atrach": {zone:"Hay Riad - Soussi",   days:["10:00-17:00","10:00-17:00","10:00-17:00","OFF","10:00-18:00","10:00-18:00","10:00-17:00"]},
-  "Youssef Derkoui":   {zone:"Agdal - Carrousel",   days:["OFF","18:00-01:00","18:00-01:00","18:00-01:00","18:00-02:00","18:00-02:00","18:00-01:00"]},
-  "Mourad Cherradi":   {zone:"Agdal - Carrousel",   days:["18:00-01:00","OFF","18:00-01:00","18:00-01:00","18:00-02:00","18:00-02:00","18:00-01:00"]},
-  "Ayoub Abssi":       {zone:"Agdal - Carrousel",   days:["10:00-17:00","10:00-17:00","OFF","10:00-17:00","10:00-18:00","10:00-18:00","10:00-17:00"]},
-  "Ayoub Ben Malek":   {zone:"Salé - Medina",       days:["18:00-01:00","18:00-01:00","18:00-01:00","OFF","18:00-02:00","18:00-02:00","18:00-01:00"]},
-  "Hassan Azgoune":    {zone:"Salé - Medina",       days:["OFF","10:00-17:00","10:00-17:00","10:00-17:00","10:00-18:00","10:00-18:00","10:00-17:00"]},
-  "Charaf Loummihi":   {zone:"Salé - Medina",       days:["18:00-01:00","OFF","18:00-01:00","18:00-01:00","18:00-02:00","18:00-02:00","18:00-01:00"]},
-  "Zakariae Benali":   {zone:"Technopolis",         days:["10:00-17:00","10:00-17:00","OFF","10:00-17:00","10:00-18:00","10:00-18:00","10:00-17:00"]},
+window.showAdminLogin=()=>{
+  document.getElementById("profilePickerView").style.display="none";
+  document.getElementById("adminView").style.display="block";
+};
+window.backToProfiles=()=>{
+  document.getElementById("pinView").style.display="none";
+  document.getElementById("adminView").style.display="none";
+  document.getElementById("profilePickerView").style.display="block";
+};
+window.submitPin=()=>{
+  const val=document.getElementById("pinInput").value.trim();
+  const errEl=document.getElementById("pinError");
+  if(val!==pinTarget.pin){
+    errEl.textContent="Code PIN incorrect.";
+    errEl.style.display="block";
+    return;
+  }
+  myAgent=pinTarget;
+  userRole="agent";
+  enterApp();
+};
+window.handleLogin=async()=>{
+  const email=document.getElementById("loginEmail").value.trim();
+  const password=document.getElementById("loginPassword").value;
+  const errEl=document.getElementById("loginError");
+  errEl.style.display="none";
+  try{
+    const cred=await auth.signInWithEmailAndPassword(email,password);
+    const snap=await db.collection("users").doc(cred.user.uid).get();
+    if(!snap.exists||snap.data().role!=="admin")throw new Error("Compte non autorisé.");
+    userRole="admin";
+    enterApp();
+  }catch(e){
+    errEl.textContent="Identifiant ou mot de passe incorrect.";
+    errEl.style.display="block";
+  }
+};
+window.doLogout=async()=>{
+  try{ await auth.signOut(); }catch(e){}
+  userRole=null; myAgent=null;
+  document.getElementById("appPage").classList.remove("active");
+  document.getElementById("loginPage").classList.add("active");
+  window.backToProfiles();
 };
 
-function storageKey(mondayISO){ return "opshq_planning_v2_" + mondayISO; }
-
-function emptyWeekData(){
-  const data = {};
-  AGENTS.forEach(a => { data[a.name] = {zone:a.defaultZone, days:["","","","","","",""]}; });
-  return data;
-}
-
-function loadWeekData(mondayISO){
-  const raw = localStorage.getItem(storageKey(mondayISO));
-  if(raw){ try{ return JSON.parse(raw); }catch(e){} }
-  if(mondayISO === SEED_MONDAY){
-    return JSON.parse(JSON.stringify(SEED));
-  }
-  return emptyWeekData();
-}
-
-let weekData = {};
-
-function saveWeek(showToast){
-  localStorage.setItem(storageKey(iso(weekStart)), JSON.stringify(weekData));
-  if(showToast){
-    const s = document.getElementById("saveStatus");
-    s.textContent = "✅ Enregistré";
-    setTimeout(()=> s.textContent = "Enregistré localement", 1500);
+function enterApp(){
+  document.getElementById("loginPage").classList.remove("active");
+  document.getElementById("appPage").classList.add("active");
+  document.querySelectorAll(".admin-only").forEach(el=>el.style.display=userRole==="admin"?"":"none");
+  document.querySelectorAll(".agent-only").forEach(el=>el.style.display=userRole==="agent"?"":"none");
+  if(userRole==="admin"){
+    document.getElementById("sbUserName").textContent="Najib Harati";
+    document.getElementById("sbUserRole").textContent="Lead On-Field Agent";
+    document.getElementById("sbUserBadge").textContent="ADMIN";
+    go("dashboard");
+  }else{
+    document.getElementById("sbUserName").textContent=myAgent.name;
+    document.getElementById("sbUserRole").textContent=myAgent.zone;
+    document.getElementById("sbUserBadge").textContent="AGENT";
+    go("monplanning");
   }
 }
 
-function shiftWeek(n){
-  weekStart = addDays(weekStart, n);
-  loadAndRender();
-}
-function onWeekPick(){
-  const v = document.getElementById("weekPicker").value;
-  if(!v) return;
-  weekStart = getMonday(new Date(v+"T00:00:00"));
-  loadAndRender();
-}
-function copyPrevWeek(){
-  const prevMonday = iso(addDays(weekStart,-7));
-  const raw = localStorage.getItem(storageKey(prevMonday));
-  if(!raw){ alert("Aucune semaine précédente enregistrée."); return; }
-  weekData = JSON.parse(raw);
-  saveWeek(false);
-  renderTable();
-  renderSummary();
-}
-function resetWeek(){
-  if(!confirm("Vider tous les shifts de cette semaine ?")) return;
-  weekData = emptyWeekData();
-  saveWeek(false);
-  renderTable();
-  renderSummary();
-}
+// ============================================================
+// Router — chaque section est vide, on la construira au fur et à mesure
+// ============================================================
+window.go=(id, el)=>{
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  const sec=document.getElementById("sec-"+id);
+  if(sec)sec.classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  if(el)el.classList.add("active");
+  renderEmptySection(id);
+};
 
-function loadAndRender(){
-  document.getElementById("weekPicker").value = iso(weekStart);
-  document.getElementById("weekRangeLabel").textContent = fmt(weekStart) + " → " + fmt(addDays(weekStart,6));
-  weekData = loadWeekData(iso(weekStart));
-  renderTable();
-  renderSummary();
+function renderEmptySection(id){
+  const sec=document.getElementById("sec-"+id);
+  if(!sec||sec.dataset.rendered)return;
+  const title=sec.dataset.title||id;
+  sec.innerHTML=`
+    <div class="topbar">
+      <div class="ptitle">${title}</div>
+      <div class="psub">Page vide — on la construit ensemble, étape par étape.</div>
+    </div>
+    <div class="card empty-card">
+      <i class="ti ti-file-off"></i>
+      <div class="l1">Aucune interface pour le moment.</div>
+      <div class="l2">Dis-moi ce que tu veux ici et on la construit.</div>
+    </div>`;
+  sec.dataset.rendered="1";
 }
 
-// ---------- Rendering ----------
-function calcTotal(agentName){
-  const d = weekData[agentName];
-  if(!d) return 0;
-  return d.days.reduce((sum,v)=> sum + (SHIFTS[v]?.hours || 0), 0);
-}
+// Session Firebase existante → connexion auto (admin uniquement, les agents utilisent le PIN à chaque fois)
+auth.onAuthStateChanged(async(user)=>{
+  if(user && !userRole){
+    try{
+      const snap=await db.collection("users").doc(user.uid).get();
+      if(snap.exists && snap.data().role==="admin"){
+        userRole="admin";
+        enterApp();
+      }
+    }catch(e){}
+  }
+});
 
-function totalClass(h){
-  if(h===44) return "total-ok";
-  if(h>44) return "total-over";
-  if(h===0) return "";
-  return "total-warn";
-}
-
-function shiftOptionsHtml(selected){
-  return Object.keys(SHIFTS).map(v=>{
-    const s = SHIFTS[v];
-    const lbl = v==="" ? "—" : (s.hours ? `${s.label} (${s.hours}h)` : s.label);
-    return `<option value="${v}" ${v===selected?"selected":""}>${lbl}</option>`;
-  }).join("");
-}
-
-function renderTable(){
-  const tbody = document.getElementById("planBody");
-  tbody.innerHTML = "";
-  GROUPS.forEach(grp=>{
-    const trLabel = document.createElement("tr");
-    trLabel.innerHTML = `<td colspan="10" class="grp-label">${grp.label}</td>`;
-    tbody.appendChild(trLabel);
-
-    grp.agents.forEach(name=>{
-      const ag = weekData[name] || (weekData[name] = {zone:grp.zone, days:["","","","","","",""]});
-      const tr = document.createElement("tr");
-      let cells = `<td><div class="agent-cell"><div class="avatar">${initials(name)}</div><div><div class="agent-name">${name}</div></div></div></td>`;
-
-      DAYS.forEach((d,i)=>{
-        const val = ag.days[i] || "";
-        const kind = SHIFTS[val]?.kind || "empty";
-        cells += `<td><select class="cell-sel ${KIND_CLASS[kind]}" onchange="onCellChange('${name}',${i},this.value)">${shiftOptionsHtml(val)}</select></td>`;
-      });
-
-      cells += `<td><select class="zone-sel" onchange="onZoneChange('${name}',this.value)">${ZONES.map(z=>`<option value="${z}" ${z===ag.zone?"selected":""}>${z}</option>`).join("")}</select></td>`;
-
-      const total = calcTotal(name);
-      cells += `<td><span class="total-badge ${totalClass(total)}">${total}h</span></td>`;
-
-      tr.innerHTML = cells;
-      tbody.appendChild(tr);
-    });
-  });
-}
-
-function onCellChange(name, dayIdx, val){
-  weekData[name].days[dayIdx] = val;
-  saveWeek(false);
-  renderTable();
-  renderSummary();
-}
-function onZoneChange(name, zone){
-  weekData[name].zone = zone;
-  saveWeek(false);
-  renderTable();
-}
-
-function renderSummary(){
-  let morning=0, night=0, off=0, absent=0, conge=0, h7=0, h8=0, over44=0;
-  AGENTS.forEach(a=>{
-    const d = weekData[a.name];
-    if(!d) return;
-    d.days.forEach(v=>{
-      const s = SHIFTS[v];
-      if(!s) return;
-      if(s.kind==="morning") morning++;
-      if(s.kind==="night") night++;
-      if(s.kind==="off") off++;
-      if(s.kind==="absent") absent++;
-      if(s.kind==="conge") conge++;
-      if(s.hours===7) h7++;
-      if(s.hours===8) h8++;
-    });
-    if(calcTotal(a.name) > 44) over44++;
-  });
-
-  const cards = [
-    {label:"Agents", val:AGENTS.length},
-    {label:"Morning", val:morning},
-    {label:"Night", val:night},
-    {label:"OFF", val:off},
-    {label:"7h / 8h", val:`${h7} / ${h8}`},
-    {label:"Dépassement 44h", val:over44},
-  ];
-  document.getElementById("summaryGrid").innerHTML = cards.map(c=>`
-    <div class="scard">
-      <div class="slabel">${c.label}</div>
-      <div class="sval" style="${c.label==='Dépassement 44h'&&c.val>0?'color:var(--red)':''}">${c.val}</div>
-    </div>`).join("");
-}
-
-loadAndRender();
+buildProfileGrid();
 </script>
 </body>
 </html>
