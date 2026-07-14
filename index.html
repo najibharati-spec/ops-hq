@@ -11,6 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
 :root{
@@ -278,6 +279,74 @@ tr:last-child td{ border-bottom:none; }
 .form-label:first-of-type{ margin-top: 0; }
 .modal-error{ font-size: 12.5px; color: var(--red); min-height: 16px; margin-top: 6px; }
 .modal-actions{ display:flex; justify-content:flex-end; gap: 8px; margin-top: 16px; }
+.modal-hint{ font-size: 12px; color: var(--ink-soft); background: var(--sand); border-radius: 8px; padding: 8px 10px; margin-top: 10px; line-height: 1.4; }
+
+/* ============ PLANNING ============ */
+.planning-header{
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap: 14px;
+  margin-bottom: 16px;
+}
+.week-nav{ display:flex; align-items:center; gap: 12px; }
+.icon-btn-lg{
+  width: 34px; height: 34px; border-radius: 9px; background: var(--paper); border: 1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; color: var(--sky-ink);
+  transition: all .12s;
+}
+.icon-btn-lg svg{ width: 16px; height:16px; }
+.icon-btn-lg:hover{ background: var(--sand); }
+.week-label{ text-align:center; min-width: 190px; }
+.week-label b{ display:block; font-size: 14.5px; font-weight: 800; }
+.week-label span{ font-size: 11.5px; color: var(--ink-soft); font-family: var(--font-mono); }
+.planning-actions{ display:flex; gap: 8px; flex-wrap: wrap; }
+
+.planning-tabs{ display:flex; gap: 4px; margin-bottom: 14px; }
+.ptab{
+  padding: 8px 16px; border-radius: 8px; background: transparent; color: var(--ink-soft);
+  font-size: 13px; font-weight: 700;
+}
+.ptab.active{ background: var(--sky-ink); color: #fff; }
+.ptab:not(.active):hover{ background: var(--sand); }
+
+.planning-card{ overflow-x: auto; }
+.planning-table{ width: 100%; border-collapse: collapse; min-width: 920px; }
+.planning-table th, .planning-table td{ padding: 8px 10px; font-size: 12.5px; border-bottom: 1px solid var(--line); text-align:center; white-space: nowrap; }
+.planning-table th{ text-transform:uppercase; font-size: 10.5px; letter-spacing:.03em; color: var(--ink-soft); }
+.planning-table td.agent-name-cell{ text-align:left; font-weight: 700; }
+.planning-table td.zone-cell{ text-align:left; font-size: 11.5px; color: var(--ink-soft); }
+.sticky-col{ position: sticky; left: 0; background: var(--paper); text-align:left !important; z-index: 2; }
+.planning-table td.total-cell{ font-family: var(--font-mono); font-weight: 700; color: var(--sky-ink); }
+
+.shift-pill{
+  display:inline-flex; align-items:center; justify-content:center; gap:2px;
+  width: 100%; min-width: 76px; padding: 6px 4px; border-radius: 7px;
+  font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid transparent;
+  transition: filter .1s;
+}
+.shift-pill:hover{ filter: brightness(0.95); }
+.shift-pill.s-off{ background: var(--sand); color: var(--ink-soft); border-color: var(--line); }
+.shift-pill.s-jour{ background: rgba(76,139,92,0.14); color: var(--green); }
+.shift-pill.s-nuit{ background: rgba(30,58,90,0.12); color: var(--sky-ink); }
+.shift-pill.s-abs{ background: rgba(196,89,58,0.14); color: var(--red); }
+.shift-pill.s-conge{ background: rgba(217,164,65,0.20); color: var(--mustard-deep); }
+.cell-select{
+  width: 100%; padding: 6px 4px; border-radius: 7px; border: 1.5px solid var(--sky); font-size: 11px;
+  background: #fff; font-weight: 700;
+}
+
+.alerts-banner{
+  background: rgba(217,164,65,0.14); border: 1px solid rgba(217,164,65,0.4); border-radius: 12px;
+  padding: 12px 16px; margin-bottom: 16px; font-size: 12.5px; color: var(--mustard-deep);
+}
+.alerts-banner b{ display:block; margin-bottom: 4px; font-size: 12.5px; }
+.alerts-banner ul{ margin: 4px 0 0 18px; }
+
+@media print{
+  .sidebar, .topbar, .planning-header, .planning-tabs, .alerts-banner{ display:none !important; }
+  body{ background: #fff; }
+  .view{ padding: 0; }
+  .planning-card{ border:none; }
+  .shift-pill{ border: 1px solid #ccc; }
+}
 </style>
 </head>
 <body>
@@ -399,14 +468,110 @@ tr:last-child td{ border-bottom:none; }
         </div>
       </section>
 
+      <!-- PLANNING -->
+      <section class="view hidden" id="view-planning">
+        <div class="planning-header">
+          <div class="week-nav">
+            <button class="icon-btn-lg" id="prevWeekBtn" title="Semaine précédente">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="week-label">
+              <b id="weekLabel">Semaine —</b>
+              <span id="weekRange">—</span>
+            </div>
+            <button class="icon-btn-lg" id="nextWeekBtn" title="Semaine suivante">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+          <div class="planning-actions">
+            <button class="btn-ghost" id="printPlanningBtn">🖨️ Imprimer / PDF</button>
+            <button class="btn-ghost" id="exportExcelBtn">⬇️ Excel</button>
+            <button class="btn-primary" id="generatePlanningBtn">⚡ Générer Planning</button>
+          </div>
+        </div>
+
+        <div id="alertsBanner" class="alerts-banner hidden"></div>
+
+        <div class="planning-tabs">
+          <button class="ptab active" data-ptab="grid">Vue Agents</button>
+          <button class="ptab" data-ptab="zones">Vue Zones</button>
+        </div>
+
+        <div class="card planning-card" id="planningGridWrap">
+          <table class="planning-table" id="planningTable">
+            <thead>
+              <tr>
+                <th class="sticky-col">Agent</th>
+                <th>Zone</th>
+                <th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th><th>Sam</th><th>Dim</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="planningTableBody"></tbody>
+          </table>
+          <div class="placeholder-view hidden" id="planningEmptyState">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>
+            <h3>Aucun planning pour cette semaine</h3>
+            <p>Cliquez sur "Générer Planning" pour créer automatiquement la semaine (agents avec un groupe de planification assigné).</p>
+          </div>
+        </div>
+
+        <div class="card planning-card hidden" id="zonesGridWrap">
+          <table class="planning-table">
+            <thead>
+              <tr><th class="sticky-col">Zone</th><th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th><th>Sam</th><th>Dim</th></tr>
+            </thead>
+            <tbody id="zonesTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
       <!-- PLACEHOLDERS -->
-      <section class="view hidden" id="view-planning"></section>
       <section class="view hidden" id="view-pointage"></section>
       <section class="view hidden" id="view-absences"></section>
       <section class="view hidden" id="view-paie"></section>
       <section class="view hidden" id="view-rapports"></section>
       <section class="view hidden" id="view-parametres"></section>
     </main>
+  </div>
+</div>
+
+<!-- AGENT MODAL -->
+<div class="modal-overlay hidden" id="agentModalOverlay">
+  <div class="modal-card">
+    <h3 id="agentModalTitle">Ajouter un agent</h3>
+    <label class="form-label">Nom complet</label>
+    <input type="text" id="agentNameInput" class="login-input" placeholder="Ex: Achraf Akhlij">
+
+    <label class="form-label">Groupe de planification</label>
+    <select id="agentGroupInput" class="login-input">
+      <option value="">Aucun (assignation manuelle)</option>
+      <option value="zakariae">Fixe solo — zone dédiée</option>
+      <option value="sale">Fixe équipe — zone dédiée (rotation Matin/Nuit)</option>
+      <option value="trio1">Rotation — Groupe 1</option>
+      <option value="trio2">Rotation — Groupe 2</option>
+      <option value="trio3">Rotation — Groupe 3</option>
+    </select>
+
+    <div id="manualZoneGroup">
+      <label class="form-label">Zone</label>
+      <select id="agentZoneInput" class="login-input"></select>
+    </div>
+
+    <div id="fixedSoloZoneGroup" class="hidden">
+      <label class="form-label">Zone dédiée (fixe)</label>
+      <select id="agentFixedZoneInput" class="login-input"></select>
+    </div>
+
+    <p class="modal-hint hidden" id="rotationHint">La zone de ce groupe change chaque semaine selon la rotation automatique (Agdal - Carrousel / Hay Riad - Soussi / Temara - Oulad Mtaa).</p>
+    <p class="modal-hint hidden" id="saleHint">Zone fixe : Salé - Medina. Le Matin/Nuit tourne automatiquement entre les membres de ce groupe.</p>
+
+    <div class="modal-error" id="agentModalError"></div>
+
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelAgentBtn">Annuler</button>
+      <button class="login-submit" id="saveAgentBtn" style="width:auto; padding:12px 22px;">Enregistrer</button>
+    </div>
   </div>
 </div>
 
@@ -425,12 +590,33 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 /* ================= AGENTS DATA ================= */
-// shiftType: "FIX" (never alternates) or "VAR" (alternates JOUR/NUIT weekly by weekIdx parity)
-// fixedPeriod only applies when shiftType === "FIX"
 // L'app démarre vide — les agents sont ajoutés par l'utilisateur et stockés dans Firestore (collection "agents").
 let AGENTS = [];
 let agentsUnsub = null;
-const ZONES = ["Hay Riad", "Agdal-Soussi", "Carrousel-Hay Fath", "Temara", "Salé-Medina"];
+const ZONES = ["Agdal - Carrousel", "Hay Riad - Soussi", "Salé - Medina", "Technopolis", "Temara - Oulad Mtaa"];
+
+/* ================= PLANNING GROUPS ================= */
+// Les 3 zones qui tournent chaque semaine entre les groupes "rotating"
+const ROTATING_ZONES = ["Agdal - Carrousel", "Hay Riad - Soussi", "Temara - Oulad Mtaa"];
+const GROUPS = {
+  zakariae: { label: "Fixe solo", mode: "fixed_solo", zone: null },   // zone choisie par l'utilisateur (agentFixedZoneInput)
+  sale:     { label: "Fixe équipe (Salé)", mode: "fixed_team", zone: "Salé - Medina" },
+  trio1:    { label: "Rotation — Groupe 1", mode: "rotating_team", offset: 0 },
+  trio2:    { label: "Rotation — Groupe 2", mode: "rotating_team", offset: 1 },
+  trio3:    { label: "Rotation — Groupe 3", mode: "rotating_team", offset: 2 },
+};
+const DAY_KEYS = ["lun","mar","mer","jeu","ven","sam","dim"];
+const DAY_LABELS = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+// Catalogue des créneaux horaires possibles
+const SHIFT_CATALOG = {
+  OFF:   { label: "OFF",         hours: 0, cls: "s-off"   },
+  M7:    { label: "10:00-17:00", hours: 7, cls: "s-jour"  },
+  M8:    { label: "10:00-18:00", hours: 8, cls: "s-jour"  },
+  N7:    { label: "17:00-00:00", hours: 7, cls: "s-nuit"  },
+  N8:    { label: "17:00-01:00", hours: 8, cls: "s-nuit"  },
+  ABS:   { label: "Absent",      hours: 0, cls: "s-abs"   },
+  CONGE: { label: "Congé",       hours: 0, cls: "s-conge" },
+};
 
 // Login profiles shown on the lock screen (admin + leads)
 const PROFILES = [
@@ -508,9 +694,12 @@ document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
     const target = document.getElementById('view-' + view);
     target.classList.remove('hidden');
     document.getElementById('viewTitle').textContent = btn.querySelector('span').textContent;
-    if(['planning','pointage','absences','paie','rapports','parametres'].includes(view) && !target.dataset.built){
+    if(['pointage','absences','paie','rapports','parametres'].includes(view) && !target.dataset.built){
       renderPlaceholder(target, btn.querySelector('span').textContent);
       target.dataset.built = '1';
+    }
+    if(view === 'planning'){
+      renderPlanningWeek();
     }
   });
 });
@@ -533,17 +722,71 @@ function tickClock(){
 setInterval(tickClock, 1000);
 tickClock();
 
-/* ================= WEEK INDEX (for JOUR/NUIT alternance) ================= */
-function getWeekIndex(date = new Date()){
-  const firstJan = new Date(date.getFullYear(), 0, 1);
-  const days = Math.floor((date - firstJan) / 86400000);
-  return Math.ceil((days + firstJan.getDay() + 1) / 7);
+/* ================= DATE / WEEK UTILITIES ================= */
+function getWeekStart(date){
+  const d = new Date(date);
+  const day = d.getDay(); // 0=Sun..6=Sat
+  const diff = (day === 0 ? -6 : 1 - day);
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+function getISOWeekIndex(date){
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+function weekKeyFor(weekStart){
+  const d = new Date(Date.UTC(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2,'0')}`;
+}
+function formatWeekRange(weekStart){
+  const end = new Date(weekStart); end.setDate(end.getDate() + 6);
+  const startStr = weekStart.toLocaleDateString('fr-FR', { day:'numeric', month:'long' });
+  const endStr = end.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+  return `${startStr} → ${endStr}`;
 }
 
-function getAgentPeriod(agent, weekIdx){
-  if(agent.shiftType === 'FIX') return agent.fixedPeriod;
-  // VAR agents alternate by week parity
-  return (weekIdx % 2 === 0) ? 'JOUR' : 'NUIT';
+/* ================= GROUP-BASED ZONE / PERIOD RESOLUTION ================= */
+function groupMembers(groupId){
+  return AGENTS.filter(a => a.group === groupId).sort((x,y) => x.id.localeCompare(y.id));
+}
+function resolveAgentZone(agent, weekIdx){
+  if(!agent.group) return agent.zone || '—';
+  const g = GROUPS[agent.group];
+  if(!g) return agent.zone || '—';
+  if(g.mode === 'fixed_solo') return agent.fixedZone || '—';
+  if(g.mode === 'fixed_team') return g.zone;
+  if(g.mode === 'rotating_team'){
+    const idx = (((g.offset + weekIdx) % 3) + 3) % 3;
+    return ROTATING_ZONES[idx];
+  }
+  return '—';
+}
+function resolveAgentPeriod(agent, weekIdx){
+  if(!agent.group){
+    if(agent.shiftType === 'FIX') return agent.fixedPeriod || 'JOUR';
+    return (weekIdx % 2 === 0) ? 'JOUR' : 'NUIT';
+  }
+  const g = GROUPS[agent.group];
+  if(!g) return 'NUIT';
+  if(g.mode === 'fixed_solo') return (weekIdx % 2 === 0) ? 'JOUR' : 'NUIT';
+  const members = groupMembers(agent.group);
+  if(members.length === 0) return 'NUIT';
+  const morningIdx = ((weekIdx % members.length) + members.length) % members.length;
+  return (members[morningIdx].id === agent.id) ? 'JOUR' : 'NUIT';
+}
+function offDayIndex(agent, weekIdx){
+  const members = agent.group ? groupMembers(agent.group) : AGENTS.filter(a => !a.group).sort((x,y) => x.id.localeCompare(y.id));
+  let idx = members.findIndex(m => m.id === agent.id);
+  if(idx < 0) idx = 0;
+  return (idx + weekIdx) % 4; // 0..3 => lun..jeu
 }
 
 /* ================= FIRESTORE: AGENTS LISTENER ================= */
@@ -553,6 +796,7 @@ function listenAgents(){
     AGENTS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     initDashboard();
     renderAgentsTable();
+    if(!document.getElementById('view-planning').classList.contains('hidden')) renderPlanningWeek();
   }, err => {
     console.error('Erreur de lecture des agents:', err);
   });
@@ -560,22 +804,22 @@ function listenAgents(){
 
 /* ================= DASHBOARD ================= */
 function initDashboard(){
-  const weekIdx = getWeekIndex();
+  const weekIdx = getISOWeekIndex(new Date());
   let jourCount = 0, nuitCount = 0;
   AGENTS.forEach(a => {
-    const period = getAgentPeriod(a, weekIdx);
+    const period = resolveAgentPeriod(a, weekIdx);
     if(period === 'JOUR') jourCount++; else nuitCount++;
   });
   document.getElementById('statActive').textContent = AGENTS.length;
   document.getElementById('statJour').textContent = jourCount;
   document.getElementById('statNuit').textContent = nuitCount;
-  const zonesCovered = new Set(AGENTS.map(a => a.zone)).size;
+  const zonesCovered = new Set(AGENTS.map(a => resolveAgentZone(a, weekIdx))).size;
   document.getElementById('statZones').textContent = `${zonesCovered}`;
 
   const zoneGrid = document.getElementById('zoneGrid');
   zoneGrid.innerHTML = '';
   ZONES.forEach(zone => {
-    const count = AGENTS.filter(a => a.zone === zone).length;
+    const count = AGENTS.filter(a => resolveAgentZone(a, weekIdx) === zone).length;
     const card = document.createElement('div');
     card.className = 'zone-card';
     card.innerHTML = `<h3>${zone}</h3><div class="count">${count}</div><div class="count-label">agent${count>1?'s':''} assigné${count>1?'s':''}</div>`;
@@ -584,7 +828,7 @@ function initDashboard(){
 }
 
 function renderAgentsTable(){
-  const weekIdx = getWeekIndex();
+  const weekIdx = getISOWeekIndex(new Date());
   const tbody = document.getElementById('agentsTableBody');
   const emptyState = document.getElementById('agentsEmptyState');
   const table = document.querySelector('#agentsCard table');
@@ -599,12 +843,14 @@ function renderAgentsTable(){
   emptyState.classList.add('hidden');
 
   AGENTS.forEach(a => {
-    const period = getAgentPeriod(a, weekIdx);
+    const period = resolveAgentPeriod(a, weekIdx);
+    const zone = resolveAgentZone(a, weekIdx);
+    const groupLabel = a.group ? GROUPS[a.group].label : 'Manuel';
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><b>${a.name}</b></td>
-      <td>${a.zone}</td>
-      <td><span class="badge ${a.shiftType === 'FIX' ? 'fix' : 'var'}">${a.shiftType === 'FIX' ? 'Fixe' : 'Alternant'}</span></td>
+      <td>${zone}</td>
+      <td><span class="badge ${a.group ? 'fix' : 'var'}">${groupLabel}</span></td>
       <td><span class="badge ${period === 'JOUR' ? 'jour' : 'nuit'}">${period}</span></td>
       <td>
         <div class="row-actions">
@@ -622,8 +868,8 @@ function renderAgentsTable(){
 
 /* ================= AGENT MODAL (Add / Edit) ================= */
 function populateZoneSelect(){
-  const sel = document.getElementById('agentZoneInput');
-  sel.innerHTML = ZONES.map(z => `<option value="${z}">${z}</option>`).join('');
+  document.getElementById('agentZoneInput').innerHTML = ZONES.map(z => `<option value="${z}">${z}</option>`).join('');
+  document.getElementById('agentFixedZoneInput').innerHTML = ZONES.map(z => `<option value="${z}">${z}</option>`).join('');
 }
 
 let editingAgentId = null;
@@ -633,26 +879,26 @@ function openAgentModal(agentId = null){
   const overlay = document.getElementById('agentModalOverlay');
   const title = document.getElementById('agentModalTitle');
   const nameInput = document.getElementById('agentNameInput');
+  const groupInput = document.getElementById('agentGroupInput');
   const zoneInput = document.getElementById('agentZoneInput');
-  const shiftTypeInput = document.getElementById('agentShiftTypeInput');
-  const fixedPeriodInput = document.getElementById('agentFixedPeriodInput');
+  const fixedZoneInput = document.getElementById('agentFixedZoneInput');
   document.getElementById('agentModalError').textContent = '';
 
   if(agentId){
     const agent = AGENTS.find(a => a.id === agentId);
     title.textContent = 'Modifier l\'agent';
     nameInput.value = agent.name;
-    zoneInput.value = agent.zone;
-    shiftTypeInput.value = agent.shiftType;
-    fixedPeriodInput.value = agent.fixedPeriod || 'JOUR';
+    groupInput.value = agent.group || '';
+    if(agent.zone) zoneInput.value = agent.zone;
+    if(agent.fixedZone) fixedZoneInput.value = agent.fixedZone;
   } else {
     title.textContent = 'Ajouter un agent';
     nameInput.value = '';
+    groupInput.value = '';
     zoneInput.selectedIndex = 0;
-    shiftTypeInput.value = 'VAR';
-    fixedPeriodInput.value = 'JOUR';
+    fixedZoneInput.selectedIndex = 0;
   }
-  toggleFixedPeriodVisibility();
+  toggleGroupFieldsVisibility();
   overlay.classList.remove('hidden');
   nameInput.focus();
 }
@@ -662,26 +908,33 @@ function closeAgentModal(){
   editingAgentId = null;
 }
 
-function toggleFixedPeriodVisibility(){
-  const isFix = document.getElementById('agentShiftTypeInput').value === 'FIX';
-  document.getElementById('fixedPeriodGroup').classList.toggle('hidden', !isFix);
+function toggleGroupFieldsVisibility(){
+  const group = document.getElementById('agentGroupInput').value;
+  document.getElementById('manualZoneGroup').classList.toggle('hidden', group !== '');
+  document.getElementById('fixedSoloZoneGroup').classList.toggle('hidden', group !== 'zakariae');
+  document.getElementById('rotationHint').classList.toggle('hidden', !(group === 'trio1' || group === 'trio2' || group === 'trio3'));
+  document.getElementById('saleHint').classList.toggle('hidden', group !== 'sale');
 }
 
 document.getElementById('openAddAgentBtn').addEventListener('click', () => openAgentModal(null));
 document.getElementById('cancelAgentBtn').addEventListener('click', closeAgentModal);
 document.getElementById('agentModalOverlay').addEventListener('click', e => { if(e.target.id === 'agentModalOverlay') closeAgentModal(); });
-document.getElementById('agentShiftTypeInput').addEventListener('change', toggleFixedPeriodVisibility);
+document.getElementById('agentGroupInput').addEventListener('change', toggleGroupFieldsVisibility);
 
 document.getElementById('saveAgentBtn').addEventListener('click', () => {
   const name = document.getElementById('agentNameInput').value.trim();
+  const group = document.getElementById('agentGroupInput').value || null;
   const zone = document.getElementById('agentZoneInput').value;
-  const shiftType = document.getElementById('agentShiftTypeInput').value;
-  const fixedPeriod = shiftType === 'FIX' ? document.getElementById('agentFixedPeriodInput').value : null;
+  const fixedZone = document.getElementById('agentFixedZoneInput').value;
   const errEl = document.getElementById('agentModalError');
 
   if(!name){ errEl.textContent = 'Entrez le nom de l\'agent.'; return; }
 
-  const payload = { name, zone, shiftType, fixedPeriod };
+  const payload = {
+    name, group,
+    zone: group ? null : zone,
+    fixedZone: group === 'zakariae' ? fixedZone : null,
+  };
   const promise = editingAgentId
     ? db.collection('agents').doc(editingAgentId).update(payload)
     : db.collection('agents').add(payload);
@@ -696,6 +949,207 @@ function deleteAgent(agentId){
   db.collection('agents').doc(agentId).delete().catch(err => console.error(err));
 }
 
+/* ================= PLANNING MODULE ================= */
+let currentWeekStart = getWeekStart(new Date());
+let planningUnsub = null;
+let currentPlanningData = null;
+
+function updateWeekHeader(){
+  const weekIdx = getISOWeekIndex(currentWeekStart);
+  document.getElementById('weekLabel').textContent = `Semaine ${weekIdx}`;
+  document.getElementById('weekRange').textContent = formatWeekRange(currentWeekStart);
+}
+
+document.getElementById('prevWeekBtn').addEventListener('click', () => {
+  const d = new Date(currentWeekStart); d.setDate(d.getDate() - 7);
+  currentWeekStart = d;
+  renderPlanningWeek();
+});
+document.getElementById('nextWeekBtn').addEventListener('click', () => {
+  const d = new Date(currentWeekStart); d.setDate(d.getDate() + 7);
+  currentWeekStart = d;
+  renderPlanningWeek();
+});
+
+function renderPlanningWeek(){
+  updateWeekHeader();
+  const key = weekKeyFor(currentWeekStart);
+  if(planningUnsub) planningUnsub();
+  planningUnsub = db.collection('planning').doc(key).onSnapshot(doc => {
+    currentPlanningData = doc.exists ? doc.data() : null;
+    renderPlanningTable();
+    renderZonesView();
+    renderAlerts();
+  }, err => console.error(err));
+}
+
+document.getElementById('generatePlanningBtn').addEventListener('click', () => {
+  if(currentPlanningData && currentPlanningData.agents && Object.keys(currentPlanningData.agents).length > 0){
+    if(!confirm('Un planning existe déjà pour cette semaine. Le régénérer va écraser les modifications manuelles. Continuer ?')) return;
+  }
+  const weekIdx = getISOWeekIndex(currentWeekStart);
+  const agentsData = {};
+  AGENTS.forEach(a => {
+    if(!a.group) return;
+    const zone = resolveAgentZone(a, weekIdx);
+    const period = resolveAgentPeriod(a, weekIdx);
+    const offIdx = offDayIndex(a, weekIdx);
+    const cells = {};
+    DAY_KEYS.forEach((day, i) => {
+      if(i === offIdx){ cells[day] = 'OFF'; return; }
+      const isPremium = (day === 'ven' || day === 'sam');
+      const hours = isPremium ? 8 : 7;
+      cells[day] = period === 'JOUR' ? (hours === 8 ? 'M8' : 'M7') : (hours === 8 ? 'N8' : 'N7');
+    });
+    agentsData[a.id] = { zone, cells };
+  });
+  const key = weekKeyFor(currentWeekStart);
+  db.collection('planning').doc(key).set({ agents: agentsData, generatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+    .catch(err => console.error(err));
+});
+
+function renderPlanningTable(){
+  const tbody = document.getElementById('planningTableBody');
+  const table = document.getElementById('planningTable');
+  const emptyState = document.getElementById('planningEmptyState');
+  tbody.innerHTML = '';
+
+  const groupedAgents = AGENTS.filter(a => a.group);
+  if(!currentPlanningData || groupedAgents.length === 0){
+    table.classList.add('hidden');
+    emptyState.classList.remove('hidden');
+    return;
+  }
+  table.classList.remove('hidden');
+  emptyState.classList.add('hidden');
+
+  groupedAgents.forEach(a => {
+    const data = currentPlanningData.agents && currentPlanningData.agents[a.id];
+    const tr = document.createElement('tr');
+    let totalHours = 0;
+    let dayCellsHtml = '';
+    DAY_KEYS.forEach(day => {
+      const code = data && data.cells ? (data.cells[day] || 'OFF') : 'OFF';
+      const info = SHIFT_CATALOG[code];
+      totalHours += info.hours;
+      dayCellsHtml += `<td><button class="shift-pill ${info.cls}" data-agent="${a.id}" data-day="${day}" data-code="${code}">${info.label}</button></td>`;
+    });
+    tr.innerHTML = `
+      <td class="sticky-col agent-name-cell">${a.name}</td>
+      <td class="zone-cell">${data ? data.zone : '—'}</td>
+      ${dayCellsHtml}
+      <td class="total-cell">${totalHours}h</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('.shift-pill').forEach(btn => btn.addEventListener('click', () => openCellEditor(btn)));
+}
+
+function openCellEditor(pillBtn){
+  const agentId = pillBtn.dataset.agent;
+  const day = pillBtn.dataset.day;
+  const currentCode = pillBtn.dataset.code;
+  const td = pillBtn.closest('td');
+
+  const select = document.createElement('select');
+  select.className = 'cell-select';
+  Object.keys(SHIFT_CATALOG).forEach(code => {
+    const opt = document.createElement('option');
+    opt.value = code;
+    opt.textContent = SHIFT_CATALOG[code].label;
+    if(code === currentCode) opt.selected = true;
+    select.appendChild(opt);
+  });
+  td.innerHTML = '';
+  td.appendChild(select);
+  select.focus();
+
+  select.addEventListener('change', () => {
+    const newCode = select.value;
+    const key = weekKeyFor(currentWeekStart);
+    db.collection('planning').doc(key).set({
+      agents: { [agentId]: { cells: { [day]: newCode } } }
+    }, { merge: true }).catch(err => console.error(err));
+  });
+  select.addEventListener('blur', () => renderPlanningTable());
+}
+
+function renderZonesView(){
+  const tbody = document.getElementById('zonesTableBody');
+  tbody.innerHTML = '';
+  if(!currentPlanningData){ return; }
+  ZONES.forEach(zone => {
+    let cellsHtml = `<td class="sticky-col agent-name-cell">${zone}</td>`;
+    DAY_KEYS.forEach(day => {
+      const agentsHere = AGENTS.filter(a => {
+        const d = currentPlanningData.agents && currentPlanningData.agents[a.id];
+        return d && d.zone === zone && d.cells && d.cells[day] && d.cells[day] !== 'OFF';
+      }).map(a => {
+        const code = currentPlanningData.agents[a.id].cells[day];
+        const icon = code.startsWith('M') ? '☀️' : '🌙';
+        return `${icon} ${a.name.split(' ')[0]}`;
+      });
+      cellsHtml += `<td style="text-align:left; white-space:normal;">${agentsHere.length ? agentsHere.join('<br>') : '<span style="color:var(--ink-soft)">—</span>'}</td>`;
+    });
+    const tr = document.createElement('tr');
+    tr.innerHTML = cellsHtml;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderAlerts(){
+  const banner = document.getElementById('alertsBanner');
+  if(!currentPlanningData || !currentPlanningData.agents){ banner.classList.add('hidden'); return; }
+  const warnings = [];
+  AGENTS.filter(a => a.group).forEach(a => {
+    const data = currentPlanningData.agents[a.id];
+    if(!data || !data.cells) return;
+    const codes = DAY_KEYS.map(d => data.cells[d] || 'OFF');
+    const workDays = codes.filter(c => c !== 'OFF').length;
+    const offDays = codes.filter(c => c === 'OFF').length;
+    const eightHDays = codes.filter(c => c === 'M8' || c === 'N8').length;
+    if(workDays > 6) warnings.push(`${a.name} : plus de 6 jours travaillés cette semaine.`);
+    if(offDays === 0) warnings.push(`${a.name} : aucun jour OFF cette semaine.`);
+    if(offDays > 1) warnings.push(`${a.name} : plus d'un jour OFF cette semaine.`);
+    if(eightHDays > 2) warnings.push(`${a.name} : plus de 2 jours à 8h cette semaine.`);
+  });
+  if(warnings.length === 0){ banner.classList.add('hidden'); return; }
+  banner.classList.remove('hidden');
+  banner.innerHTML = `<b>⚠️ ${warnings.length} alerte(s) — vérifiez le planning (ceci ne bloque rien)</b><ul>${warnings.map(w => `<li>${w}</li>`).join('')}</ul>`;
+}
+
+document.querySelectorAll('.ptab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const isZones = tab.dataset.ptab === 'zones';
+    document.getElementById('planningGridWrap').classList.toggle('hidden', isZones);
+    document.getElementById('zonesGridWrap').classList.toggle('hidden', !isZones);
+  });
+});
+
+document.getElementById('printPlanningBtn').addEventListener('click', () => window.print());
+
+document.getElementById('exportExcelBtn').addEventListener('click', () => {
+  if(!currentPlanningData){ alert('Générez d\'abord le planning de cette semaine.'); return; }
+  const rows = [['Agent', 'Zone', ...DAY_LABELS, 'Total heures']];
+  AGENTS.filter(a => a.group).forEach(a => {
+    const data = currentPlanningData.agents && currentPlanningData.agents[a.id];
+    let total = 0;
+    const dayVals = DAY_KEYS.map(day => {
+      const code = data && data.cells ? (data.cells[day] || 'OFF') : 'OFF';
+      total += SHIFT_CATALOG[code].hours;
+      return SHIFT_CATALOG[code].label;
+    });
+    rows.push([a.name, data ? data.zone : '—', ...dayVals, `${total}h`]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Planning');
+  XLSX.writeFile(wb, `planning-${weekKeyFor(currentWeekStart)}.xlsx`);
+});
+
 /* ================= AUTH STATE (persist session on refresh) ================= */
 auth.onAuthStateChanged(user => {
   if(user){
@@ -706,38 +1160,7 @@ auth.onAuthStateChanged(user => {
 });
 
 renderProfiles();
-</script><!-- AGENT MODAL -->
-<div class="modal-overlay hidden" id="agentModalOverlay">
-  <div class="modal-card">
-    <h3 id="agentModalTitle">Ajouter un agent</h3>
-    <label class="form-label">Nom complet</label>
-    <input type="text" id="agentNameInput" class="login-input" placeholder="Ex: Achraf Akhlij">
-
-    <label class="form-label">Zone</label>
-    <select id="agentZoneInput" class="login-input"></select>
-
-    <label class="form-label">Type de rotation</label>
-    <select id="agentShiftTypeInput" class="login-input">
-      <option value="VAR">Alternant (change JOUR/NUIT chaque semaine)</option>
-      <option value="FIX">Fixe (toujours le même)</option>
-    </select>
-
-    <div id="fixedPeriodGroup" class="hidden">
-      <label class="form-label">Période fixe</label>
-      <select id="agentFixedPeriodInput" class="login-input">
-        <option value="JOUR">JOUR</option>
-        <option value="NUIT">NUIT</option>
-      </select>
-    </div>
-
-    <div class="modal-error" id="agentModalError"></div>
-
-    <div class="modal-actions">
-      <button class="btn-ghost" id="cancelAgentBtn">Annuler</button>
-      <button class="login-submit" id="saveAgentBtn" style="width:auto; padding:12px 22px;">Enregistrer</button>
-    </div>
-  </div>
-</div>
+</script>
 
 </body>
 </html>
