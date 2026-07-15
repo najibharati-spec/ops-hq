@@ -453,7 +453,10 @@ tr:last-child td{ border-bottom:none; }
       <section class="view hidden" id="view-agents">
         <div class="view-header">
           <p class="view-subtitle">Gérez la liste des agents de terrain et leur configuration de rotation.</p>
-          <button class="btn-primary" id="openAddAgentBtn">+ Ajouter un agent</button>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-ghost" id="importTeamBtn" style="border:1px solid var(--line);">⚡ Importer les 13 agents</button>
+            <button class="btn-primary" id="openAddAgentBtn">+ Ajouter un agent</button>
+          </div>
         </div>
         <div class="card" id="agentsCard">
           <table>
@@ -917,6 +920,43 @@ function toggleGroupFieldsVisibility(){
 }
 
 document.getElementById('openAddAgentBtn').addEventListener('click', () => openAgentModal(null));
+
+/* ================= BULK IMPORT (13 agents de Najib) ================= */
+const TEAM_IMPORT = [
+  { name: "Yahya Rhallah",     group: "trio1" },
+  { name: "Aymane Chlifane",   group: "trio1" },
+  { name: "Mehdi Ait Jebour",  group: "trio1" },
+  { name: "Achraf Akhlij",     group: "trio2" },
+  { name: "Islam Elmardi",     group: "trio2" },
+  { name: "Oussama El Atrach", group: "trio2" },
+  { name: "Youssef Derkoui",   group: "trio3" },
+  { name: "Mourad Cherradi",   group: "trio3" },
+  { name: "Ayoub Abssi",       group: "trio3" },
+  { name: "Charaf Loummihi",   group: "sale" },
+  { name: "Ayoub Ben Malek",   group: "sale" },
+  { name: "Hassan Azgoune",    group: "sale" },
+  { name: "Zakariae Benali",   group: "zakariae", fixedZone: "Technopolis" },
+];
+
+document.getElementById('importTeamBtn').addEventListener('click', () => {
+  if(AGENTS.length > 0 && !confirm(`Il y a déjà ${AGENTS.length} agent(s) enregistré(s). Importer les 13 agents va les ajouter en plus (pas de doublons vérifiés par nom). Continuer ?`)) return;
+  const btn = document.getElementById('importTeamBtn');
+  btn.disabled = true;
+  btn.textContent = 'Import en cours...';
+  const batch = db.batch();
+  TEAM_IMPORT.forEach(t => {
+    const ref = db.collection('agents').doc();
+    batch.set(ref, {
+      name: t.name,
+      group: t.group,
+      zone: null,
+      fixedZone: t.fixedZone || null,
+    });
+  });
+  batch.commit()
+    .then(() => { btn.textContent = '✓ 13 agents importés'; setTimeout(() => { btn.disabled = false; btn.textContent = '⚡ Importer les 13 agents'; }, 2500); })
+    .catch(err => { console.error(err); btn.disabled = false; btn.textContent = '⚡ Importer les 13 agents'; alert('Erreur pendant l\'import.'); });
+});
 document.getElementById('cancelAgentBtn').addEventListener('click', closeAgentModal);
 document.getElementById('agentModalOverlay').addEventListener('click', e => { if(e.target.id === 'agentModalOverlay') closeAgentModal(); });
 document.getElementById('agentGroupInput').addEventListener('change', toggleGroupFieldsVisibility);
