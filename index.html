@@ -787,17 +787,27 @@ function resolveAgentPeriod(agent, weekIdx){
   const morningIdx = ((weekIdx % members.length) + members.length) % members.length;
   return (members[morningIdx].id === agent.id) ? 'JOUR' : 'NUIT';
 }
+// Chaque groupe de 3 personnes doit "sauter" un jour différent des autres cette semaine,
+// pour que la répartition finale des OFF soit équilibrée (4/3/3/3 sur 13 agents).
+const GROUP_SKIP_OFFSET = { trio1: 0, trio2: 1, trio3: 2, sale: 3 };
+
 function offDayIndex(agent, weekIdx){
   const members = agent.group ? groupMembers(agent.group) : AGENTS.filter(a => !a.group).sort((x,y) => x.id.localeCompare(y.id));
   let idx = members.findIndex(m => m.id === agent.id);
   if(idx < 0) idx = 0;
   const allDays = [0, 1, 2, 3]; // lun..jeu
+
+  if(members.length === 1){
+    // Agent seul (ex: Zakariae) : son OFF tourne simplement sur les 4 jours au fil des semaines.
+    return weekIdx % 4;
+  }
   if(members.length >= 4){
     return (idx + weekIdx) % 4;
   }
-  // Avec moins de 4 membres, on fait tourner le jour "sauté" chaque semaine
-  // pour que Lundi/Mardi/Mercredi/Jeudi soient tous utilisés au fil du temps.
-  const skipped = weekIdx % 4;
+  // Groupe de 2-3 personnes : on fait tourner le jour "sauté", et ce jour est décalé
+  // différemment par groupe (GROUP_SKIP_OFFSET) pour ne pas superposer les groupes.
+  const groupOffset = GROUP_SKIP_OFFSET[agent.group] || 0;
+  const skipped = (weekIdx + groupOffset) % 4;
   const availableDays = allDays.filter(d => d !== skipped);
   return availableDays[idx % availableDays.length];
 }
