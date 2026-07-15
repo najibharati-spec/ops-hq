@@ -323,11 +323,11 @@ tr:last-child td{ border-bottom:none; }
   transition: filter .1s;
 }
 .shift-pill:hover{ filter: brightness(0.95); }
-.shift-pill.s-off{ background: var(--sand); color: var(--ink-soft); border-color: var(--line); }
-.shift-pill.s-jour{ background: rgba(76,139,92,0.14); color: var(--green); }
-.shift-pill.s-nuit{ background: rgba(30,58,90,0.12); color: var(--sky-ink); }
-.shift-pill.s-abs{ background: rgba(196,89,58,0.14); color: var(--red); }
-.shift-pill.s-conge{ background: rgba(217,164,65,0.20); color: var(--mustard-deep); }
+.shift-pill.s-off{ background: #3A3A34; color: #fff; }
+.shift-pill.s-jour{ background: #2FA860; color: #fff; }
+.shift-pill.s-nuit{ background: #2C5AA0; color: #fff; }
+.shift-pill.s-abs{ background: #D8483A; color: #fff; }
+.shift-pill.s-conge{ background: #E0A72E; color: #fff; }
 .cell-select{
   width: 100%; padding: 6px 4px; border-radius: 7px; border: 1.5px solid var(--sky); font-size: 11px;
   background: #fff; font-weight: 700;
@@ -489,6 +489,7 @@ tr:last-child td{ border-bottom:none; }
           <div class="planning-actions">
             <button class="btn-ghost" id="printPlanningBtn">🖨️ Imprimer / PDF</button>
             <button class="btn-ghost" id="exportExcelBtn">⬇️ Excel</button>
+            <button class="btn-ghost" id="loadRealWeekBtn" style="border:1px solid var(--line);">📥 Charger planning réel (cette semaine)</button>
             <button class="btn-primary" id="generatePlanningBtn">⚡ Générer Planning</button>
           </div>
         </div>
@@ -615,8 +616,8 @@ const SHIFT_CATALOG = {
   OFF:   { label: "OFF",         hours: 0, cls: "s-off"   },
   M7:    { label: "10:00-17:00", hours: 7, cls: "s-jour"  },
   M8:    { label: "10:00-18:00", hours: 8, cls: "s-jour"  },
-  N7:    { label: "17:00-00:00", hours: 7, cls: "s-nuit"  },
-  N8:    { label: "17:00-01:00", hours: 8, cls: "s-nuit"  },
+  N7:    { label: "18:00-01:00", hours: 7, cls: "s-nuit"  },
+  N8:    { label: "18:00-02:00", hours: 8, cls: "s-nuit"  },
   ABS:   { label: "Absent",      hours: 0, cls: "s-abs"   },
   CONGE: { label: "Congé",       hours: 0, cls: "s-conge" },
 };
@@ -1045,6 +1046,48 @@ document.getElementById('generatePlanningBtn').addEventListener('click', () => {
   });
   const key = weekKeyFor(currentWeekStart);
   db.collection('planning').doc(key).set({ agents: agentsData, generatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+    .catch(err => console.error(err));
+});
+
+/* ================= LOAD REAL WEEK (planning exact fourni par Najib) ================= */
+function normalizeName(str){
+  return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
+}
+const REAL_WEEK_DATA = [
+  { match: "yahyarhallah",     zone: "Temara - Oulad Mtaa", cells: ["OFF","N7","N7","N7","N8","N8","N7"] },
+  { match: "aymanechlifane",   zone: "Temara - Oulad Mtaa", cells: ["M7","OFF","M7","M7","M8","M8","M7"] },
+  { match: "mehdiaitjebour",   zone: "Temara - Oulad Mtaa", cells: ["N7","N7","OFF","N7","N8","N8","N7"] },
+  { match: "achrafakhlij",     zone: "Hay Riad - Soussi",   cells: ["OFF","N7","N7","N7","N8","N8","N7"] },
+  { match: "islamelmardi",     zone: "Hay Riad - Soussi",   cells: ["N7","OFF","N7","N7","N8","N8","N7"] },
+  { match: "oussamaelatrach",  zone: "Hay Riad - Soussi",   cells: ["M7","M7","M7","OFF","M8","M8","M7"] },
+  { match: "youssefderka",     zone: "Agdal - Carrousel",   cells: ["OFF","CONGE","CONGE","CONGE","CONGE","CONGE","CONGE"] }, // matches Derkaoui/Derkoui + congé/maladie cette semaine
+  { match: "mouradcherradi",   zone: "Agdal - Carrousel",   cells: ["N7","OFF","N7","N7","N8","N8","N7"] },
+  { match: "ayoubabssi",       zone: "Agdal - Carrousel",   cells: ["M7","M7","OFF","M7","M8","M8","M7"] },
+  { match: "ayoubbenmalek",    zone: "Salé - Medina",       cells: ["N7","N7","N7","OFF","N8","N8","N7"] },
+  { match: "hassanazgoune",    zone: "Salé - Medina",       cells: ["OFF","M7","M7","M7","M8","M8","M7"] },
+  { match: "charafloummihi",   zone: "Salé - Medina",       cells: ["N7","OFF","N7","N7","N8","N8","N7"] },
+  { match: "zakariaebenali",   zone: "Technopolis",         cells: ["M7","M7","OFF","M7","M8","M8","M7"] },
+];
+
+document.getElementById('loadRealWeekBtn').addEventListener('click', () => {
+  if(AGENTS.length === 0){ alert('Ajoutez d\'abord les agents (page Agents) avant de charger ce planning.'); return; }
+  if(currentPlanningData && currentPlanningData.agents && Object.keys(currentPlanningData.agents).length > 0){
+    if(!confirm('Un planning existe déjà pour cette semaine. Le remplacer par le planning réel fourni. Continuer ?')) return;
+  }
+  const agentsData = {};
+  let matchedCount = 0;
+  AGENTS.forEach(a => {
+    const norm = normalizeName(a.name);
+    const entry = REAL_WEEK_DATA.find(r => norm.includes(r.match) || r.match.includes(norm.slice(0, 8)));
+    if(!entry) return;
+    matchedCount++;
+    const cells = {};
+    DAY_KEYS.forEach((day, i) => { cells[day] = entry.cells[i]; });
+    agentsData[a.id] = { zone: entry.zone, cells };
+  });
+  const key = weekKeyFor(currentWeekStart);
+  db.collection('planning').doc(key).set({ agents: agentsData, generatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+    .then(() => alert(`Planning réel chargé pour ${matchedCount} agent(s).`))
     .catch(err => console.error(err));
 });
 
