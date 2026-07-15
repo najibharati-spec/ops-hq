@@ -509,6 +509,7 @@ tr:last-child td{ border-bottom:none; }
                 <th>Zone</th>
                 <th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th><th>Sam</th><th>Dim</th>
                 <th>Total</th>
+                <th></th>
               </tr>
             </thead>
             <tbody id="planningTableBody"></tbody>
@@ -790,7 +791,15 @@ function offDayIndex(agent, weekIdx){
   const members = agent.group ? groupMembers(agent.group) : AGENTS.filter(a => !a.group).sort((x,y) => x.id.localeCompare(y.id));
   let idx = members.findIndex(m => m.id === agent.id);
   if(idx < 0) idx = 0;
-  return (idx + weekIdx) % 4; // 0..3 => lun..jeu
+  const allDays = [0, 1, 2, 3]; // lun..jeu
+  if(members.length >= 4){
+    return (idx + weekIdx) % 4;
+  }
+  // Avec moins de 4 membres, on fait tourner le jour "sauté" chaque semaine
+  // pour que Lundi/Mardi/Mercredi/Jeudi soient tous utilisés au fil du temps.
+  const skipped = weekIdx % 4;
+  const availableDays = allDays.filter(d => d !== skipped);
+  return availableDays[idx % availableDays.length];
 }
 
 /* ================= FIRESTORE: AGENTS LISTENER ================= */
@@ -1060,7 +1069,7 @@ const REAL_WEEK_DATA = [
   { match: "achrafakhlij",     zone: "Hay Riad - Soussi",   cells: ["OFF","N7","N7","N7","N8","N8","N7"] },
   { match: "islamelmardi",     zone: "Hay Riad - Soussi",   cells: ["N7","OFF","N7","N7","N8","N8","N7"] },
   { match: "oussamaelatrach",  zone: "Hay Riad - Soussi",   cells: ["M7","M7","M7","OFF","M8","M8","M7"] },
-  { match: "youssefderka",     zone: "Agdal - Carrousel",   cells: ["OFF","CONGE","CONGE","CONGE","CONGE","CONGE","CONGE"] }, // matches Derkaoui/Derkoui + congé/maladie cette semaine
+  { match: "youssefderka",     zone: "Agdal - Carrousel",   cells: ["OFF","N7","N7","N7","N8","N8","N7"] },
   { match: "mouradcherradi",   zone: "Agdal - Carrousel",   cells: ["N7","OFF","N7","N7","N8","N8","N7"] },
   { match: "ayoubabssi",       zone: "Agdal - Carrousel",   cells: ["M7","M7","OFF","M7","M8","M8","M7"] },
   { match: "ayoubbenmalek",    zone: "Salé - Medina",       cells: ["N7","N7","N7","OFF","N8","N8","N7"] },
@@ -1097,7 +1106,7 @@ function renderPlanningTable(){
   const emptyState = document.getElementById('planningEmptyState');
   tbody.innerHTML = '';
 
-  const groupedAgents = AGENTS.filter(a => a.group);
+  let groupedAgents = AGENTS.filter(a => a.group);
   if(!currentPlanningData || groupedAgents.length === 0){
     table.classList.add('hidden');
     emptyState.classList.remove('hidden');
@@ -1105,6 +1114,14 @@ function renderPlanningTable(){
   }
   table.classList.remove('hidden');
   emptyState.classList.add('hidden');
+
+  // Trie par Zone (agents de la même zone regroupés côte à côte), puis par nom
+  groupedAgents = [...groupedAgents].sort((a, b) => {
+    const za = (currentPlanningData.agents && currentPlanningData.agents[a.id] && currentPlanningData.agents[a.id].zone) || '';
+    const zb = (currentPlanningData.agents && currentPlanningData.agents[b.id] && currentPlanningData.agents[b.id].zone) || '';
+    if(za !== zb) return za.localeCompare(zb);
+    return a.name.localeCompare(b.name);
+  });
 
   groupedAgents.forEach(a => {
     const data = currentPlanningData.agents && currentPlanningData.agents[a.id];
@@ -1117,16 +1134,44 @@ function renderPlanningTable(){
       totalHours += info.hours;
       dayCellsHtml += `<td><button class="shift-pill ${info.cls}" data-agent="${a.id}" data-day="${day}" data-code="${code}">${info.label}</button></td>`;
     });
+    const zoneOptions = ZONES.map(z => `<option value="${z}" ${data && data.zone === z ? 'selected' : ''}>${z}</option>`).join('');
     tr.innerHTML = `
       <td class="sticky-col agent-name-cell">${a.name}</td>
-      <td class="zone-cell">${data ? data.zone : '—'}</td>
+      <td class="zone-cell"><select class="cell-select zone-select" data-agent="${a.id}" style="border-color: var(--line); font-weight:600;">${zoneOptions}</select></td>
       ${dayCellsHtml}
       <td class="total-cell">${totalHours}h</td>
+      <td><button class="icon-btn" data-toggle-period="${a.id}" title="Inverser Matin/Nuit toute la semaine">🔄</button></td>
     `;
     tbody.appendChild(tr);
   });
 
+  tbody.querySelectorAll('.zone-select').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const key = weekKeyFor(currentWeekStart);
+      db.collection('planning').doc(key).set({
+        agents: { [sel.dataset.agent]: { zone: sel.value } }
+      }, { merge: true }).catch(err => console.error(err));
+    });
+  });
+  tbody.querySelectorAll('[data-toggle-period]').forEach(btn => {
+    btn.addEventListener('click', () => togglePeriod(btn.dataset.togglePeriod));
+  });
   tbody.querySelectorAll('.shift-pill').forEach(btn => btn.addEventListener('click', () => openCellEditor(btn)));
+}
+
+function togglePeriod(agentId){
+  if(!currentPlanningData || !currentPlanningData.agents || !currentPlanningData.agents[agentId]) return;
+  const data = currentPlanningData.agents[agentId];
+  const swap = { M7: 'N7', M8: 'N8', N7: 'M7', N8: 'M8' };
+  const newCells = {};
+  DAY_KEYS.forEach(day => {
+    const code = data.cells[day];
+    newCells[day] = swap[code] || code; // OFF/CONGE/ABS restent inchangés
+  });
+  const key = weekKeyFor(currentWeekStart);
+  db.collection('planning').doc(key).set({
+    agents: { [agentId]: { cells: newCells } }
+  }, { merge: true }).catch(err => console.error(err));
 }
 
 function openCellEditor(pillBtn){
