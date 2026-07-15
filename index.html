@@ -122,8 +122,39 @@ input, select{font-family: inherit;}
   font-size: 12.5px; color: var(--red); text-align:center; margin-top: 10px; min-height: 16px;
 }
 
-/* ============ APP SHELL ============ */
-#app{ display:none; min-height: 100vh; }
+/* ============ LOGIN TABS ============ */
+.login-tabs{ display:flex; gap:6px; background: var(--sand); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+.ltab{ flex:1; padding: 9px; border-radius: 7px; font-size: 12.5px; font-weight:700; color: var(--ink-soft); background: transparent; }
+.ltab.active{ background: #fff; color: var(--sky-ink); box-shadow: 0 1px 4px rgba(30,58,90,0.1); }
+
+/* ============ AGENT PORTAL ============ */
+#agentPortal{
+  min-height: 100vh; display:flex; align-items:center; justify-content:center;
+  background: var(--sand); padding: 24px;
+}
+.portal-card{
+  width:100%; max-width: 380px; background: var(--paper); border-radius: 20px; padding: 28px;
+  box-shadow: 0 24px 60px -20px rgba(30,58,90,0.25); border:1px solid var(--line);
+}
+.portal-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 20px; }
+.portal-header b{ font-size: 16px; display:block; }
+.portal-header span{ font-size: 12px; color: var(--ink-soft); font-family: var(--font-mono); }
+.portal-status{
+  text-align:center; padding: 14px; border-radius: 12px; background: var(--sand);
+  font-size: 13px; font-weight:700; color: var(--ink-soft); margin-bottom: 18px;
+}
+.portal-btn{
+  width:100%; padding: 22px; border-radius: 14px; background: var(--green); color:#fff;
+  font-size: 16px; font-weight: 800; letter-spacing: .02em; margin-bottom: 6px;
+}
+.portal-btn.is-checkedin{ background: var(--red); }
+.portal-history{ margin-top: 4px; }
+.portal-history-item{
+  display:flex; justify-content:space-between; padding: 9px 0; border-bottom: 1px solid var(--line);
+  font-size: 12.5px;
+}
+.portal-history-item:last-child{ border-bottom:none; }
+
 .shell{ display:flex; min-height: 100vh; }
 
 .sidebar{
@@ -362,11 +393,49 @@ tr:last-child td{ border-bottom:none; }
       <p>Système Central de Gestion RH</p>
     </div>
 
-    <div class="profile-grid" id="profileGrid"></div>
+    <div class="login-tabs">
+      <button class="ltab active" id="loginTabAdmin">Admin / Manager</button>
+      <button class="ltab" id="loginTabAgent">Agent</button>
+    </div>
 
-    <input type="password" id="passwordInput" class="login-input" placeholder="Mot de passe d'accès...">
-    <button id="loginBtn" class="login-submit" disabled>DÉVERROUILLER</button>
-    <div class="login-error" id="loginError"></div>
+    <!-- ADMIN LOGIN -->
+    <div id="adminLoginBlock">
+      <div class="profile-grid" id="profileGrid"></div>
+      <input type="password" id="passwordInput" class="login-input" placeholder="Mot de passe d'accès...">
+      <button id="loginBtn" class="login-submit" disabled>DÉVERROUILLER</button>
+      <div class="login-error" id="loginError"></div>
+    </div>
+
+    <!-- AGENT LOGIN -->
+    <div id="agentLoginBlock" class="hidden">
+      <label class="form-label">Ton nom</label>
+      <select id="agentLoginSelect" class="login-input">
+        <option value="">Chargement...</option>
+      </select>
+      <label class="form-label">Code PIN</label>
+      <input type="password" id="agentPinInput" class="login-input" placeholder="••••" inputmode="numeric" maxlength="8">
+      <button id="agentLoginBtn" class="login-submit">POINTER</button>
+      <div class="login-error" id="agentLoginError"></div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT PORTAL (écran simplifié pour un agent connecté) -->
+<div id="agentPortal" class="hidden">
+  <div class="portal-card">
+    <div class="portal-header">
+      <div>
+        <b id="portalAgentName">—</b>
+        <span id="portalClock">--:--</span>
+      </div>
+      <button class="btn-ghost" id="portalLogoutBtn">Déconnexion</button>
+    </div>
+    <div class="portal-status" id="portalStatus">Chargement...</div>
+    <button class="portal-btn" id="portalCheckBtn">Check-in</button>
+    <div class="portal-history">
+      <div class="section-title" style="margin-top:22px;">Historique récent</div>
+      <div id="portalHistoryList"></div>
+    </div>
   </div>
 </div>
 
@@ -443,10 +512,38 @@ tr:last-child td{ border-bottom:none; }
             <div class="value" id="statZones">—</div>
             <div class="sub">sur 5 zones</div>
           </div>
+          <div class="stat-card">
+            <div class="label">OFF aujourd'hui</div>
+            <div class="value" id="statOffToday">—</div>
+            <div class="sub">agents au repos</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Absences (semaine)</div>
+            <div class="value" id="statAbsences">—</div>
+            <div class="sub">congé / maladie</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Alertes actives</div>
+            <div class="value" id="statAlerts">—</div>
+            <div class="sub">à vérifier</div>
+          </div>
         </div>
 
         <div class="section-title">Zones</div>
         <div class="zone-grid" id="zoneGrid"></div>
+
+        <div class="section-title">🟢 En service maintenant</div>
+        <div class="card" id="liveCard">
+          <table>
+            <thead><tr><th>Agent</th><th>Zone</th><th>Shift</th><th>Fin</th></tr></thead>
+            <tbody id="liveTableBody"></tbody>
+          </table>
+          <div class="placeholder-view hidden" id="liveEmptyState">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <h3>Personne en service actuellement</h3>
+            <p>Génère le planning de la semaine pour voir qui est en service en temps réel.</p>
+          </div>
+        </div>
       </section>
 
       <!-- AGENTS -->
@@ -455,12 +552,14 @@ tr:last-child td{ border-bottom:none; }
           <p class="view-subtitle">Gérez la liste des agents de terrain et leur configuration de rotation.</p>
           <div style="display:flex; gap:8px;">
             <button class="btn-ghost" id="importTeamBtn" style="border:1px solid var(--line);">⚡ Importer les 13 agents</button>
+            <button class="btn-ghost" id="genAllPinsBtn" style="border:1px solid var(--line);">🎲 Générer les PIN manquants</button>
+            <button class="btn-ghost" id="genAllNicknamesBtn" style="border:1px solid var(--line);">✏️ Surnoms manquants</button>
             <button class="btn-primary" id="openAddAgentBtn">+ Ajouter un agent</button>
           </div>
         </div>
         <div class="card" id="agentsCard">
           <table>
-            <thead><tr><th>Agent</th><th>Zone</th><th>Type</th><th>Shift fixe</th><th></th></tr></thead>
+            <thead><tr><th>Agent</th><th>PIN</th><th>Zone</th><th>Type</th><th>Shift fixe</th><th></th></tr></thead>
             <tbody id="agentsTableBody"></tbody>
           </table>
           <div class="placeholder-view hidden" id="agentsEmptyState">
@@ -532,7 +631,29 @@ tr:last-child td{ border-bottom:none; }
       </section>
 
       <!-- PLACEHOLDERS -->
-      <section class="view hidden" id="view-pointage"></section>
+      <section class="view hidden" id="view-pointage">
+        <div class="planning-header">
+          <div class="week-nav">
+            <button class="icon-btn-lg" id="prevDayBtn" title="Jour précédent">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="week-label">
+              <b id="pointageDayLabel">—</b>
+              <span id="pointageDateSub">—</span>
+            </div>
+            <button class="icon-btn-lg" id="nextDayBtn" title="Jour suivant">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+          <button class="btn-ghost" id="pointageTodayBtn" style="border:1px solid var(--line);">Aujourd'hui</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Agent</th><th>Check-in</th><th>Check-out</th><th>Statut</th></tr></thead>
+            <tbody id="pointageTableBody"></tbody>
+          </table>
+        </div>
+      </section>
       <section class="view hidden" id="view-absences"></section>
       <section class="view hidden" id="view-paie"></section>
       <section class="view hidden" id="view-rapports"></section>
@@ -547,6 +668,15 @@ tr:last-child td{ border-bottom:none; }
     <h3 id="agentModalTitle">Ajouter un agent</h3>
     <label class="form-label">Nom complet</label>
     <input type="text" id="agentNameInput" class="login-input" placeholder="Ex: Achraf Akhlij">
+
+    <label class="form-label">Surnom (affiché dans le login Agent)</label>
+    <input type="text" id="agentNicknameInput" class="login-input" placeholder="Ex: Achraf">
+
+    <label class="form-label">Code PIN (pour se connecter au portail agent)</label>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <input type="text" id="agentPinModalInput" class="login-input" placeholder="Ex: 1234" inputmode="numeric" maxlength="8" style="margin-bottom:0;">
+      <button type="button" class="btn-ghost" id="genPinBtn" style="border:1px solid var(--line); white-space:nowrap; padding:13px 14px;" title="Générer un PIN aléatoire">🎲</button>
+    </div>
 
     <label class="form-label">Groupe de planification</label>
     <select id="agentGroupInput" class="login-input">
@@ -689,6 +819,170 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   auth.signOut().finally(() => location.reload());
 });
 
+/* ================= LOGIN TABS (Admin vs Agent) ================= */
+document.getElementById('loginTabAdmin').addEventListener('click', () => switchLoginTab('admin'));
+document.getElementById('loginTabAgent').addEventListener('click', () => switchLoginTab('agent'));
+
+function switchLoginTab(tab){
+  document.getElementById('loginTabAdmin').classList.toggle('active', tab === 'admin');
+  document.getElementById('loginTabAgent').classList.toggle('active', tab === 'agent');
+  document.getElementById('adminLoginBlock').classList.toggle('hidden', tab !== 'admin');
+  document.getElementById('agentLoginBlock').classList.toggle('hidden', tab !== 'agent');
+  if(tab === 'agent') prepareAgentLogin();
+}
+
+function prepareAgentLogin(){
+  const errEl = document.getElementById('agentLoginError');
+  const sel = document.getElementById('agentLoginSelect');
+  errEl.textContent = '';
+  sel.innerHTML = '<option value="">Chargement...</option>';
+  // Une session (même anonyme) est nécessaire pour lire Firestore selon nos règles de sécurité.
+  auth.signInAnonymously()
+    .then(() => db.collection('agents').get())
+    .then(snap => {
+      const list = snap.docs
+        .map(d => ({ id: d.id, name: d.data().name, nickname: d.data().nickname || d.data().name.split(' ')[0] }))
+        .sort((a, b) => a.nickname.localeCompare(b.nickname));
+      if(list.length === 0){
+        sel.innerHTML = '<option value="">Aucun agent trouvé</option>';
+        errEl.textContent = "Aucun agent n'a encore été ajouté (page Agents).";
+        return;
+      }
+      sel.innerHTML = '<option value="">— Choisir —</option>' + list.map(a => `<option value="${a.id}">${a.nickname}</option>`).join('');
+    })
+    .catch(err => {
+      console.error(err);
+      sel.innerHTML = '<option value="">Erreur de chargement</option>';
+      if(err.code === 'auth/operation-not-allowed' || err.code === 'auth/admin-restricted-operation'){
+        errEl.textContent = "La connexion 'Anonyme' n'est pas activée dans Firebase (Authentication → Méthode de connexion → Anonyme).";
+      } else {
+        errEl.textContent = "Impossible de charger la liste des agents. Réessaie.";
+      }
+    });
+}
+
+document.getElementById('agentLoginBtn').addEventListener('click', attemptAgentLogin);
+document.getElementById('agentPinInput').addEventListener('keydown', e => { if(e.key === 'Enter') attemptAgentLogin(); });
+
+function attemptAgentLogin(){
+  const errEl = document.getElementById('agentLoginError');
+  const agentId = document.getElementById('agentLoginSelect').value;
+  const pin = document.getElementById('agentPinInput').value.trim();
+  if(!agentId){ errEl.textContent = 'Choisis ton nom.'; return; }
+  if(!pin){ errEl.textContent = 'Entre ton code PIN.'; return; }
+  errEl.textContent = 'Vérification...';
+
+  const proceed = () => {
+    db.collection('agents').doc(agentId).get().then(doc => {
+      if(!doc.exists){ errEl.textContent = 'Agent introuvable.'; return; }
+      const agent = { id: doc.id, ...doc.data() };
+      if(!agent.pin || agent.pin !== pin){
+        errEl.textContent = 'Code PIN incorrect.';
+        return;
+      }
+      errEl.textContent = '';
+      enterAgentPortal(agent);
+    }).catch(err => { console.error(err); errEl.textContent = 'Erreur de connexion.'; });
+  };
+
+  if(auth.currentUser){ proceed(); }
+  else { auth.signInAnonymously().then(proceed).catch(err => { console.error(err); errEl.textContent = 'Erreur de connexion.'; }); }
+}
+
+/* ================= AGENT PORTAL (Pointage) ================= */
+let currentAgentSession = null;
+
+function enterAgentPortal(agent){
+  currentAgentSession = agent;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('agentPortal').classList.remove('hidden');
+  document.getElementById('portalAgentName').textContent = agent.nickname || agent.name;
+  refreshPortalStatus();
+}
+
+document.getElementById('portalLogoutBtn').addEventListener('click', () => {
+  auth.signOut().finally(() => location.reload());
+});
+
+function todayDateKey(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function refreshPortalStatus(){
+  if(!currentAgentSession) return;
+  const docId = `${todayDateKey()}_${currentAgentSession.id}`;
+  db.collection('pointage').doc(docId).get().then(doc => {
+    const btn = document.getElementById('portalCheckBtn');
+    const status = document.getElementById('portalStatus');
+    btn.disabled = false;
+    const data = doc.exists ? doc.data() : null;
+
+    if(!data || !data.checkIn){
+      status.textContent = "Pas encore pointé aujourd'hui";
+      btn.textContent = 'Check-in';
+      btn.classList.remove('is-checkedin');
+      btn.dataset.mode = 'in';
+    } else if(data.checkIn && !data.checkOut){
+      const t = data.checkIn.toDate ? data.checkIn.toDate() : new Date(data.checkIn);
+      status.textContent = `En service depuis ${t.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+      btn.textContent = 'Check-out';
+      btn.classList.add('is-checkedin');
+      btn.dataset.mode = 'out';
+    } else {
+      const tIn = data.checkIn.toDate ? data.checkIn.toDate() : new Date(data.checkIn);
+      const tOut = data.checkOut.toDate ? data.checkOut.toDate() : new Date(data.checkOut);
+      status.textContent = `Terminé — ${tIn.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} → ${tOut.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+      btn.textContent = 'Journée terminée';
+      btn.classList.remove('is-checkedin');
+      btn.disabled = true;
+      btn.dataset.mode = 'done';
+    }
+    renderPortalHistory();
+  }).catch(err => console.error(err));
+}
+
+document.getElementById('portalCheckBtn').addEventListener('click', () => {
+  if(!currentAgentSession) return;
+  const btn = document.getElementById('portalCheckBtn');
+  const mode = btn.dataset.mode;
+  if(mode === 'done') return;
+  const docId = `${todayDateKey()}_${currentAgentSession.id}`;
+  const field = mode === 'in' ? 'checkIn' : 'checkOut';
+  const payload = {
+    agentId: currentAgentSession.id,
+    agentName: currentAgentSession.name,
+    date: todayDateKey(),
+    [field]: firebase.firestore.FieldValue.serverTimestamp(),
+  };
+  db.collection('pointage').doc(docId).set(payload, { merge: true })
+    .then(() => refreshPortalStatus())
+    .catch(err => console.error(err));
+});
+
+function renderPortalHistory(){
+  if(!currentAgentSession) return;
+  // Un seul filtre d'égalité (agentId) — pas besoin d'index composite ; tri fait côté client.
+  db.collection('pointage').where('agentId', '==', currentAgentSession.id).get()
+    .then(snap => {
+      const docs = snap.docs.map(d => d.data()).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7);
+      const list = document.getElementById('portalHistoryList');
+      list.innerHTML = '';
+      docs.forEach(d => {
+        const inT = d.checkIn && d.checkIn.toDate ? d.checkIn.toDate().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—';
+        const outT = d.checkOut && d.checkOut.toDate ? d.checkOut.toDate().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—';
+        const row = document.createElement('div');
+        row.className = 'portal-history-item';
+        row.innerHTML = `<span>${d.date}</span><span>${inT} → ${outT}</span>`;
+        list.appendChild(row);
+      });
+    }).catch(err => console.error(err));
+}
+
+setInterval(() => {
+  if(currentAgentSession) document.getElementById('portalClock').textContent = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}, 1000);
+
 /* ================= NAVIGATION ================= */
 document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -699,12 +993,15 @@ document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
     const target = document.getElementById('view-' + view);
     target.classList.remove('hidden');
     document.getElementById('viewTitle').textContent = btn.querySelector('span').textContent;
-    if(['pointage','absences','paie','rapports','parametres'].includes(view) && !target.dataset.built){
+    if(['absences','paie','rapports','parametres'].includes(view) && !target.dataset.built){
       renderPlaceholder(target, btn.querySelector('span').textContent);
       target.dataset.built = '1';
     }
     if(view === 'planning'){
       renderPlanningWeek();
+    }
+    if(view === 'pointage'){
+      renderPointageDay();
     }
   });
 });
@@ -725,6 +1022,7 @@ function tickClock(){
   document.getElementById('clock').textContent = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 setInterval(tickClock, 1000);
+setInterval(() => { if(dashboardPlanningData !== undefined) renderCurrentlyWorking(); }, 60000);
 tickClock();
 
 /* ================= DATE / WEEK UTILITIES ================= */
@@ -848,6 +1146,109 @@ function initDashboard(){
     card.innerHTML = `<h3>${zone}</h3><div class="count">${count}</div><div class="count-label">agent${count>1?'s':''} assigné${count>1?'s':''}</div>`;
     zoneGrid.appendChild(card);
   });
+
+  loadDashboardPlanningStats();
+}
+
+function loadDashboardPlanningStats(){
+  const todayStart = getWeekStart(new Date());
+  const key = weekKeyFor(todayStart);
+  db.collection('planning').doc(key).get().then(doc => {
+    const data = doc.exists ? doc.data() : null;
+    dashboardPlanningData = data;
+    const statOff = document.getElementById('statOffToday');
+    const statAbs = document.getElementById('statAbsences');
+    const statAlerts = document.getElementById('statAlerts');
+
+    if(!data || !data.agents){
+      statOff.textContent = '—';
+      statAbs.textContent = '—';
+      statAlerts.textContent = '—';
+      renderCurrentlyWorking();
+      return;
+    }
+
+    const todayIdx = (new Date().getDay() + 6) % 7; // lundi=0 .. dimanche=6
+    const todayKey = DAY_KEYS[todayIdx];
+
+    let offToday = 0, absences = 0;
+    Object.values(data.agents).forEach(a => {
+      if(!a.cells) return;
+      if(a.cells[todayKey] === 'OFF') offToday++;
+      Object.values(a.cells).forEach(code => { if(code === 'ABS' || code === 'CONGE') absences++; });
+    });
+
+    statOff.textContent = offToday;
+    statAbs.textContent = absences;
+    statAlerts.textContent = computeWarnings(data).length;
+    renderCurrentlyWorking();
+  }).catch(err => {
+    console.error('Erreur stats dashboard:', err);
+  });
+}
+
+/* ================= LIVE: QUI TRAVAILLE MAINTENANT ================= */
+let dashboardPlanningData = null;
+
+function parseShiftLabel(label){
+  const [startStr, endStr] = label.split('-');
+  const [sh, sm] = startStr.split(':').map(Number);
+  const [eh, em] = endStr.split(':').map(Number);
+  const startM = sh * 60 + sm;
+  const endM = eh * 60 + em;
+  const crossesMidnight = endM <= startM;
+  return { startM, endM, crossesMidnight, startStr, endStr };
+}
+
+function renderCurrentlyWorking(){
+  const tbody = document.getElementById('liveTableBody');
+  const table = document.querySelector('#liveCard table');
+  const emptyState = document.getElementById('liveEmptyState');
+  tbody.innerHTML = '';
+
+  const rows = [];
+  if(dashboardPlanningData && dashboardPlanningData.agents){
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const todayIdx = (now.getDay() + 6) % 7;
+    const yestIdx = (todayIdx + 6) % 7;
+    const todayKey = DAY_KEYS[todayIdx];
+    const yestKey = DAY_KEYS[yestIdx];
+
+    AGENTS.filter(a => a.group).forEach(a => {
+      const data = dashboardPlanningData.agents[a.id];
+      if(!data || !data.cells) return;
+
+      const todayCode = data.cells[todayKey];
+      if(todayCode && SHIFT_CATALOG[todayCode] && todayCode !== 'OFF' && todayCode !== 'ABS' && todayCode !== 'CONGE'){
+        const t = parseShiftLabel(SHIFT_CATALOG[todayCode].label);
+        const isActive = t.crossesMidnight ? (nowMinutes >= t.startM) : (nowMinutes >= t.startM && nowMinutes < t.endM);
+        if(isActive) rows.push({ name: a.name, zone: data.zone, label: SHIFT_CATALOG[todayCode].label, end: t.endStr });
+      }
+
+      const yestCode = data.cells[yestKey];
+      if(yestCode && SHIFT_CATALOG[yestCode] && yestCode !== 'OFF' && yestCode !== 'ABS' && yestCode !== 'CONGE'){
+        const t = parseShiftLabel(SHIFT_CATALOG[yestCode].label);
+        if(t.crossesMidnight && nowMinutes < t.endM){
+          rows.push({ name: a.name, zone: data.zone, label: SHIFT_CATALOG[yestCode].label, end: t.endStr });
+        }
+      }
+    });
+  }
+
+  if(rows.length === 0){
+    table.classList.add('hidden');
+    emptyState.classList.remove('hidden');
+    return;
+  }
+  table.classList.remove('hidden');
+  emptyState.classList.add('hidden');
+
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><b>${r.name}</b></td><td>${r.zone}</td><td>${r.label}</td><td class="total-cell">${r.end}</td>`;
+    tbody.appendChild(tr);
+  });
 }
 
 function renderAgentsTable(){
@@ -872,6 +1273,7 @@ function renderAgentsTable(){
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><b>${a.name}</b></td>
+      <td style="font-family: var(--font-mono); font-weight:700;">${a.pin || '<span style="color:var(--ink-soft); font-weight:400;">—</span>'}</td>
       <td>${zone}</td>
       <td><span class="badge ${a.group ? 'fix' : 'var'}">${groupLabel}</span></td>
       <td><span class="badge ${period === 'JOUR' ? 'jour' : 'nuit'}">${period}</span></td>
@@ -902,6 +1304,8 @@ function openAgentModal(agentId = null){
   const overlay = document.getElementById('agentModalOverlay');
   const title = document.getElementById('agentModalTitle');
   const nameInput = document.getElementById('agentNameInput');
+  const nicknameInput = document.getElementById('agentNicknameInput');
+  const pinInput = document.getElementById('agentPinModalInput');
   const groupInput = document.getElementById('agentGroupInput');
   const zoneInput = document.getElementById('agentZoneInput');
   const fixedZoneInput = document.getElementById('agentFixedZoneInput');
@@ -911,12 +1315,16 @@ function openAgentModal(agentId = null){
     const agent = AGENTS.find(a => a.id === agentId);
     title.textContent = 'Modifier l\'agent';
     nameInput.value = agent.name;
+    nicknameInput.value = agent.nickname || '';
+    pinInput.value = agent.pin || '';
     groupInput.value = agent.group || '';
     if(agent.zone) zoneInput.value = agent.zone;
     if(agent.fixedZone) fixedZoneInput.value = agent.fixedZone;
   } else {
     title.textContent = 'Ajouter un agent';
     nameInput.value = '';
+    nicknameInput.value = '';
+    pinInput.value = generateRandomPin();
     groupInput.value = '';
     zoneInput.selectedIndex = 0;
     fixedZoneInput.selectedIndex = 0;
@@ -964,34 +1372,90 @@ document.getElementById('importTeamBtn').addEventListener('click', () => {
   btn.disabled = true;
   btn.textContent = 'Import en cours...';
   const batch = db.batch();
+  const pinReport = [];
   TEAM_IMPORT.forEach(t => {
     const ref = db.collection('agents').doc();
+    const pin = generateRandomPin();
+    pinReport.push(`${t.name} : ${pin}`);
     batch.set(ref, {
       name: t.name,
+      nickname: t.name.split(' ')[0],
       group: t.group,
       zone: null,
       fixedZone: t.fixedZone || null,
+      pin,
     });
   });
   batch.commit()
-    .then(() => { btn.textContent = '✓ 13 agents importés'; setTimeout(() => { btn.disabled = false; btn.textContent = '⚡ Importer les 13 agents'; }, 2500); })
+    .then(() => {
+      btn.textContent = '✓ 13 agents importés';
+      alert(`13 agents importés avec un PIN généré automatiquement :\n\n${pinReport.join('\n')}\n\nNote ces codes pour les donner à chaque agent.`);
+      setTimeout(() => { btn.disabled = false; btn.textContent = '⚡ Importer les 13 agents'; }, 2500);
+    })
     .catch(err => { console.error(err); btn.disabled = false; btn.textContent = '⚡ Importer les 13 agents'; alert('Erreur pendant l\'import.'); });
 });
+
+/* ================= PIN GENERATION ================= */
+function generateRandomPin(){
+  return String(Math.floor(1000 + Math.random() * 9000)); // 4 chiffres
+}
+
+document.getElementById('genPinBtn').addEventListener('click', () => {
+  document.getElementById('agentPinModalInput').value = generateRandomPin();
+});
+
+document.getElementById('genAllPinsBtn').addEventListener('click', () => {
+  const missing = AGENTS.filter(a => !a.pin);
+  if(missing.length === 0){ alert('Tous les agents ont déjà un PIN.'); return; }
+  const btn = document.getElementById('genAllPinsBtn');
+  btn.disabled = true;
+  btn.textContent = 'Génération...';
+  const batch = db.batch();
+  const pinReport = [];
+  missing.forEach(a => {
+    const pin = generateRandomPin();
+    pinReport.push(`${a.name} : ${pin}`);
+    batch.update(db.collection('agents').doc(a.id), { pin });
+  });
+  batch.commit()
+    .then(() => {
+      btn.disabled = false;
+      btn.textContent = '🎲 Générer les PIN manquants';
+      alert(`PIN générés pour ${missing.length} agent(s) :\n\n${pinReport.join('\n')}\n\nNote ces codes pour les donner à chaque agent.`);
+    })
+    .catch(err => { console.error(err); btn.disabled = false; btn.textContent = '🎲 Générer les PIN manquants'; alert('Erreur pendant la génération.'); });
+});
+
+document.getElementById('genAllNicknamesBtn').addEventListener('click', () => {
+  const missing = AGENTS.filter(a => !a.nickname);
+  if(missing.length === 0){ alert('Tous les agents ont déjà un surnom.'); return; }
+  const batch = db.batch();
+  missing.forEach(a => {
+    batch.update(db.collection('agents').doc(a.id), { nickname: a.name.split(' ')[0] });
+  });
+  batch.commit()
+    .then(() => alert(`Surnom généré pour ${missing.length} agent(s) (premier prénom par défaut). Tu peux les modifier un par un si besoin.`))
+    .catch(err => { console.error(err); alert('Erreur pendant la génération.'); });
+});
+
 document.getElementById('cancelAgentBtn').addEventListener('click', closeAgentModal);
 document.getElementById('agentModalOverlay').addEventListener('click', e => { if(e.target.id === 'agentModalOverlay') closeAgentModal(); });
 document.getElementById('agentGroupInput').addEventListener('change', toggleGroupFieldsVisibility);
 
 document.getElementById('saveAgentBtn').addEventListener('click', () => {
   const name = document.getElementById('agentNameInput').value.trim();
+  const nickname = document.getElementById('agentNicknameInput').value.trim();
   const group = document.getElementById('agentGroupInput').value || null;
   const zone = document.getElementById('agentZoneInput').value;
   const fixedZone = document.getElementById('agentFixedZoneInput').value;
+  const pin = document.getElementById('agentPinModalInput').value.trim();
   const errEl = document.getElementById('agentModalError');
 
   if(!name){ errEl.textContent = 'Entrez le nom de l\'agent.'; return; }
 
   const payload = {
-    name, group,
+    name, group, pin: pin || null,
+    nickname: nickname || name.split(' ')[0],
     zone: group ? null : zone,
     fixedZone: group === 'zakariae' ? fixedZone : null,
   };
@@ -1236,12 +1700,11 @@ function renderZonesView(){
   });
 }
 
-function renderAlerts(){
-  const banner = document.getElementById('alertsBanner');
-  if(!currentPlanningData || !currentPlanningData.agents){ banner.classList.add('hidden'); return; }
+function computeWarnings(planningData){
   const warnings = [];
+  if(!planningData || !planningData.agents) return warnings;
   AGENTS.filter(a => a.group).forEach(a => {
-    const data = currentPlanningData.agents[a.id];
+    const data = planningData.agents[a.id];
     if(!data || !data.cells) return;
     const codes = DAY_KEYS.map(d => data.cells[d] || 'OFF');
     const workDays = codes.filter(c => c !== 'OFF').length;
@@ -1252,6 +1715,13 @@ function renderAlerts(){
     if(offDays > 1) warnings.push(`${a.name} : plus d'un jour OFF cette semaine.`);
     if(eightHDays > 2) warnings.push(`${a.name} : plus de 2 jours à 8h cette semaine.`);
   });
+  return warnings;
+}
+
+function renderAlerts(){
+  const banner = document.getElementById('alertsBanner');
+  if(!currentPlanningData || !currentPlanningData.agents){ banner.classList.add('hidden'); return; }
+  const warnings = computeWarnings(currentPlanningData);
   if(warnings.length === 0){ banner.classList.add('hidden'); return; }
   banner.classList.remove('hidden');
   banner.innerHTML = `<b>⚠️ ${warnings.length} alerte(s) — vérifiez le planning (ceci ne bloque rien)</b><ul>${warnings.map(w => `<li>${w}</li>`).join('')}</ul>`;
@@ -1290,12 +1760,65 @@ document.getElementById('exportExcelBtn').addEventListener('click', () => {
 
 /* ================= AUTH STATE (persist session on refresh) ================= */
 auth.onAuthStateChanged(user => {
-  if(user){
+  if(user && user.email){
     const uid = user.email.split('@opshq.ma')[0];
     const profile = PROFILES.find(p => p.id === uid);
     if(profile) enterApp(profile);
   }
+  // Les sessions anonymes (agents) n'entrent jamais automatiquement — le PIN reste obligatoire à chaque fois.
 });
+
+/* ================= ADMIN: POINTAGE DU JOUR ================= */
+let pointageCurrentDate = new Date();
+
+function dateKeyFor(d){
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+document.getElementById('prevDayBtn').addEventListener('click', () => {
+  pointageCurrentDate.setDate(pointageCurrentDate.getDate() - 1);
+  pointageCurrentDate = new Date(pointageCurrentDate);
+  renderPointageDay();
+});
+document.getElementById('nextDayBtn').addEventListener('click', () => {
+  pointageCurrentDate.setDate(pointageCurrentDate.getDate() + 1);
+  pointageCurrentDate = new Date(pointageCurrentDate);
+  renderPointageDay();
+});
+document.getElementById('pointageTodayBtn').addEventListener('click', () => {
+  pointageCurrentDate = new Date();
+  renderPointageDay();
+});
+
+function renderPointageDay(){
+  const dateKey = dateKeyFor(pointageCurrentDate);
+  document.getElementById('pointageDayLabel').textContent = pointageCurrentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  document.getElementById('pointageDateSub').textContent = dateKey;
+
+  // Filtre d'égalité unique sur "date" — pas d'index composite nécessaire.
+  db.collection('pointage').where('date', '==', dateKey).get().then(snap => {
+    const byAgent = {};
+    snap.docs.forEach(doc => { byAgent[doc.data().agentId] = doc.data(); });
+
+    const tbody = document.getElementById('pointageTableBody');
+    tbody.innerHTML = '';
+    const sortedAgents = [...AGENTS].sort((a, b) => a.name.localeCompare(b.name));
+
+    sortedAgents.forEach(a => {
+      const d = byAgent[a.id];
+      const inT = d && d.checkIn && d.checkIn.toDate ? d.checkIn.toDate().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—';
+      const outT = d && d.checkOut && d.checkOut.toDate ? d.checkOut.toDate().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—';
+      let statusHtml;
+      if(!d || !d.checkIn) statusHtml = `<span class="badge" style="background:rgba(196,89,58,0.14); color:var(--red);">Absent</span>`;
+      else if(d.checkIn && !d.checkOut) statusHtml = `<span class="badge jour">En service</span>`;
+      else statusHtml = `<span class="badge fix">Terminé</span>`;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><b>${a.name}</b></td><td>${inT}</td><td>${outT}</td><td>${statusHtml}</td>`;
+      tbody.appendChild(tr);
+    });
+  }).catch(err => console.error(err));
+}
 
 renderProfiles();
 </script>
