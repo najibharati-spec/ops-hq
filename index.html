@@ -15,20 +15,20 @@
 
 <style>
 :root{
-  --sand: #F3EDE1;
-  --sand-deep: #E9E0CE;
-  --sky: #3A6EA5;
-  --sky-deep: #2C5480;
-  --sky-ink: #1E3A5A;
-  --mustard: #D9A441;
-  --mustard-deep: #C08A2A;
-  --ink: #26241D;
-  --ink-soft: #6B6558;
-  --paper: #FFFDF8;
-  --line: #E2D9C7;
+  --sand: #EEF1F6;
+  --sand-deep: #E1E7F0;
+  --sky: #2C5480;
+  --sky-deep: #1B3252;
+  --sky-ink: #101D30;
+  --mustard: #F5A623;
+  --mustard-deep: #D98A12;
+  --ink: #202531;
+  --ink-soft: #666F80;
+  --paper: #FFFFFF;
+  --line: #DDE3ED;
   --green: #4C8B5C;
   --red: #C4593A;
-  --radius: 10px;
+  --radius: 12px;
   --font-display: 'Manrope', sans-serif;
   --font-mono: 'DM Mono', monospace;
 }
@@ -49,7 +49,7 @@ input, select{font-family: inherit;}
   --login-navy: #101D30;
   --login-navy-2: #1B3252;
   --login-amber: #F5A623;
-  --login-cream: #FBF7EC;
+  --login-cream: #F7F9FC;
 }
 #loginScreen{ min-height: 100vh; }
 .login-split{
@@ -252,24 +252,32 @@ input, select{font-family: inherit;}
 /* Dashboard cards */
 .stat-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
 .stat-card{
-  background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px;
+  background: var(--paper); border: 1px solid var(--line); border-left: 4px solid var(--sky-ink);
+  border-radius: 18px; padding: 18px;
 }
+.stat-card.accent-green{ border-left-color: #2FA860; }
+.stat-card.accent-blue{ border-left-color: var(--sky); }
+.stat-card.accent-amber{ border-left-color: var(--mustard); }
+.stat-card.accent-purple{ border-left-color: #8A5FB0; }
+.stat-card.accent-red{ border-left-color: #D8483A; }
+.stat-card.accent-orange{ border-left-color: #E0792E; }
 .stat-card .label{ font-size: 11.5px; color: var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; font-weight:600; margin-bottom: 8px;}
 .stat-card .value{ font-size: 28px; font-weight: 800; color: var(--sky-ink); font-family: var(--font-mono); }
 .stat-card .sub{ font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
 
 .zone-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 14px; }
 .zone-card{
-  background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 16px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 16px;
   border-left: 4px solid var(--mustard);
 }
 .zone-card h3{ font-size: 14px; font-weight:700; margin-bottom: 10px; }
 .zone-card .count{ font-size: 24px; font-weight: 800; color: var(--sky-ink); font-family: var(--font-mono); }
 .zone-card .count-label{ font-size: 11.5px; color: var(--ink-soft); }
+.zone-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle; }
 
 .section-title{ font-size: 15px; font-weight: 800; margin: 26px 0 14px; }
 
-.card{ background: var(--paper); border:1px solid var(--line); border-radius: 14px; }
+.card{ background: var(--paper); border:1px solid var(--line); border-radius: 18px; }
 
 table{ width:100%; border-collapse: collapse; }
 th{ text-align:left; font-size: 11px; text-transform:uppercase; letter-spacing:.04em; color: var(--ink-soft); font-weight:700; padding: 12px 16px; border-bottom: 1px solid var(--line); }
@@ -383,11 +391,11 @@ tr:last-child td{ border-bottom:none; }
   transition: filter .1s;
 }
 .shift-pill:hover{ filter: brightness(0.95); }
-.shift-pill.s-off{ background: #3A3A34; color: #fff; }
-.shift-pill.s-jour{ background: #2FA860; color: #fff; }
-.shift-pill.s-nuit{ background: #2C5AA0; color: #fff; }
-.shift-pill.s-abs{ background: #D8483A; color: #fff; }
-.shift-pill.s-conge{ background: #E0A72E; color: #fff; }
+.shift-pill.s-off{ background: #55606E; color: #fff; }
+.shift-pill.s-jour{ background: #3FA66B; color: #fff; }
+.shift-pill.s-nuit{ background: #3B6FA0; color: #fff; }
+.shift-pill.s-abs{ background: #E1503D; color: #fff; }
+.shift-pill.s-conge{ background: var(--mustard); color: #fff; }
 .cell-select{
   width: 100%; padding: 6px 4px; border-radius: 7px; border: 1.5px solid var(--sky); font-size: 11px;
   background: #fff; font-weight: 700;
@@ -578,32 +586,32 @@ tr:last-child td{ border-bottom:none; }
             <div class="value" id="statActive">—</div>
             <div class="sub">enregistrés</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card accent-green">
             <div class="label">En shift JOUR</div>
             <div class="value" id="statJour">—</div>
             <div class="sub">équipe matin</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card accent-blue">
             <div class="label">En shift NUIT</div>
             <div class="value" id="statNuit">—</div>
             <div class="sub">équipe soir</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card accent-amber">
             <div class="label">Zones couvertes</div>
             <div class="value" id="statZones">—</div>
             <div class="sub">sur 5 zones</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card accent-purple">
             <div class="label">OFF aujourd'hui</div>
             <div class="value" id="statOffToday">—</div>
             <div class="sub">agents au repos</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card accent-orange">
             <div class="label">Absences (semaine)</div>
             <div class="value" id="statAbsences">—</div>
             <div class="sub">congé / maladie</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card accent-red">
             <div class="label">Alertes actives</div>
             <div class="value" id="statAlerts">—</div>
             <div class="sub">à vérifier</div>
@@ -828,6 +836,14 @@ const db = firebase.firestore();
 let AGENTS = [];
 let agentsUnsub = null;
 const ZONES = ["Agdal - Carrousel", "Hay Riad - Soussi", "Salé - Medina", "Technopolis", "Temara - Oulad Mtaa"];
+// Identité couleur par zone (même code couleur que la carte de la page de login)
+const ZONE_COLORS = {
+  "Technopolis": "#2FA860",
+  "Salé - Medina": "#E0792E",
+  "Agdal - Carrousel": "#E0A72E",
+  "Hay Riad - Soussi": "#8A5FB0",
+  "Temara - Oulad Mtaa": "#2C5AA0",
+};
 
 /* ================= PLANNING GROUPS ================= */
 // Les 3 zones qui tournent chaque semaine entre les groupes "rotating"
@@ -1264,8 +1280,10 @@ function initDashboard(){
   zoneGrid.innerHTML = '';
   ZONES.forEach(zone => {
     const count = AGENTS.filter(a => resolveAgentZone(a, weekIdx) === zone).length;
+    const color = ZONE_COLORS[zone] || 'var(--mustard)';
     const card = document.createElement('div');
     card.className = 'zone-card';
+    card.style.borderLeftColor = color;
     card.innerHTML = `<h3>${zone}</h3><div class="count">${count}</div><div class="count-label">agent${count>1?'s':''} assigné${count>1?'s':''}</div>`;
     zoneGrid.appendChild(card);
   });
@@ -1397,7 +1415,7 @@ function renderAgentsTable(){
     tr.innerHTML = `
       <td><b>${a.name}</b></td>
       <td style="font-family: var(--font-mono); font-weight:700;">${a.pin || '<span style="color:var(--ink-soft); font-weight:400;">—</span>'}</td>
-      <td>${zone}</td>
+      <td><span class="zone-dot" style="background:${ZONE_COLORS[zone] || 'var(--ink-soft)'}"></span>${zone}</td>
       <td><span class="badge ${a.group ? 'fix' : 'var'}">${groupLabel}</span></td>
       <td><span class="badge ${period === 'JOUR' ? 'jour' : 'nuit'}">${period}</span></td>
       <td>
