@@ -55,7 +55,7 @@ input, select{font-family: inherit;}
   padding: 24px;
 }
 .login-card{
-  width: 100%; max-width: 420px;
+  width: 100%; max-width: 480px;
   background: var(--paper);
   border-radius: 20px;
   padding: 40px 36px 32px;
@@ -66,6 +66,7 @@ input, select{font-family: inherit;}
   display:flex; flex-direction:column; align-items:center; text-align:center;
   margin-bottom: 30px;
 }
+.login-hero{ width: 100%; max-width: 220px; height: auto; margin-bottom: 6px; }
 .login-mark{
   width: 52px; height: 52px; border-radius: 14px;
   background: linear-gradient(145deg, var(--sky), var(--sky-ink));
@@ -83,8 +84,8 @@ input, select{font-family: inherit;}
   font-family: var(--font-mono);
 }
 .profile-grid{
-  display:grid; grid-template-columns: 1fr 1fr; gap: 10px;
-  margin-bottom: 20px;
+  display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+  margin-bottom: 20px; max-height: 320px; overflow-y: auto; padding-right: 2px;
 }
 .profile-btn{
   background: var(--sand);
@@ -101,6 +102,7 @@ input, select{font-family: inherit;}
   display:flex; align-items:center; justify-content:center;
   color:#fff; font-weight:700; font-size: 14px;
 }
+.profile-avatar svg{ width: 20px; height: 20px; }
 .profile-btn span{font-size: 13px; font-weight: 600; color: var(--ink);}
 .profile-btn small{font-size: 10px; color: var(--ink-soft); text-transform:uppercase; letter-spacing:.04em;}
 
@@ -386,6 +388,22 @@ tr:last-child td{ border-bottom:none; }
 <div id="loginScreen">
   <div class="login-card">
     <div class="login-brand">
+      <svg class="login-hero" viewBox="0 0 220 120" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="110" cy="104" rx="88" ry="8" fill="#1E3A5A" opacity="0.06"/>
+        <path d="M18 96 H202" stroke="#E2D9C7" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 10"/>
+        <g transform="translate(60,28)">
+          <rect x="34" y="8" width="26" height="24" rx="5" fill="#D9A441"/>
+          <path d="M40 8 L40 2 H54 L54 8" stroke="#C08A2A" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <circle cx="14" cy="62" r="15" fill="none" stroke="#1E3A5A" stroke-width="5"/>
+          <circle cx="82" cy="62" r="15" fill="none" stroke="#1E3A5A" stroke-width="5"/>
+          <path d="M14 62 H50 L60 40 H72" stroke="#3A6EA5" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M50 62 L60 40" stroke="#3A6EA5" stroke-width="5" stroke-linecap="round"/>
+          <path d="M82 62 L70 40 H60" stroke="#3A6EA5" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="66" cy="14" r="9" fill="#26241D"/>
+          <path d="M58 26 Q66 18 74 26 L72 40 H60 Z" fill="#2C5480"/>
+          <rect x="70" y="34" width="16" height="16" rx="4" fill="#D9A441" transform="rotate(8 78 42)"/>
+        </g>
+      </svg>
       <div class="login-mark">
         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l2-2 4 4 8-8 2 2"/><path d="M3 18l2-2 4 4 8-8 2 2"/></svg>
       </div>
@@ -393,30 +411,11 @@ tr:last-child td{ border-bottom:none; }
       <p>Système Central de Gestion RH</p>
     </div>
 
-    <div class="login-tabs">
-      <button class="ltab active" id="loginTabAdmin">Admin / Manager</button>
-      <button class="ltab" id="loginTabAgent">Agent</button>
-    </div>
+    <div class="profile-grid" id="profileGrid"></div>
 
-    <!-- ADMIN LOGIN -->
-    <div id="adminLoginBlock">
-      <div class="profile-grid" id="profileGrid"></div>
-      <input type="password" id="passwordInput" class="login-input" placeholder="Mot de passe d'accès...">
-      <button id="loginBtn" class="login-submit" disabled>DÉVERROUILLER</button>
-      <div class="login-error" id="loginError"></div>
-    </div>
-
-    <!-- AGENT LOGIN -->
-    <div id="agentLoginBlock" class="hidden">
-      <label class="form-label">Ton nom</label>
-      <select id="agentLoginSelect" class="login-input">
-        <option value="">Chargement...</option>
-      </select>
-      <label class="form-label">Code PIN</label>
-      <input type="password" id="agentPinInput" class="login-input" placeholder="••••" inputmode="numeric" maxlength="8">
-      <button id="agentLoginBtn" class="login-submit">POINTER</button>
-      <div class="login-error" id="agentLoginError"></div>
-    </div>
+    <input type="password" id="passwordInput" class="login-input" placeholder="Mot de passe ou code PIN..." disabled>
+    <button id="loginBtn" class="login-submit" disabled>DÉVERROUILLER</button>
+    <div class="login-error" id="loginError"></div>
   </div>
 </div>
 
@@ -764,14 +763,41 @@ let selectedProfile = null;
 
 function renderProfiles(){
   const grid = document.getElementById('profileGrid');
-  grid.innerHTML = '';
-  PROFILES.forEach(p => {
-    const btn = document.createElement('button');
-    btn.className = 'profile-btn';
-    btn.innerHTML = `<div class="profile-avatar" style="background:${p.color}">${p.initials}</div><span>${p.name}</span><small>${p.role}</small>`;
-    btn.addEventListener('click', () => selectProfile(p, btn));
-    grid.appendChild(btn);
-  });
+  const passInput = document.getElementById('passwordInput');
+  const loginBtn = document.getElementById('loginBtn');
+  grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; font-size:12px; color:var(--ink-soft); padding:10px;">Chargement de l\'équipe...</div>';
+
+  const AVATAR_COLORS = ['#3A6EA5', '#D9A441', '#4C8B5C', '#C4593A', '#8A5FB0', '#2C5480', '#B0793E', '#5C8A8A', '#A0526D', '#6B7A3A', '#7A5C3A', '#5A6B8A', '#9A5A3A'];
+  const PERSON_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>`;
+
+  // Il faut une session (même anonyme) pour lire Firestore selon nos règles de sécurité.
+  auth.signInAnonymously()
+    .then(() => db.collection('agents').get())
+    .then(snap => {
+      const agentProfiles = snap.docs
+        .map(d => {
+          const data = d.data();
+          const nickname = data.nickname || data.name.split(' ').slice(-1)[0];
+          return { id: d.id, name: nickname, role: 'Agent', authType: 'pin' };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((p, i) => ({ ...p, color: AVATAR_COLORS[i % AVATAR_COLORS.length] }));
+
+      const allProfiles = [...PROFILES, ...agentProfiles];
+      grid.innerHTML = '';
+      allProfiles.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'profile-btn';
+        btn.innerHTML = `<div class="profile-avatar" style="background:${p.color}">${PERSON_ICON}</div><span>${p.name}</span><small>${p.role}</small>`;
+        btn.addEventListener('click', () => selectProfile(p, btn));
+        grid.appendChild(btn);
+      });
+      passInput.disabled = false;
+    })
+    .catch(err => {
+      console.error(err);
+      grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; font-size:12px; color:var(--red); padding:10px;">Erreur de chargement. Vérifie que "Anonyme" est activé dans Firebase Authentication.</div>';
+    });
 }
 
 function selectProfile(profile, btnEl){
@@ -779,7 +805,10 @@ function selectProfile(profile, btnEl){
   document.querySelectorAll('.profile-btn').forEach(b => b.classList.remove('selected'));
   btnEl.classList.add('selected');
   document.getElementById('loginBtn').disabled = false;
+  document.getElementById('passwordInput').placeholder = profile.authType === 'pin' ? 'Code PIN...' : "Mot de passe d'accès...";
+  document.getElementById('passwordInput').value = '';
   document.getElementById('loginError').textContent = '';
+  document.getElementById('passwordInput').focus();
 }
 
 document.getElementById('loginBtn').addEventListener('click', attemptLogin);
@@ -789,11 +818,25 @@ function attemptLogin(){
   const pass = document.getElementById('passwordInput').value.trim();
   const errEl = document.getElementById('loginError');
   if(!selectedProfile){ errEl.textContent = 'Sélectionnez un profil.'; return; }
-  if(!pass){ errEl.textContent = 'Entrez le mot de passe.'; return; }
+  if(!pass){ errEl.textContent = 'Entrez le code d\'accès.'; return; }
+
+  if(selectedProfile.authType === 'pin'){
+    errEl.textContent = 'Vérification...';
+    db.collection('agents').doc(selectedProfile.id).get().then(doc => {
+      if(!doc.exists){ errEl.textContent = 'Agent introuvable.'; return; }
+      const agent = { id: doc.id, ...doc.data() };
+      if(!agent.pin || agent.pin !== pass){
+        errEl.textContent = 'Code PIN incorrect.';
+        return;
+      }
+      errEl.textContent = '';
+      enterAgentPortal(agent);
+    }).catch(err => { console.error(err); errEl.textContent = 'Erreur de connexion.'; });
+    return;
+  }
 
   errEl.textContent = 'Connexion...';
   // Admin/manager profiles use Firebase Auth (email/password).
-  // Convention: profile.id + "@opshq.local" as the auth email.
   const email = `${selectedProfile.id}@opshq.ma`;
   auth.signInWithEmailAndPassword(email, pass)
     .then(() => {
@@ -818,76 +861,6 @@ function enterApp(profile){
 document.getElementById('logoutBtn').addEventListener('click', () => {
   auth.signOut().finally(() => location.reload());
 });
-
-/* ================= LOGIN TABS (Admin vs Agent) ================= */
-document.getElementById('loginTabAdmin').addEventListener('click', () => switchLoginTab('admin'));
-document.getElementById('loginTabAgent').addEventListener('click', () => switchLoginTab('agent'));
-
-function switchLoginTab(tab){
-  document.getElementById('loginTabAdmin').classList.toggle('active', tab === 'admin');
-  document.getElementById('loginTabAgent').classList.toggle('active', tab === 'agent');
-  document.getElementById('adminLoginBlock').classList.toggle('hidden', tab !== 'admin');
-  document.getElementById('agentLoginBlock').classList.toggle('hidden', tab !== 'agent');
-  if(tab === 'agent') prepareAgentLogin();
-}
-
-function prepareAgentLogin(){
-  const errEl = document.getElementById('agentLoginError');
-  const sel = document.getElementById('agentLoginSelect');
-  errEl.textContent = '';
-  sel.innerHTML = '<option value="">Chargement...</option>';
-  // Une session (même anonyme) est nécessaire pour lire Firestore selon nos règles de sécurité.
-  auth.signInAnonymously()
-    .then(() => db.collection('agents').get())
-    .then(snap => {
-      const list = snap.docs
-        .map(d => ({ id: d.id, name: d.data().name, nickname: d.data().nickname || d.data().name.split(' ')[0] }))
-        .sort((a, b) => a.nickname.localeCompare(b.nickname));
-      if(list.length === 0){
-        sel.innerHTML = '<option value="">Aucun agent trouvé</option>';
-        errEl.textContent = "Aucun agent n'a encore été ajouté (page Agents).";
-        return;
-      }
-      sel.innerHTML = '<option value="">— Choisir —</option>' + list.map(a => `<option value="${a.id}">${a.nickname}</option>`).join('');
-    })
-    .catch(err => {
-      console.error(err);
-      sel.innerHTML = '<option value="">Erreur de chargement</option>';
-      if(err.code === 'auth/operation-not-allowed' || err.code === 'auth/admin-restricted-operation'){
-        errEl.textContent = "La connexion 'Anonyme' n'est pas activée dans Firebase (Authentication → Méthode de connexion → Anonyme).";
-      } else {
-        errEl.textContent = "Impossible de charger la liste des agents. Réessaie.";
-      }
-    });
-}
-
-document.getElementById('agentLoginBtn').addEventListener('click', attemptAgentLogin);
-document.getElementById('agentPinInput').addEventListener('keydown', e => { if(e.key === 'Enter') attemptAgentLogin(); });
-
-function attemptAgentLogin(){
-  const errEl = document.getElementById('agentLoginError');
-  const agentId = document.getElementById('agentLoginSelect').value;
-  const pin = document.getElementById('agentPinInput').value.trim();
-  if(!agentId){ errEl.textContent = 'Choisis ton nom.'; return; }
-  if(!pin){ errEl.textContent = 'Entre ton code PIN.'; return; }
-  errEl.textContent = 'Vérification...';
-
-  const proceed = () => {
-    db.collection('agents').doc(agentId).get().then(doc => {
-      if(!doc.exists){ errEl.textContent = 'Agent introuvable.'; return; }
-      const agent = { id: doc.id, ...doc.data() };
-      if(!agent.pin || agent.pin !== pin){
-        errEl.textContent = 'Code PIN incorrect.';
-        return;
-      }
-      errEl.textContent = '';
-      enterAgentPortal(agent);
-    }).catch(err => { console.error(err); errEl.textContent = 'Erreur de connexion.'; });
-  };
-
-  if(auth.currentUser){ proceed(); }
-  else { auth.signInAnonymously().then(proceed).catch(err => { console.error(err); errEl.textContent = 'Erreur de connexion.'; }); }
-}
 
 /* ================= AGENT PORTAL (Pointage) ================= */
 let currentAgentSession = null;
@@ -1351,19 +1324,19 @@ document.getElementById('openAddAgentBtn').addEventListener('click', () => openA
 
 /* ================= BULK IMPORT (13 agents de Najib) ================= */
 const TEAM_IMPORT = [
-  { name: "Yahya Rhallah",     group: "trio1" },
-  { name: "Aymane Chlifane",   group: "trio1" },
-  { name: "Mehdi Ait Jebour",  group: "trio1" },
-  { name: "Achraf Akhlij",     group: "trio2" },
-  { name: "Islam Elmardi",     group: "trio2" },
-  { name: "Oussama El Atrach", group: "trio2" },
-  { name: "Youssef Derkoui",   group: "trio3" },
-  { name: "Mourad Cherradi",   group: "trio3" },
-  { name: "Ayoub Abssi",       group: "trio3" },
-  { name: "Charaf Loummihi",   group: "sale" },
-  { name: "Ayoub Ben Malek",   group: "sale" },
-  { name: "Hassan Azgoune",    group: "sale" },
-  { name: "Zakariae Benali",   group: "zakariae", fixedZone: "Technopolis" },
+  { name: "Yahya Rhallah",     nickname: "Rhallah",    group: "trio1" },
+  { name: "Aymane Chlifane",   nickname: "Chlifane",   group: "trio1" },
+  { name: "Mehdi Ait Jebour",  nickname: "Ait Jebour", group: "trio1" },
+  { name: "Achraf Akhlij",     nickname: "Akhlij",     group: "trio2" },
+  { name: "Islam Elmardi",     nickname: "Elmardi",    group: "trio2" },
+  { name: "Oussama El Atrach", nickname: "El Atrach",  group: "trio2" },
+  { name: "Youssef Derkoui",   nickname: "Derkoui",    group: "trio3" },
+  { name: "Mourad Cherradi",   nickname: "Cherradi",   group: "trio3" },
+  { name: "Ayoub Abssi",       nickname: "Abssi",      group: "trio3" },
+  { name: "Charaf Loummihi",   nickname: "Loummihi",   group: "sale" },
+  { name: "Ayoub Ben Malek",   nickname: "Ben Malek",  group: "sale" },
+  { name: "Hassan Azgoune",    nickname: "Azgoune",    group: "sale" },
+  { name: "Zakariae Benali",   nickname: "Benali",     group: "zakariae", fixedZone: "Technopolis" },
 ];
 
 document.getElementById('importTeamBtn').addEventListener('click', () => {
@@ -1379,7 +1352,7 @@ document.getElementById('importTeamBtn').addEventListener('click', () => {
     pinReport.push(`${t.name} : ${pin}`);
     batch.set(ref, {
       name: t.name,
-      nickname: t.name.split(' ')[0],
+      nickname: t.nickname || t.name.split(' ')[0],
       group: t.group,
       zone: null,
       fixedZone: t.fixedZone || null,
@@ -1431,7 +1404,7 @@ document.getElementById('genAllNicknamesBtn').addEventListener('click', () => {
   if(missing.length === 0){ alert('Tous les agents ont déjà un surnom.'); return; }
   const batch = db.batch();
   missing.forEach(a => {
-    batch.update(db.collection('agents').doc(a.id), { nickname: a.name.split(' ')[0] });
+    batch.update(db.collection('agents').doc(a.id), { nickname: a.name.split(' ').slice(-1)[0] });
   });
   batch.commit()
     .then(() => alert(`Surnom généré pour ${missing.length} agent(s) (premier prénom par défaut). Tu peux les modifier un par un si besoin.`))
@@ -1455,7 +1428,7 @@ document.getElementById('saveAgentBtn').addEventListener('click', () => {
 
   const payload = {
     name, group, pin: pin || null,
-    nickname: nickname || name.split(' ')[0],
+    nickname: nickname || name.split(' ').slice(-1)[0],
     zone: group ? null : zone,
     fixedZone: group === 'zakariae' ? fixedZone : null,
   };
@@ -1690,7 +1663,7 @@ function renderZonesView(){
       }).map(a => {
         const code = currentPlanningData.agents[a.id].cells[day];
         const icon = code.startsWith('M') ? '☀️' : '🌙';
-        return `${icon} ${a.name.split(' ')[0]}`;
+        return `${icon} ${a.nickname || a.name.split(' ').slice(-1)[0]}`;
       });
       cellsHtml += `<td style="text-align:left; white-space:normal;">${agentsHere.length ? agentsHere.join('<br>') : '<span style="color:var(--ink-soft)">—</span>'}</td>`;
     });
