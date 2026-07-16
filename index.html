@@ -45,43 +45,70 @@ input, select{font-family: inherit;}
 ::selection{background: var(--mustard); color: #fff;}
 
 /* ============ LOGIN SCREEN ============ */
-#loginScreen{
-  min-height: 100vh;
-  display:flex; align-items:center; justify-content:center;
+:root{
+  --login-navy: #101D30;
+  --login-navy-2: #1B3252;
+  --login-amber: #F5A623;
+  --login-cream: #FBF7EC;
+}
+#loginScreen{ min-height: 100vh; }
+.login-split{
+  min-height: 100vh; display:flex;
+}
+.login-hero-panel{
+  flex: 1 1 46%; min-width: 340px;
   background:
-    radial-gradient(circle at 15% 20%, rgba(58,110,165,0.10), transparent 45%),
-    radial-gradient(circle at 85% 80%, rgba(217,164,65,0.14), transparent 45%),
-    var(--sand);
-  padding: 24px;
+    radial-gradient(circle at 20% 10%, rgba(245,166,35,0.14), transparent 40%),
+    linear-gradient(160deg, var(--login-navy), var(--login-navy-2));
+  color: #EAF1F9;
+  display:flex; flex-direction:column; justify-content:space-between;
+  padding: 40px 44px;
+  position: relative; overflow:hidden;
+}
+.hero-brand{ display:flex; align-items:center; gap:10px; }
+.hero-brand .login-mark{ width:36px; height:36px; box-shadow:none; background: var(--login-amber); }
+.login-mark{
+  width: 36px; height: 36px; border-radius: 10px;
+  display:flex; align-items:center; justify-content:center;
+}
+.login-mark svg{ width:20px; height:20px; }
+.hero-brand span{ font-size:16px; font-weight:800; letter-spacing:-0.01em; }
+.route-map{ flex:1; display:flex; align-items:center; justify-content:center; padding: 10px 0; }
+.route-svg{ width: 100%; max-width: 340px; height: auto; }
+.pin-dot-outer{ fill: var(--login-amber); }
+.pin-dot-inner{ fill: var(--login-navy); }
+.pin-label{ fill: rgba(234,241,249,0.82); font-family: var(--font-display); font-size: 12.5px; font-weight: 700; }
+.pin-label-sub{ fill: rgba(234,241,249,0.4); font-family: var(--font-mono); font-size: 9.5px; }
+.scooter-icon path, .scooter-icon circle{ fill: var(--login-amber); }
+@media (prefers-reduced-motion: reduce){ #routeMotion{ display:none; } }
+.hero-foot{ font-family: var(--font-mono); }
+.hero-foot span{ font-size: 22px; font-weight: 700; color: var(--login-amber); display:block; margin-bottom:6px; }
+.hero-foot p{ font-size: 12px; color: rgba(234,241,249,0.55); max-width: 280px; }
+
+.login-form-panel{
+  flex: 1 1 54%;
+  background: var(--login-cream);
+  display:flex; align-items:center; justify-content:center;
+  padding: 40px 24px;
 }
 .login-card{
-  width: 100%; max-width: 480px;
-  background: var(--paper);
-  border-radius: 20px;
-  padding: 40px 36px 32px;
-  box-shadow: 0 24px 60px -20px rgba(30,58,90,0.25), 0 2px 8px rgba(30,58,90,0.06);
-  border: 1px solid var(--line);
+  width: 100%; max-width: 440px;
+  background: transparent;
+  padding: 0;
 }
 .login-brand{
-  display:flex; flex-direction:column; align-items:center; text-align:center;
-  margin-bottom: 30px;
+  display:flex; flex-direction:column; align-items:flex-start; text-align:left;
+  margin-bottom: 26px;
 }
-.login-hero{ width: 100%; max-width: 220px; height: auto; margin-bottom: 6px; }
-.login-mark{
-  width: 52px; height: 52px; border-radius: 14px;
-  background: linear-gradient(145deg, var(--sky), var(--sky-ink));
-  display:flex; align-items:center; justify-content:center;
-  margin-bottom: 16px;
-  box-shadow: 0 8px 20px -6px rgba(30,58,90,0.5);
-}
-.login-mark svg{width:26px; height:26px;}
-.login-brand h1{
-  font-size: 22px; font-weight: 800; letter-spacing: -0.02em;
-  color: var(--sky-ink);
-}
-.login-brand p{
-  font-size: 13px; color: var(--ink-soft); margin-top: 4px;
-  font-family: var(--font-mono);
+.login-brand h1{ font-size: 24px; font-weight: 800; letter-spacing: -0.02em; color: var(--sky-ink); }
+.login-brand p{ font-size: 13px; color: var(--ink-soft); margin-top: 4px; font-family: var(--font-mono); }
+
+@media (max-width: 860px){
+  .login-split{ flex-direction: column; }
+  .login-hero-panel{ min-width: 0; padding: 28px 28px 22px; min-height: 0; }
+  .route-map{ display:none; }
+  .hero-foot p{ display:none; }
+  .hero-foot span{ font-size: 16px; }
 }
 .profile-grid{
   display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
@@ -386,36 +413,90 @@ tr:last-child td{ border-bottom:none; }
 
 <!-- ============ LOGIN ============ -->
 <div id="loginScreen">
-  <div class="login-card">
-    <div class="login-brand">
-      <svg class="login-hero" viewBox="0 0 220 120" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="110" cy="104" rx="88" ry="8" fill="#1E3A5A" opacity="0.06"/>
-        <path d="M18 96 H202" stroke="#E2D9C7" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 10"/>
-        <g transform="translate(60,28)">
-          <rect x="34" y="8" width="26" height="24" rx="5" fill="#D9A441"/>
-          <path d="M40 8 L40 2 H54 L54 8" stroke="#C08A2A" stroke-width="3" fill="none" stroke-linecap="round"/>
-          <circle cx="14" cy="62" r="15" fill="none" stroke="#1E3A5A" stroke-width="5"/>
-          <circle cx="82" cy="62" r="15" fill="none" stroke="#1E3A5A" stroke-width="5"/>
-          <path d="M14 62 H50 L60 40 H72" stroke="#3A6EA5" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M50 62 L60 40" stroke="#3A6EA5" stroke-width="5" stroke-linecap="round"/>
-          <path d="M82 62 L70 40 H60" stroke="#3A6EA5" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="66" cy="14" r="9" fill="#26241D"/>
-          <path d="M58 26 Q66 18 74 26 L72 40 H60 Z" fill="#2C5480"/>
-          <rect x="70" y="34" width="16" height="16" rx="4" fill="#D9A441" transform="rotate(8 78 42)"/>
-        </g>
-      </svg>
-      <div class="login-mark">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l2-2 4 4 8-8 2 2"/><path d="M3 18l2-2 4 4 8-8 2 2"/></svg>
+  <div class="login-split">
+    <aside class="login-hero-panel">
+      <div class="hero-brand">
+        <div class="login-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#101D30" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l2-2 4 4 8-8 2 2"/><path d="M3 18l2-2 4 4 8-8 2 2"/></svg>
+        </div>
+        <span>OPS HQ</span>
       </div>
-      <h1>OPS HQ</h1>
-      <p>Système Central de Gestion RH</p>
-    </div>
 
-    <div class="profile-grid" id="profileGrid"></div>
+      <div class="route-map">
+        <svg class="route-svg" viewBox="0 0 340 480" xmlns="http://www.w3.org/2000/svg">
+          <path id="routePath" d="M50,50 C 170,20 260,80 280,130 S 120,180 90,230 S 280,270 260,330 S 60,370 80,430"
+                fill="none" stroke="rgba(234,241,249,0.22)" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round"/>
 
-    <input type="password" id="passwordInput" class="login-input" placeholder="Mot de passe ou code PIN..." disabled>
-    <button id="loginBtn" class="login-submit" disabled>DÉVERROUILLER</button>
-    <div class="login-error" id="loginError"></div>
+          <!-- Technopolis : puce / circuit -->
+          <g transform="translate(50,50)">
+            <circle r="15" fill="#2FA860"/>
+            <rect x="-6" y="-6" width="12" height="12" rx="2" fill="none" stroke="#fff" stroke-width="1.4"/>
+            <path d="M-6,-2 h-3 M-6,2 h-3 M6,-2 h3 M6,2 h3 M-2,-6 v-3 M2,-6 v-3 M-2,6 v3 M2,6 v3" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+            <text x="20" y="4" class="pin-label">Technopolis</text>
+          </g>
+
+          <!-- Salé - Medina : dôme / croissant -->
+          <g transform="translate(280,130)">
+            <circle r="15" fill="#E0792E"/>
+            <path d="M-6,4 a6,6 0 1,1 12,0 z" fill="#fff"/>
+            <circle cx="0" cy="-4" r="2.2" fill="#fff"/>
+            <path d="M-8,4 h16" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+            <text x="-20" y="-19" text-anchor="end" class="pin-label">Salé - Medina</text>
+          </g>
+
+          <!-- Agdal - Carrousel : grande roue -->
+          <g transform="translate(90,230)">
+            <circle r="15" fill="#E0A72E"/>
+            <circle r="6.5" fill="none" stroke="#fff" stroke-width="1.4"/>
+            <path d="M0,-6.5 L0,6.5 M-6.5,0 L6.5,0 M-4.6,-4.6 L4.6,4.6 M-4.6,4.6 L4.6,-4.6" stroke="#fff" stroke-width="1.1"/>
+            <text x="20" y="4" class="pin-label">Agdal - Carrousel</text>
+          </g>
+
+          <!-- Hay Riad - Soussi : villa -->
+          <g transform="translate(260,330)">
+            <circle r="15" fill="#8A5FB0"/>
+            <path d="M-7,2 L0,-6 L7,2 V7 H-7 Z" fill="#fff"/>
+            <rect x="-2" y="1" width="4" height="6" fill="#8A5FB0"/>
+            <text x="-20" y="-19" text-anchor="end" class="pin-label">Hay Riad - Soussi</text>
+          </g>
+
+          <!-- Temara - Oulad Mtaa : palmier -->
+          <g transform="translate(80,430)">
+            <circle r="15" fill="#2C5AA0"/>
+            <path d="M0,7 V-2" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M0,-2 Q-7,-6 -8,-1 M0,-2 Q7,-6 8,-1 M0,-2 Q-5,-8 -1,-9 M0,-2 Q5,-8 1,-9" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+            <text x="20" y="4" class="pin-label">Temara - Oulad Mtaa</text>
+          </g>
+
+          <g id="routeMotion" class="scooter-icon">
+            <circle r="9" fill="#101D30"/>
+            <path d="M-5,2 h10 l-2,-6 h-6 z M-3,2 a3,3 0 1,0 0.1,0 M3,2 a3,3 0 1,0 0.1,0" stroke="#F5A623" stroke-width="1.4" fill="none"/>
+            <animateMotion dur="16s" repeatCount="indefinite" rotate="auto"
+              path="M50,50 C 170,20 260,80 280,130 S 120,180 90,230 S 280,270 260,330 S 60,370 80,430"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="hero-foot">
+        <span id="heroClock">--:--</span>
+        <p>Gestion opérationnelle terrain — Rabat &amp; environs</p>
+      </div>
+    </aside>
+
+    <main class="login-form-panel">
+      <div class="login-card">
+        <div class="login-brand">
+          <h1>OPS HQ</h1>
+          <p>Système Central de Gestion RH</p>
+        </div>
+
+        <div class="profile-grid" id="profileGrid"></div>
+
+        <input type="password" id="passwordInput" class="login-input" placeholder="Mot de passe ou code PIN..." disabled>
+        <button id="loginBtn" class="login-submit" disabled>DÉVERROUILLER</button>
+        <div class="login-error" id="loginError"></div>
+      </div>
+    </main>
   </div>
 </div>
 
@@ -475,6 +556,7 @@ tr:last-child td{ border-bottom:none; }
             <span id="sidebarUserRole">—</span>
           </div>
         </div>
+        <button class="logout-btn" id="changePassBtn" style="margin-top:6px;"><span>Changer le mot de passe</span></button>
         <button class="logout-btn" id="logoutBtn"><span>Déconnexion</span></button>
       </div>
     </aside>
@@ -658,6 +740,24 @@ tr:last-child td{ border-bottom:none; }
       <section class="view hidden" id="view-rapports"></section>
       <section class="view hidden" id="view-parametres"></section>
     </main>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-overlay hidden" id="changePassOverlay">
+  <div class="modal-card">
+    <h3>Changer le mot de passe</h3>
+    <label class="form-label">Mot de passe actuel</label>
+    <input type="password" id="oldPassInput" class="login-input" placeholder="Mot de passe actuel">
+    <label class="form-label">Nouveau mot de passe</label>
+    <input type="password" id="newPassInput" class="login-input" placeholder="Nouveau mot de passe (6 caractères min.)">
+    <label class="form-label">Confirmer le nouveau mot de passe</label>
+    <input type="password" id="confirmPassInput" class="login-input" placeholder="Confirmer">
+    <div class="modal-error" id="changePassError"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelChangePassBtn">Annuler</button>
+      <button class="login-submit" id="saveChangePassBtn" style="width:auto; padding:12px 22px;">Enregistrer</button>
+    </div>
   </div>
 </div>
 
@@ -862,6 +962,49 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   auth.signOut().finally(() => location.reload());
 });
 
+/* ================= CHANGE PASSWORD (self-service) ================= */
+document.getElementById('changePassBtn').addEventListener('click', () => {
+  document.getElementById('oldPassInput').value = '';
+  document.getElementById('newPassInput').value = '';
+  document.getElementById('confirmPassInput').value = '';
+  document.getElementById('changePassError').textContent = '';
+  document.getElementById('changePassOverlay').classList.remove('hidden');
+});
+document.getElementById('cancelChangePassBtn').addEventListener('click', () => {
+  document.getElementById('changePassOverlay').classList.add('hidden');
+});
+document.getElementById('changePassOverlay').addEventListener('click', e => {
+  if(e.target.id === 'changePassOverlay') document.getElementById('changePassOverlay').classList.add('hidden');
+});
+
+document.getElementById('saveChangePassBtn').addEventListener('click', () => {
+  const oldPass = document.getElementById('oldPassInput').value;
+  const newPass = document.getElementById('newPassInput').value;
+  const confirmPass = document.getElementById('confirmPassInput').value;
+  const errEl = document.getElementById('changePassError');
+  const user = auth.currentUser;
+
+  if(!user || !user.email){ errEl.textContent = "Session invalide, reconnecte-toi."; return; }
+  if(!oldPass || !newPass || !confirmPass){ errEl.textContent = 'Remplis tous les champs.'; return; }
+  if(newPass.length < 6){ errEl.textContent = 'Le nouveau mot de passe doit faire au moins 6 caractères.'; return; }
+  if(newPass !== confirmPass){ errEl.textContent = 'Les deux nouveaux mots de passe ne correspondent pas.'; return; }
+
+  errEl.textContent = 'Vérification...';
+  const credential = firebase.auth.EmailAuthProvider.credential(user.email, oldPass);
+  user.reauthenticateWithCredential(credential)
+    .then(() => user.updatePassword(newPass))
+    .then(() => {
+      errEl.textContent = '';
+      document.getElementById('changePassOverlay').classList.add('hidden');
+      alert('Mot de passe changé avec succès.');
+    })
+    .catch(err => {
+      console.error(err);
+      if(err.code === 'auth/wrong-password'){ errEl.textContent = 'Mot de passe actuel incorrect.'; }
+      else { errEl.textContent = 'Erreur lors du changement de mot de passe.'; }
+    });
+});
+
 /* ================= AGENT PORTAL (Pointage) ================= */
 let currentAgentSession = null;
 
@@ -990,6 +1133,13 @@ function renderPlaceholder(el, label){
 }
 
 /* ================= CLOCK ================= */
+function tickHeroClock(){
+  const el = document.getElementById('heroClock');
+  if(el) el.textContent = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
+setInterval(tickHeroClock, 1000);
+tickHeroClock();
+
 function tickClock(){
   const now = new Date();
   document.getElementById('clock').textContent = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
