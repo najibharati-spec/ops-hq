@@ -292,6 +292,7 @@ tr:last-child td{ border-bottom:none; }
 .badge.abs-injustifiee{ background: rgba(85,96,110,0.14); color: #55606E; }
 .badge.abs-ferie{ background: rgba(63,166,107,0.14); color: #3FA66B; }
 .badge.abs-double{ background: rgba(245,166,35,0.18); color: var(--mustard-deep); }
+.badge.abs-off{ background: rgba(59,111,160,0.14); color: #3B6FA0; }
 
 .placeholder-view{
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -771,7 +772,7 @@ tr:last-child td{ border-bottom:none; }
         <div class="section-title">Résumé du cycle (base 26 jours)</div>
         <div class="card" style="margin-bottom:24px; overflow-x:auto;">
           <table>
-            <thead><tr><th>Agent</th><th>Maladie</th><th>Injustifiée</th><th>Férié</th><th>Doublé</th><th>Total ajusté</th></tr></thead>
+            <thead><tr><th>Agent</th><th>Maladie</th><th>Injustifiée</th><th>Férié</th><th>Doublé</th><th>OFF travaillé</th><th>Total ajusté</th></tr></thead>
             <tbody id="absencesSummaryBody"></tbody>
           </table>
         </div>
@@ -809,6 +810,7 @@ tr:last-child td{ border-bottom:none; }
       <option value="injustifiee">Absence injustifiée (−1 jour)</option>
       <option value="ferie">Jour férié travaillé (+1 jour)</option>
       <option value="double">Jour doublé (+1 jour)</option>
+      <option value="off_travaille">Jour OFF travaillé (+1 jour)</option>
     </select>
 
     <label class="form-label">Date</label>
@@ -2045,6 +2047,7 @@ const ABSENCE_TYPES = {
   injustifiee: { label: 'Absence injustifiée',    delta: -1, cls: 'abs-injustifiee' },
   ferie:       { label: 'Jour férié travaillé',   delta: +1, cls: 'abs-ferie' },
   double:      { label: 'Jour doublé',            delta: +1, cls: 'abs-double' },
+  off_travaille: { label: 'Jour OFF travaillé',   delta: +1, cls: 'abs-off' },
 };
 const CYCLE_BASE_DAYS = 26;
 let currentCycleRef = new Date();
@@ -2101,12 +2104,14 @@ function renderAbsencesSummary(){
   const tbody = document.getElementById('absencesSummaryBody');
   tbody.innerHTML = '';
   const sortedAgents = [...AGENTS].sort((a, b) => a.name.localeCompare(b.name));
+  const typeKeys = Object.keys(ABSENCE_TYPES);
 
   sortedAgents.forEach(a => {
     const recs = currentCycleRecords.filter(r => r.agentId === a.id);
-    const counts = { maladie: 0, injustifiee: 0, ferie: 0, double: 0 };
+    const counts = {};
+    typeKeys.forEach(k => counts[k] = 0);
     recs.forEach(r => { if(counts[r.type] !== undefined) counts[r.type]++; });
-    const delta = counts.maladie * -1 + counts.injustifiee * -1 + counts.ferie * 1 + counts.double * 1;
+    const delta = typeKeys.reduce((sum, k) => sum + counts[k] * ABSENCE_TYPES[k].delta, 0);
     const total = CYCLE_BASE_DAYS + delta;
 
     const tr = document.createElement('tr');
@@ -2116,6 +2121,7 @@ function renderAbsencesSummary(){
       <td>${counts.injustifiee || ''}</td>
       <td>${counts.ferie || ''}</td>
       <td>${counts.double || ''}</td>
+      <td>${counts.off_travaille || ''}</td>
       <td class="total-cell">${total}j</td>
     `;
     tbody.appendChild(tr);
@@ -2227,14 +2233,16 @@ function deleteAbsence(id){
 
 document.getElementById('exportAbsencesBtn').addEventListener('click', () => {
   const cycle = getCycleFor(currentCycleRef);
-  const rows = [['Agent', 'Jours de base', 'Maladie', 'Injustifiée', 'Férié travaillé', 'Doublé', 'Total ajusté']];
+  const rows = [['Agent', 'Jours de base', 'Maladie', 'Injustifiée', 'Férié travaillé', 'Doublé', 'OFF travaillé', 'Total ajusté']];
   const sortedAgents = [...AGENTS].sort((a, b) => a.name.localeCompare(b.name));
+  const typeKeys = Object.keys(ABSENCE_TYPES);
   sortedAgents.forEach(a => {
     const recs = currentCycleRecords.filter(r => r.agentId === a.id);
-    const counts = { maladie: 0, injustifiee: 0, ferie: 0, double: 0 };
+    const counts = {};
+    typeKeys.forEach(k => counts[k] = 0);
     recs.forEach(r => { if(counts[r.type] !== undefined) counts[r.type]++; });
-    const delta = counts.maladie * -1 + counts.injustifiee * -1 + counts.ferie * 1 + counts.double * 1;
-    rows.push([a.name, CYCLE_BASE_DAYS, counts.maladie, counts.injustifiee, counts.ferie, counts.double, CYCLE_BASE_DAYS + delta]);
+    const delta = typeKeys.reduce((sum, k) => sum + counts[k] * ABSENCE_TYPES[k].delta, 0);
+    rows.push([a.name, CYCLE_BASE_DAYS, counts.maladie, counts.injustifiee, counts.ferie, counts.double, counts.off_travaille, CYCLE_BASE_DAYS + delta]);
   });
   const ws = XLSX.utils.aoa_to_sheet(rows);
   const wb = XLSX.utils.book_new();
