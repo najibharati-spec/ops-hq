@@ -288,6 +288,10 @@ tr:last-child td{ border-bottom:none; }
 .badge.var{ background: rgba(217,164,65,0.18); color: var(--mustard-deep); }
 .badge.jour{ background: rgba(76,139,92,0.12); color: var(--green); }
 .badge.nuit{ background: rgba(30,58,90,0.10); color: var(--sky-ink); }
+.badge.abs-maladie{ background: rgba(225,80,61,0.14); color: #E1503D; }
+.badge.abs-injustifiee{ background: rgba(85,96,110,0.14); color: #55606E; }
+.badge.abs-ferie{ background: rgba(63,166,107,0.14); color: #3FA66B; }
+.badge.abs-double{ background: rgba(245,166,35,0.18); color: var(--mustard-deep); }
 
 .placeholder-view{
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -743,11 +747,82 @@ tr:last-child td{ border-bottom:none; }
           </table>
         </div>
       </section>
-      <section class="view hidden" id="view-absences"></section>
+      <section class="view hidden" id="view-absences">
+        <div class="planning-header">
+          <div class="week-nav">
+            <button class="icon-btn-lg" id="prevCycleBtn" title="Cycle précédent">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="week-label">
+              <b id="cycleLabel">—</b>
+              <span id="cycleSub">—</span>
+            </div>
+            <button class="icon-btn-lg" id="nextCycleBtn" title="Cycle suivant">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+          <div class="planning-actions">
+            <button class="btn-ghost" id="cycleTodayBtn" style="border:1px solid var(--line);">Cycle actuel</button>
+            <button class="btn-ghost" id="exportAbsencesBtn" style="border:1px solid var(--line);">⬇️ Excel</button>
+            <button class="btn-primary" id="addAbsenceBtn">+ Déclarer</button>
+          </div>
+        </div>
+
+        <div class="section-title">Résumé du cycle (base 26 jours)</div>
+        <div class="card" style="margin-bottom:24px; overflow-x:auto;">
+          <table>
+            <thead><tr><th>Agent</th><th>Maladie</th><th>Injustifiée</th><th>Férié</th><th>Doublé</th><th>Total ajusté</th></tr></thead>
+            <tbody id="absencesSummaryBody"></tbody>
+          </table>
+        </div>
+
+        <div class="section-title">Détail du cycle</div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Agent</th><th>Date</th><th>Type</th><th>Note</th><th></th></tr></thead>
+            <tbody id="absencesDetailBody"></tbody>
+          </table>
+          <div class="placeholder-view hidden" id="absencesEmptyState">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19h16M4 19V7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v10"/></svg>
+            <h3>Aucune absence déclarée ce cycle</h3>
+            <p>Clique sur "+ Déclarer" pour ajouter une absence, un jour férié travaillé ou un jour doublé.</p>
+          </div>
+        </div>
+      </section>
       <section class="view hidden" id="view-paie"></section>
       <section class="view hidden" id="view-rapports"></section>
       <section class="view hidden" id="view-parametres"></section>
     </main>
+  </div>
+</div>
+
+<!-- ABSENCE MODAL -->
+<div class="modal-overlay hidden" id="absenceModalOverlay">
+  <div class="modal-card">
+    <h3 id="absenceModalTitle">Déclarer une absence / un jour</h3>
+    <label class="form-label">Agent</label>
+    <select id="absenceAgentInput" class="login-input"></select>
+
+    <label class="form-label">Type</label>
+    <select id="absenceTypeInput" class="login-input">
+      <option value="maladie">Absence maladie (−1 jour)</option>
+      <option value="injustifiee">Absence injustifiée (−1 jour)</option>
+      <option value="ferie">Jour férié travaillé (+1 jour)</option>
+      <option value="double">Jour doublé (+1 jour)</option>
+    </select>
+
+    <label class="form-label">Date</label>
+    <input type="date" id="absenceDateInput" class="login-input">
+
+    <label class="form-label">Note (optionnel)</label>
+    <input type="text" id="absenceNoteInput" class="login-input" placeholder="Ex: certificat médical...">
+
+    <div class="modal-error" id="absenceModalError"></div>
+
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelAbsenceBtn">Annuler</button>
+      <button class="login-submit" id="saveAbsenceBtn" style="width:auto; padding:12px 22px;">Enregistrer</button>
+    </div>
   </div>
 </div>
 
@@ -1125,7 +1200,7 @@ document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
     const target = document.getElementById('view-' + view);
     target.classList.remove('hidden');
     document.getElementById('viewTitle').textContent = btn.querySelector('span').textContent;
-    if(['absences','paie','rapports','parametres'].includes(view) && !target.dataset.built){
+    if(['paie','rapports','parametres'].includes(view) && !target.dataset.built){
       renderPlaceholder(target, btn.querySelector('span').textContent);
       target.dataset.built = '1';
     }
@@ -1134,6 +1209,9 @@ document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
     }
     if(view === 'pointage'){
       renderPointageDay();
+    }
+    if(view === 'absences'){
+      renderAbsencesView();
     }
   });
 });
@@ -1960,6 +2038,209 @@ function renderPointageDay(){
     });
   }).catch(err => console.error(err));
 }
+
+/* ================= ABSENCES (cycle 21 → 21, base 26 jours) ================= */
+const ABSENCE_TYPES = {
+  maladie:     { label: 'Absence maladie',        delta: -1, cls: 'abs-maladie' },
+  injustifiee: { label: 'Absence injustifiée',    delta: -1, cls: 'abs-injustifiee' },
+  ferie:       { label: 'Jour férié travaillé',   delta: +1, cls: 'abs-ferie' },
+  double:      { label: 'Jour doublé',            delta: +1, cls: 'abs-double' },
+};
+const CYCLE_BASE_DAYS = 26;
+let currentCycleRef = new Date();
+let editingAbsenceId = null;
+
+function getCycleFor(date){
+  const d = new Date(date);
+  let year = d.getFullYear(), month = d.getMonth();
+  if(d.getDate() < 21){
+    month -= 1;
+    if(month < 0){ month = 11; year -= 1; }
+  }
+  const start = new Date(year, month, 21);
+  const end = new Date(year, month + 1, 20);
+  const key = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}`;
+  return { start, end, key };
+}
+function formatCycleLabel(cycle){
+  const startStr = cycle.start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+  const endStr = cycle.end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  return `${startStr} → ${endStr}`;
+}
+
+document.getElementById('prevCycleBtn').addEventListener('click', () => {
+  currentCycleRef.setMonth(currentCycleRef.getMonth() - 1);
+  currentCycleRef = new Date(currentCycleRef);
+  renderAbsencesView();
+});
+document.getElementById('nextCycleBtn').addEventListener('click', () => {
+  currentCycleRef.setMonth(currentCycleRef.getMonth() + 1);
+  currentCycleRef = new Date(currentCycleRef);
+  renderAbsencesView();
+});
+document.getElementById('cycleTodayBtn').addEventListener('click', () => {
+  currentCycleRef = new Date();
+  renderAbsencesView();
+});
+
+let currentCycleRecords = [];
+
+function renderAbsencesView(){
+  const cycle = getCycleFor(currentCycleRef);
+  document.getElementById('cycleLabel').textContent = `Cycle ${cycle.key}`;
+  document.getElementById('cycleSub').textContent = formatCycleLabel(cycle);
+
+  db.collection('absences').where('cycleKey', '==', cycle.key).get().then(snap => {
+    currentCycleRecords = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAbsencesSummary();
+    renderAbsencesDetail();
+  }).catch(err => console.error(err));
+}
+
+function renderAbsencesSummary(){
+  const tbody = document.getElementById('absencesSummaryBody');
+  tbody.innerHTML = '';
+  const sortedAgents = [...AGENTS].sort((a, b) => a.name.localeCompare(b.name));
+
+  sortedAgents.forEach(a => {
+    const recs = currentCycleRecords.filter(r => r.agentId === a.id);
+    const counts = { maladie: 0, injustifiee: 0, ferie: 0, double: 0 };
+    recs.forEach(r => { if(counts[r.type] !== undefined) counts[r.type]++; });
+    const delta = counts.maladie * -1 + counts.injustifiee * -1 + counts.ferie * 1 + counts.double * 1;
+    const total = CYCLE_BASE_DAYS + delta;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${a.name}</b></td>
+      <td>${counts.maladie || ''}</td>
+      <td>${counts.injustifiee || ''}</td>
+      <td>${counts.ferie || ''}</td>
+      <td>${counts.double || ''}</td>
+      <td class="total-cell">${total}j</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderAbsencesDetail(){
+  const tbody = document.getElementById('absencesDetailBody');
+  const table = tbody.closest('table');
+  const emptyState = document.getElementById('absencesEmptyState');
+  tbody.innerHTML = '';
+
+  if(currentCycleRecords.length === 0){
+    table.classList.add('hidden');
+    emptyState.classList.remove('hidden');
+    return;
+  }
+  table.classList.remove('hidden');
+  emptyState.classList.add('hidden');
+
+  const sorted = [...currentCycleRecords].sort((a, b) => {
+    const nameCmp = (a.agentName || '').localeCompare(b.agentName || '');
+    if(nameCmp !== 0) return nameCmp;
+    return (a.date || '').localeCompare(b.date || '');
+  });
+
+  sorted.forEach(r => {
+    const info = ABSENCE_TYPES[r.type] || { label: r.type, cls: '' };
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${r.agentName}</b></td>
+      <td>${r.date}</td>
+      <td><span class="badge ${info.cls}">${info.label}</span></td>
+      <td>${r.note || '—'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" data-edit-abs="${r.id}" title="Modifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+          <button class="icon-btn danger" data-delete-abs="${r.id}" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('[data-edit-abs]').forEach(btn => btn.addEventListener('click', () => openAbsenceModal(btn.dataset.editAbs)));
+  tbody.querySelectorAll('[data-delete-abs]').forEach(btn => btn.addEventListener('click', () => deleteAbsence(btn.dataset.deleteAbs)));
+}
+
+function populateAbsenceAgentSelect(){
+  const sel = document.getElementById('absenceAgentInput');
+  const sortedAgents = [...AGENTS].sort((a, b) => a.name.localeCompare(b.name));
+  sel.innerHTML = sortedAgents.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+}
+
+function openAbsenceModal(absenceId = null){
+  editingAbsenceId = absenceId;
+  populateAbsenceAgentSelect();
+  const title = document.getElementById('absenceModalTitle');
+  document.getElementById('absenceModalError').textContent = '';
+
+  if(absenceId){
+    const rec = currentCycleRecords.find(r => r.id === absenceId);
+    title.textContent = 'Modifier';
+    document.getElementById('absenceAgentInput').value = rec.agentId;
+    document.getElementById('absenceTypeInput').value = rec.type;
+    document.getElementById('absenceDateInput').value = rec.date;
+    document.getElementById('absenceNoteInput').value = rec.note || '';
+  } else {
+    title.textContent = 'Déclarer une absence / un jour';
+    document.getElementById('absenceTypeInput').value = 'maladie';
+    document.getElementById('absenceDateInput').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('absenceNoteInput').value = '';
+  }
+  document.getElementById('absenceModalOverlay').classList.remove('hidden');
+}
+
+document.getElementById('addAbsenceBtn').addEventListener('click', () => openAbsenceModal(null));
+document.getElementById('cancelAbsenceBtn').addEventListener('click', () => document.getElementById('absenceModalOverlay').classList.add('hidden'));
+document.getElementById('absenceModalOverlay').addEventListener('click', e => { if(e.target.id === 'absenceModalOverlay') document.getElementById('absenceModalOverlay').classList.add('hidden'); });
+
+document.getElementById('saveAbsenceBtn').addEventListener('click', () => {
+  const agentId = document.getElementById('absenceAgentInput').value;
+  const type = document.getElementById('absenceTypeInput').value;
+  const date = document.getElementById('absenceDateInput').value;
+  const note = document.getElementById('absenceNoteInput').value.trim();
+  const errEl = document.getElementById('absenceModalError');
+
+  if(!agentId){ errEl.textContent = 'Choisis un agent.'; return; }
+  if(!date){ errEl.textContent = 'Choisis une date.'; return; }
+
+  const agent = AGENTS.find(a => a.id === agentId);
+  const cycle = getCycleFor(new Date(date));
+  const payload = { agentId, agentName: agent ? agent.name : '', type, date, note: note || null, cycleKey: cycle.key };
+
+  const promise = editingAbsenceId
+    ? db.collection('absences').doc(editingAbsenceId).update(payload)
+    : db.collection('absences').add(payload);
+
+  promise.then(() => {
+    document.getElementById('absenceModalOverlay').classList.add('hidden');
+    renderAbsencesView();
+  }).catch(err => { errEl.textContent = 'Erreur lors de l\'enregistrement.'; console.error(err); });
+});
+
+function deleteAbsence(id){
+  if(!confirm('Supprimer cette entrée ?')) return;
+  db.collection('absences').doc(id).delete().then(() => renderAbsencesView()).catch(err => console.error(err));
+}
+
+document.getElementById('exportAbsencesBtn').addEventListener('click', () => {
+  const cycle = getCycleFor(currentCycleRef);
+  const rows = [['Agent', 'Jours de base', 'Maladie', 'Injustifiée', 'Férié travaillé', 'Doublé', 'Total ajusté']];
+  const sortedAgents = [...AGENTS].sort((a, b) => a.name.localeCompare(b.name));
+  sortedAgents.forEach(a => {
+    const recs = currentCycleRecords.filter(r => r.agentId === a.id);
+    const counts = { maladie: 0, injustifiee: 0, ferie: 0, double: 0 };
+    recs.forEach(r => { if(counts[r.type] !== undefined) counts[r.type]++; });
+    const delta = counts.maladie * -1 + counts.injustifiee * -1 + counts.ferie * 1 + counts.double * 1;
+    rows.push([a.name, CYCLE_BASE_DAYS, counts.maladie, counts.injustifiee, counts.ferie, counts.double, CYCLE_BASE_DAYS + delta]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Absences');
+  XLSX.writeFile(wb, `absences-${cycle.key}.xlsx`);
+});
 
 renderProfiles();
 </script>
