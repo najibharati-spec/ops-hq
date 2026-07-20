@@ -1872,7 +1872,7 @@ function renderPlanningTable(){
     const data = currentPlanningData.agents && currentPlanningData.agents[a.id];
     const tr = document.createElement('tr');
     const zoneColor = data && ZONE_COLORS[data.zone];
-    if(zoneColor) tr.style.background = hexToRgba(zoneColor, 0.06);
+    if(zoneColor) tr.style.background = hexToRgba(zoneColor, 0.16);
     let totalHours = 0;
     let dayCellsHtml = '';
     DAY_KEYS.forEach(day => {
@@ -1959,11 +1959,17 @@ function openCellEditor(pillBtn){
       return;
     }
     commitCode(select.value);
+    renderPlanningTable();
   });
-  select.addEventListener('blur', () => {
-    // Laisse le temps au clic sur les inputs personnalisés de s'enregistrer avant de re-render.
-    setTimeout(() => { if(document.activeElement.tagName !== 'INPUT') renderPlanningTable(); }, 150);
-  });
+  // Pas de re-render automatique au blur : ça effaçait les champs d'horaire personnalisé
+  // avant que l'utilisateur ait le temps de taper. Le re-render se fait maintenant
+  // uniquement après une action explicite (choix d'horaire ou confirmation "OK").
+  document.addEventListener('click', function outsideClickHandler(e){
+    if(!td.contains(e.target)){
+      document.removeEventListener('click', outsideClickHandler);
+      renderPlanningTable();
+    }
+  }, { capture: true });
 }
 
 function showCustomTimeInputs(td, agentId, day, currentCode){
