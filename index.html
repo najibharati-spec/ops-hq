@@ -400,6 +400,7 @@ tr:last-child td{ border-bottom:none; }
 .shift-pill.s-jour{ background: #3FA66B; color: #fff; }
 .shift-pill.s-nuit{ background: #3B6FA0; color: #fff; }
 .shift-pill.s-abs{ background: #E1503D; color: #fff; }
+.shift-pill.s-malade{ background: #B0526D; color: #fff; }
 .shift-pill.s-conge{ background: var(--mustard); color: #fff; }
 .cell-select{
   width: 100%; padding: 6px 4px; border-radius: 7px; border: 1.5px solid var(--sky); font-size: 11px;
@@ -764,7 +765,8 @@ tr:last-child td{ border-bottom:none; }
           </div>
           <div class="planning-actions">
             <button class="btn-ghost" id="cycleTodayBtn" style="border:1px solid var(--line);">Cycle actuel</button>
-            <button class="btn-ghost" id="exportAbsencesBtn" style="border:1px solid var(--line);">⬇️ Excel</button>
+            <button class="btn-ghost" id="exportAbsencesBtn" style="border:1px solid var(--line);">⬇️ Excel (cycle)</button>
+            <button class="btn-ghost" id="exportRangeBtn" style="border:1px solid var(--line);">📅 Excel (plage)</button>
             <button class="btn-primary" id="addAbsenceBtn">+ Déclarer</button>
           </div>
         </div>
@@ -794,6 +796,22 @@ tr:last-child td{ border-bottom:none; }
       <section class="view hidden" id="view-rapports"></section>
       <section class="view hidden" id="view-parametres"></section>
     </main>
+  </div>
+</div>
+
+<!-- RANGE EXPORT MODAL -->
+<div class="modal-overlay hidden" id="rangeExportOverlay">
+  <div class="modal-card">
+    <h3>Exporter une plage personnalisée</h3>
+    <label class="form-label">Du</label>
+    <input type="date" id="rangeFromInput" class="login-input">
+    <label class="form-label">Au</label>
+    <input type="date" id="rangeToInput" class="login-input">
+    <div class="modal-error" id="rangeExportError"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelRangeExportBtn">Annuler</button>
+      <button class="login-submit" id="confirmRangeExportBtn" style="width:auto; padding:12px 22px;">Exporter</button>
+    </div>
   </div>
 </div>
 
@@ -936,13 +954,14 @@ const DAY_KEYS = ["lun","mar","mer","jeu","ven","sam","dim"];
 const DAY_LABELS = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
 // Catalogue des créneaux horaires possibles
 const SHIFT_CATALOG = {
-  OFF:   { label: "OFF",         hours: 0, cls: "s-off"   },
-  M7:    { label: "10:00-17:00", hours: 7, cls: "s-jour"  },
-  M8:    { label: "10:00-18:00", hours: 8, cls: "s-jour"  },
-  N7:    { label: "18:00-01:00", hours: 7, cls: "s-nuit"  },
-  N8:    { label: "18:00-02:00", hours: 8, cls: "s-nuit"  },
-  ABS:   { label: "Absent",      hours: 0, cls: "s-abs"   },
-  CONGE: { label: "Congé",       hours: 0, cls: "s-conge" },
+  OFF:    { label: "OFF",         hours: 0, cls: "s-off"    },
+  M7:     { label: "10:00-17:00", hours: 7, cls: "s-jour"   },
+  M8:     { label: "10:00-18:00", hours: 8, cls: "s-jour"   },
+  N7:     { label: "18:00-01:00", hours: 7, cls: "s-nuit"   },
+  N8:     { label: "18:00-02:00", hours: 8, cls: "s-nuit"   },
+  ABS:    { label: "Absent",      hours: 0, cls: "s-abs"    },
+  MALADE: { label: "Malade",      hours: 0, cls: "s-malade" },
+  CONGE:  { label: "Congé",       hours: 0, cls: "s-conge"  },
 };
 
 // Login profiles shown on the lock screen (admin + leads)
@@ -2231,23 +2250,66 @@ function deleteAbsence(id){
   db.collection('absences').doc(id).delete().then(() => renderAbsencesView()).catch(err => console.error(err));
 }
 
-document.getElementById('exportAbsencesBtn').addEventListener('click', () => {
-  const cycle = getCycleFor(currentCycleRef);
+function buildAbsenceExportRows(records, baseDays){
   const rows = [['Agent', 'Jours de base', 'Maladie', 'Injustifiée', 'Férié travaillé', 'Doublé', 'OFF travaillé', 'Total ajusté']];
   const sortedAgents = [...AGENTS].sort((a, b) => a.name.localeCompare(b.name));
   const typeKeys = Object.keys(ABSENCE_TYPES);
   sortedAgents.forEach(a => {
-    const recs = currentCycleRecords.filter(r => r.agentId === a.id);
+    const recs = records.filter(r => r.agentId === a.id);
     const counts = {};
     typeKeys.forEach(k => counts[k] = 0);
     recs.forEach(r => { if(counts[r.type] !== undefined) counts[r.type]++; });
     const delta = typeKeys.reduce((sum, k) => sum + counts[k] * ABSENCE_TYPES[k].delta, 0);
-    rows.push([a.name, CYCLE_BASE_DAYS, counts.maladie, counts.injustifiee, counts.ferie, counts.double, counts.off_travaille, CYCLE_BASE_DAYS + delta]);
+    rows.push([a.name, baseDays, counts.maladie, counts.injustifiee, counts.ferie, counts.double, counts.off_travaille, baseDays + delta]);
   });
+  return rows;
+}
+
+document.getElementById('exportAbsencesBtn').addEventListener('click', () => {
+  const cycle = getCycleFor(currentCycleRef);
+  const rows = buildAbsenceExportRows(currentCycleRecords, CYCLE_BASE_DAYS);
   const ws = XLSX.utils.aoa_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Absences');
   XLSX.writeFile(wb, `absences-${cycle.key}.xlsx`);
+});
+
+/* ================= EXPORT: PLAGE PERSONNALISÉE ================= */
+document.getElementById('exportRangeBtn').addEventListener('click', () => {
+  document.getElementById('rangeFromInput').value = '';
+  document.getElementById('rangeToInput').value = '';
+  document.getElementById('rangeExportError').textContent = '';
+  document.getElementById('rangeExportOverlay').classList.remove('hidden');
+});
+document.getElementById('cancelRangeExportBtn').addEventListener('click', () => {
+  document.getElementById('rangeExportOverlay').classList.add('hidden');
+});
+document.getElementById('rangeExportOverlay').addEventListener('click', e => {
+  if(e.target.id === 'rangeExportOverlay') document.getElementById('rangeExportOverlay').classList.add('hidden');
+});
+
+document.getElementById('confirmRangeExportBtn').addEventListener('click', () => {
+  const from = document.getElementById('rangeFromInput').value;
+  const to = document.getElementById('rangeToInput').value;
+  const errEl = document.getElementById('rangeExportError');
+  if(!from || !to){ errEl.textContent = 'Choisis les deux dates.'; return; }
+  if(from > to){ errEl.textContent = 'La date de début doit être avant la date de fin.'; return; }
+
+  errEl.textContent = 'Génération...';
+  // Filtres d'inégalité sur un seul champ ("date") — pas d'index composite nécessaire.
+  db.collection('absences').where('date', '>=', from).where('date', '<=', to).get()
+    .then(snap => {
+      const records = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Nombre de jours calendaires dans la plage choisie, utilisé comme "jours de base".
+      const dayCount = Math.round((new Date(to) - new Date(from)) / 86400000) + 1;
+      const rows = buildAbsenceExportRows(records, dayCount);
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Absences');
+      XLSX.writeFile(wb, `absences-${from}_${to}.xlsx`);
+      document.getElementById('rangeExportOverlay').classList.add('hidden');
+    })
+    .catch(err => { console.error(err); errEl.textContent = 'Erreur lors de la génération.'; });
 });
 
 renderProfiles();
