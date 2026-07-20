@@ -401,6 +401,7 @@ tr:last-child td{ border-bottom:none; }
 .shift-pill.s-nuit{ background: #3B6FA0; color: #fff; }
 .shift-pill.s-abs{ background: #E1503D; color: #fff; }
 .shift-pill.s-malade{ background: #B0526D; color: #fff; }
+.shift-pill.s-custom{ background: #4A8C8C; color: #fff; }
 .shift-pill.s-conge{ background: var(--mustard); color: #fff; }
 .cell-select{
   width: 100%; padding: 6px 4px; border-radius: 7px; border: 1.5px solid var(--sky); font-size: 11px;
@@ -1814,6 +1815,36 @@ document.getElementById('loadRealWeekBtn').addEventListener('click', () => {
     .catch(err => console.error(err));
 });
 
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// Retourne les infos d'affichage d'un code de shift, qu'il soit dans le catalogue
+// standard (M7, N8, OFF...) ou un horaire personnalisé encodé "C-HHMM-HHMM".
+function getShiftInfo(code){
+  if(SHIFT_CATALOG[code]) return SHIFT_CATALOG[code];
+  if(code && code.startsWith('C-')){
+    const parts = code.slice(2).split('-');
+    if(parts.length === 2 && parts[0].length === 4 && parts[1].length === 4){
+      const startLabel = parts[0].slice(0, 2) + ':' + parts[0].slice(2);
+      const endLabel = parts[1].slice(0, 2) + ':' + parts[1].slice(2);
+      const startM = parseInt(parts[0].slice(0, 2)) * 60 + parseInt(parts[0].slice(2));
+      let endM = parseInt(parts[1].slice(0, 2)) * 60 + parseInt(parts[1].slice(2));
+      let hours = (endM - startM) / 60;
+      if(hours <= 0) hours += 24;
+      return { label: `${startLabel}-${endLabel}`, hours: Math.round(hours * 10) / 10, cls: 's-custom' };
+    }
+  }
+  return { label: code || 'OFF', hours: 0, cls: 's-off' };
+}
+function encodeCustomShift(startStr, endStr){
+  return `C-${startStr.replace(':', '')}-${endStr.replace(':', '')}`;
+}
+
 function renderPlanningTable(){
   const tbody = document.getElementById('planningTableBody');
   const table = document.getElementById('planningTable');
@@ -1840,11 +1871,13 @@ function renderPlanningTable(){
   groupedAgents.forEach(a => {
     const data = currentPlanningData.agents && currentPlanningData.agents[a.id];
     const tr = document.createElement('tr');
+    const zoneColor = data && ZONE_COLORS[data.zone];
+    if(zoneColor) tr.style.background = hexToRgba(zoneColor, 0.06);
     let totalHours = 0;
     let dayCellsHtml = '';
     DAY_KEYS.forEach(day => {
       const code = data && data.cells ? (data.cells[day] || 'OFF') : 'OFF';
-      const info = SHIFT_CATALOG[code];
+      const info = getShiftInfo(code);
       totalHours += info.hours;
       dayCellsHtml += `<td><button class="shift-pill ${info.cls}" data-agent="${a.id}" data-day="${day}" data-code="${code}">${info.label}</button></td>`;
     });
@@ -1903,18 +1936,62 @@ function openCellEditor(pillBtn){
     if(code === currentCode) opt.selected = true;
     select.appendChild(opt);
   });
+  const customOpt = document.createElement('option');
+  customOpt.value = '__custom__';
+  customOpt.textContent = '🕓 Horaire personnalisé...';
+  if(currentCode && currentCode.startsWith('C-')) customOpt.selected = true;
+  select.appendChild(customOpt);
+
   td.innerHTML = '';
   td.appendChild(select);
   select.focus();
 
-  select.addEventListener('change', () => {
-    const newCode = select.value;
+  const commitCode = (newCode) => {
     const key = weekKeyFor(currentWeekStart);
     db.collection('planning').doc(key).set({
       agents: { [agentId]: { cells: { [day]: newCode } } }
     }, { merge: true }).catch(err => console.error(err));
+  };
+
+  select.addEventListener('change', () => {
+    if(select.value === '__custom__'){
+      showCustomTimeInputs(td, agentId, day, currentCode);
+      return;
+    }
+    commitCode(select.value);
   });
-  select.addEventListener('blur', () => renderPlanningTable());
+  select.addEventListener('blur', () => {
+    // Laisse le temps au clic sur les inputs personnalisés de s'enregistrer avant de re-render.
+    setTimeout(() => { if(document.activeElement.tagName !== 'INPUT') renderPlanningTable(); }, 150);
+  });
+}
+
+function showCustomTimeInputs(td, agentId, day, currentCode){
+  let startVal = '10:00', endVal = '17:00';
+  if(currentCode && currentCode.startsWith('C-')){
+    const parts = currentCode.slice(2).split('-');
+    if(parts.length === 2){
+      startVal = parts[0].slice(0, 2) + ':' + parts[0].slice(2);
+      endVal = parts[1].slice(0, 2) + ':' + parts[1].slice(2);
+    }
+  }
+  td.innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:3px; align-items:stretch;">
+      <input type="time" id="customStartInput" value="${startVal}" style="font-size:11px; padding:3px; border-radius:6px; border:1.5px solid var(--sky);">
+      <input type="time" id="customEndInput" value="${endVal}" style="font-size:11px; padding:3px; border-radius:6px; border:1.5px solid var(--sky);">
+      <button id="confirmCustomTime" class="btn-primary" style="padding:4px; font-size:10px;">OK</button>
+    </div>
+  `;
+  document.getElementById('confirmCustomTime').addEventListener('click', () => {
+    const start = document.getElementById('customStartInput').value;
+    const end = document.getElementById('customEndInput').value;
+    if(!start || !end) return;
+    const newCode = encodeCustomShift(start, end);
+    const key = weekKeyFor(currentWeekStart);
+    db.collection('planning').doc(key).set({
+      agents: { [agentId]: { cells: { [day]: newCode } } }
+    }, { merge: true }).then(() => renderPlanningTable()).catch(err => console.error(err));
+  });
 }
 
 function renderZonesView(){
@@ -1929,7 +2006,12 @@ function renderZonesView(){
         return d && d.zone === zone && d.cells && d.cells[day] && d.cells[day] !== 'OFF';
       }).map(a => {
         const code = currentPlanningData.agents[a.id].cells[day];
-        const icon = code.startsWith('M') ? '☀️' : '🌙';
+        let icon = '🌙';
+        if(code.startsWith('M')) icon = '☀️';
+        else if(code.startsWith('C-')){
+          const startHour = parseInt(code.slice(2, 4));
+          icon = (startHour >= 5 && startHour < 15) ? '☀️' : '🌙';
+        }
         return `${icon} ${a.nickname || a.name.split(' ').slice(-1)[0]}`;
       });
       cellsHtml += `<td style="text-align:left; white-space:normal;">${agentsHere.length ? agentsHere.join('<br>') : '<span style="color:var(--ink-soft)">—</span>'}</td>`;
@@ -1987,8 +2069,9 @@ document.getElementById('exportExcelBtn').addEventListener('click', () => {
     let total = 0;
     const dayVals = DAY_KEYS.map(day => {
       const code = data && data.cells ? (data.cells[day] || 'OFF') : 'OFF';
-      total += SHIFT_CATALOG[code].hours;
-      return SHIFT_CATALOG[code].label;
+      const info = getShiftInfo(code);
+      total += info.hours;
+      return info.label;
     });
     rows.push([a.name, data ? data.zone : '—', ...dayVals, `${total}h`]);
   });
