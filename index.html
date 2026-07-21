@@ -650,6 +650,7 @@ tr:last-child td{ border-bottom:none; }
             <button class="btn-ghost" id="importTeamBtn" style="border:1px solid var(--line);">⚡ Importer les 13 agents</button>
             <button class="btn-ghost" id="genAllPinsBtn" style="border:1px solid var(--line);">🎲 Générer les PIN manquants</button>
             <button class="btn-ghost" id="genAllNicknamesBtn" style="border:1px solid var(--line);">✏️ Surnoms manquants</button>
+            <button class="btn-ghost" id="renameZonesBtn" style="border:1px solid var(--line);">🏷️ Renommer les zones</button>
             <button class="btn-primary" id="openAddAgentBtn">+ Ajouter un agent</button>
           </div>
         </div>
@@ -816,6 +817,20 @@ tr:last-child td{ border-bottom:none; }
   </div>
 </div>
 
+<!-- RENAME ZONES MODAL -->
+<div class="modal-overlay hidden" id="renameZonesOverlay">
+  <div class="modal-card">
+    <h3>Renommer les zones</h3>
+    <p class="modal-hint" style="margin-top:0; margin-bottom:14px;">Ça change juste le nom affiché — la rotation et les couleurs restent les mêmes.</p>
+    <div id="zoneRenameInputs"></div>
+    <div class="modal-error" id="renameZonesError"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelRenameZonesBtn">Annuler</button>
+      <button class="login-submit" id="saveRenameZonesBtn" style="width:auto; padding:12px 22px;">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <!-- ABSENCE MODAL -->
 <div class="modal-overlay hidden" id="absenceModalOverlay">
   <div class="modal-card">
@@ -940,6 +955,23 @@ const ZONE_COLORS = {
   "Hay Riad - Soussi": "#8A5FB0",
   "Temara - Oulad Mtaa": "#2C5AA0",
 };
+// Noms affichés personnalisés (clé = nom interne fixe ci-dessus, valeur = nom choisi par l'utilisateur).
+// La rotation/couleurs utilisent toujours le nom interne — seul l'affichage change.
+let ZONE_LABELS = {};
+let zoneLabelsUnsub = null;
+function getZoneLabel(zoneKey){
+  return (ZONE_LABELS && ZONE_LABELS[zoneKey]) ? ZONE_LABELS[zoneKey] : zoneKey;
+}
+function listenZoneLabels(){
+  if(zoneLabelsUnsub) zoneLabelsUnsub();
+  zoneLabelsUnsub = db.collection('settings').doc('zoneLabels').onSnapshot(doc => {
+    ZONE_LABELS = doc.exists ? (doc.data() || {}) : {};
+    initDashboard();
+    renderAgentsTable();
+    populateZoneSelect();
+    if(!document.getElementById('view-planning').classList.contains('hidden')) renderPlanningWeek();
+  }, err => console.error(err));
+}
 
 /* ================= PLANNING GROUPS ================= */
 // Les 3 zones qui tournent chaque semaine entre les groupes "rotating"
@@ -1069,6 +1101,7 @@ function enterApp(profile){
   document.getElementById('sidebarUserRole').textContent = profile.role;
   populateZoneSelect();
   listenAgents();
+  listenZoneLabels();
 }
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -1384,7 +1417,7 @@ function initDashboard(){
     const card = document.createElement('div');
     card.className = 'zone-card';
     card.style.borderLeftColor = color;
-    card.innerHTML = `<h3>${zone}</h3><div class="count">${count}</div><div class="count-label">agent${count>1?'s':''} assigné${count>1?'s':''}</div>`;
+    card.innerHTML = `<h3>${getZoneLabel(zone)}</h3><div class="count">${count}</div><div class="count-label">agent${count>1?'s':''} assigné${count>1?'s':''}</div>`;
     zoneGrid.appendChild(card);
   });
 
@@ -1515,7 +1548,7 @@ function renderAgentsTable(){
     tr.innerHTML = `
       <td><b>${a.name}</b></td>
       <td style="font-family: var(--font-mono); font-weight:700;">${a.pin || '<span style="color:var(--ink-soft); font-weight:400;">—</span>'}</td>
-      <td><span class="zone-dot" style="background:${ZONE_COLORS[zone] || 'var(--ink-soft)'}"></span>${zone}</td>
+      <td><span class="zone-dot" style="background:${ZONE_COLORS[zone] || 'var(--ink-soft)'}"></span>${getZoneLabel(zone)}</td>
       <td><span class="badge ${a.group ? 'fix' : 'var'}">${groupLabel}</span></td>
       <td><span class="badge ${period === 'JOUR' ? 'jour' : 'nuit'}">${period}</span></td>
       <td>
@@ -1534,8 +1567,8 @@ function renderAgentsTable(){
 
 /* ================= AGENT MODAL (Add / Edit) ================= */
 function populateZoneSelect(){
-  document.getElementById('agentZoneInput').innerHTML = ZONES.map(z => `<option value="${z}">${z}</option>`).join('');
-  document.getElementById('agentFixedZoneInput').innerHTML = ZONES.map(z => `<option value="${z}">${z}</option>`).join('');
+  document.getElementById('agentZoneInput').innerHTML = ZONES.map(z => `<option value="${z}">${getZoneLabel(z)}</option>`).join('');
+  document.getElementById('agentFixedZoneInput').innerHTML = ZONES.map(z => `<option value="${z}">${getZoneLabel(z)}</option>`).join('');
 }
 
 let editingAgentId = null;
@@ -1677,6 +1710,34 @@ document.getElementById('genAllNicknamesBtn').addEventListener('click', () => {
   batch.commit()
     .then(() => alert(`Surnom généré pour ${missing.length} agent(s) (premier prénom par défaut). Tu peux les modifier un par un si besoin.`))
     .catch(err => { console.error(err); alert('Erreur pendant la génération.'); });
+});
+
+/* ================= RENAME ZONES ================= */
+document.getElementById('renameZonesBtn').addEventListener('click', () => {
+  const container = document.getElementById('zoneRenameInputs');
+  container.innerHTML = ZONES.map(z => `
+    <label class="form-label">${z}</label>
+    <input type="text" class="login-input zone-rename-input" data-zone-key="${z}" value="${getZoneLabel(z)}">
+  `).join('');
+  document.getElementById('renameZonesError').textContent = '';
+  document.getElementById('renameZonesOverlay').classList.remove('hidden');
+});
+document.getElementById('cancelRenameZonesBtn').addEventListener('click', () => {
+  document.getElementById('renameZonesOverlay').classList.add('hidden');
+});
+document.getElementById('renameZonesOverlay').addEventListener('click', e => {
+  if(e.target.id === 'renameZonesOverlay') document.getElementById('renameZonesOverlay').classList.add('hidden');
+});
+document.getElementById('saveRenameZonesBtn').addEventListener('click', () => {
+  const inputs = document.querySelectorAll('.zone-rename-input');
+  const payload = {};
+  inputs.forEach(input => {
+    const val = input.value.trim();
+    payload[input.dataset.zoneKey] = val || input.dataset.zoneKey;
+  });
+  db.collection('settings').doc('zoneLabels').set(payload, { merge: true })
+    .then(() => document.getElementById('renameZonesOverlay').classList.add('hidden'))
+    .catch(err => { document.getElementById('renameZonesError').textContent = 'Erreur lors de l\'enregistrement.'; console.error(err); });
 });
 
 document.getElementById('cancelAgentBtn').addEventListener('click', closeAgentModal);
@@ -1882,7 +1943,7 @@ function renderPlanningTable(){
       totalHours += info.hours;
       dayCellsHtml += `<td><button class="shift-pill ${info.cls}" data-agent="${a.id}" data-day="${day}" data-code="${code}">${info.label}</button></td>`;
     });
-    const zoneOptions = ZONES.map(z => `<option value="${z}" ${data && data.zone === z ? 'selected' : ''}>${z}</option>`).join('');
+    const zoneOptions = ZONES.map(z => `<option value="${z}" ${data && data.zone === z ? 'selected' : ''}>${getZoneLabel(z)}</option>`).join('');
     tr.innerHTML = `
       <td class="sticky-col agent-name-cell">${a.name}</td>
       <td class="zone-cell"><select class="cell-select zone-select" data-agent="${a.id}" style="border-color: var(--line); font-weight:600;">${zoneOptions}</select></td>
@@ -2019,7 +2080,7 @@ function renderZonesView(){
   tbody.innerHTML = '';
   if(!currentPlanningData){ return; }
   ZONES.forEach(zone => {
-    let cellsHtml = `<td class="sticky-col agent-name-cell">${zone}</td>`;
+    let cellsHtml = `<td class="sticky-col agent-name-cell">${getZoneLabel(zone)}</td>`;
     DAY_KEYS.forEach(day => {
       const agentsHere = AGENTS.filter(a => {
         const d = currentPlanningData.agents && currentPlanningData.agents[a.id];
