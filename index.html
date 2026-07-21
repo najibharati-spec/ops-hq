@@ -1961,15 +1961,10 @@ function openCellEditor(pillBtn){
     commitCode(select.value);
     renderPlanningTable();
   });
-  // Pas de re-render automatique au blur : ça effaçait les champs d'horaire personnalisé
-  // avant que l'utilisateur ait le temps de taper. Le re-render se fait maintenant
-  // uniquement après une action explicite (choix d'horaire ou confirmation "OK").
-  document.addEventListener('click', function outsideClickHandler(e){
-    if(!td.contains(e.target)){
-      document.removeEventListener('click', outsideClickHandler);
-      renderPlanningTable();
-    }
-  }, { capture: true });
+  // Note : pas de handler "clic en dehors" — ça causait un bug où il fallait cliquer
+  // deux fois pour éditer une autre cellule (le handler recréait le tableau au mauvais
+  // moment et détachait le bouton qu'on venait de cliquer). Le tableau se remet à jour
+  // tout seul dès qu'une modification est enregistrée (écoute Firestore en temps réel).
 }
 
 function showCustomTimeInputs(td, agentId, day, currentCode){
