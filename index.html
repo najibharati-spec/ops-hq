@@ -704,6 +704,7 @@ tr:last-child td{ border-bottom:none; }
         </div>
 
         <div class="card planning-card" id="planningGridWrap">
+          <datalist id="agentNamesList"></datalist>
           <table class="planning-table" id="planningTable">
             <thead>
               <tr>
@@ -1913,7 +1914,14 @@ function encodeCustomShift(startStr, endStr){
   return `C-${startStr.replace(':', '')}-${endStr.replace(':', '')}`;
 }
 
+function populateAgentNamesDatalist(){
+  const list = document.getElementById('agentNamesList');
+  if(!list) return;
+  list.innerHTML = AGENTS.map(a => `<option value="${a.name}">`).join('');
+}
+
 function renderPlanningTable(){
+  populateAgentNamesDatalist();
   const tbody = document.getElementById('planningTableBody');
   const table = document.getElementById('planningTable');
   const emptyState = document.getElementById('planningEmptyState');
@@ -1951,7 +1959,7 @@ function renderPlanningTable(){
     });
     const zoneOptions = ZONES.map(z => `<option value="${z}" ${data && data.zone === z ? 'selected' : ''}>${getZoneLabel(z)}</option>`).join('');
     tr.innerHTML = `
-      <td class="sticky-col agent-name-cell"><input type="text" class="agent-name-edit" data-agent-name="${a.id}" value="${a.name}" title="Modifier le nom"></td>
+      <td class="sticky-col agent-name-cell"><input type="text" class="agent-name-edit" list="agentNamesList" data-agent-name="${a.id}" value="${a.name}" title="Modifier le nom"></td>
       <td class="zone-cell"><select class="cell-select zone-select" data-agent="${a.id}" style="border-color: var(--line); font-weight:600;">${zoneOptions}</select></td>
       ${dayCellsHtml}
       <td class="total-cell">${totalHours}h</td>
