@@ -1749,6 +1749,7 @@ function renderPlanningWeek(){
 }
 
 document.getElementById('generatePlanningBtn').addEventListener('click', () => {
+  if(isEditingCurrentWeek() && !confirm('⚠️ Tu es sur la semaine EN COURS. Générer va recalculer tout le planning actif. Continuer ?')) return;
   if(currentPlanningData && currentPlanningData.agents && Object.keys(currentPlanningData.agents).length > 0){
     if(!confirm('Un planning existe déjà pour cette semaine. Le régénérer va écraser les modifications manuelles. Continuer ?')) return;
   }
@@ -1894,6 +1895,10 @@ function renderPlanningTable(){
 
   tbody.querySelectorAll('.zone-select').forEach(sel => {
     sel.addEventListener('change', () => {
+      if(isEditingCurrentWeek() && !confirm('Tu modifies le planning de la semaine EN COURS. Continuer ?')){
+        renderPlanningTable();
+        return;
+      }
       const key = weekKeyFor(currentWeekStart);
       db.collection('planning').doc(key).set({
         agents: { [sel.dataset.agent]: { zone: sel.value } }
@@ -1906,8 +1911,14 @@ function renderPlanningTable(){
   tbody.querySelectorAll('.shift-pill').forEach(btn => btn.addEventListener('click', () => openCellEditor(btn)));
 }
 
+// La semaine "en cours" = celle qui contient la date d'aujourd'hui.
+function isEditingCurrentWeek(){
+  return weekKeyFor(currentWeekStart) === weekKeyFor(getWeekStart(new Date()));
+}
+
 function togglePeriod(agentId){
   if(!currentPlanningData || !currentPlanningData.agents || !currentPlanningData.agents[agentId]) return;
+  if(isEditingCurrentWeek() && !confirm('Tu modifies le planning de la semaine EN COURS. Continuer ?')) return;
   const data = currentPlanningData.agents[agentId];
   const swap = { M7: 'N7', M8: 'N8', N7: 'M7', N8: 'M8' };
   const newCells = {};
@@ -1947,6 +1958,10 @@ function openCellEditor(pillBtn){
   select.focus();
 
   const commitCode = (newCode) => {
+    if(isEditingCurrentWeek() && !confirm('Tu modifies le planning de la semaine EN COURS. Continuer ?')){
+      renderPlanningTable();
+      return;
+    }
     const key = weekKeyFor(currentWeekStart);
     db.collection('planning').doc(key).set({
       agents: { [agentId]: { cells: { [day]: newCode } } }
@@ -1987,6 +2002,10 @@ function showCustomTimeInputs(td, agentId, day, currentCode){
     const start = document.getElementById('customStartInput').value;
     const end = document.getElementById('customEndInput').value;
     if(!start || !end) return;
+    if(isEditingCurrentWeek() && !confirm('Tu modifies le planning de la semaine EN COURS. Continuer ?')){
+      renderPlanningTable();
+      return;
+    }
     const newCode = encodeCustomShift(start, end);
     const key = weekKeyFor(currentWeekStart);
     db.collection('planning').doc(key).set({
