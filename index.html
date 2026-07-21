@@ -1969,10 +1969,18 @@ function renderPlanningTable(){
   });
 
   tbody.querySelectorAll('.agent-name-edit').forEach(input => {
+    input.addEventListener('focus', () => {
+      input.dataset.original = input.value;
+      input.value = '';
+      input.dispatchEvent(new Event('input'));
+    });
     input.addEventListener('change', () => {
       const newName = input.value.trim();
       if(!newName){ input.value = AGENTS.find(a => a.id === input.dataset.agentName).name; return; }
       db.collection('agents').doc(input.dataset.agentName).update({ name: newName }).catch(err => console.error(err));
+    });
+    input.addEventListener('blur', () => {
+      if(!input.value.trim()) input.value = input.dataset.original || '';
     });
     input.addEventListener('keydown', e => { if(e.key === 'Enter') input.blur(); });
   });
