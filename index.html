@@ -386,6 +386,12 @@ tr:last-child td{ border-bottom:none; }
 .planning-table th{ text-transform:uppercase; font-size: 10.5px; letter-spacing:.03em; color: var(--ink-soft); }
 .planning-table td.agent-name-cell{ text-align:left; font-weight: 700; }
 .planning-table td.zone-cell{ text-align:left; font-size: 11.5px; color: var(--ink-soft); }
+.agent-name-edit{
+  border: none; background: transparent; font-weight: 700; font-size: 12.5px; color: var(--ink);
+  width: 100%; padding: 3px 4px; border-radius: 6px; font-family: var(--font-display);
+}
+.agent-name-edit:hover{ background: var(--sand); }
+.agent-name-edit:focus{ outline: none; background: #fff; box-shadow: 0 0 0 1.5px var(--sky); }
 .sticky-col{ position: sticky; left: 0; background: var(--paper); text-align:left !important; z-index: 2; }
 .planning-table td.total-cell{ font-family: var(--font-mono); font-weight: 700; color: var(--sky-ink); }
 
@@ -1945,13 +1951,22 @@ function renderPlanningTable(){
     });
     const zoneOptions = ZONES.map(z => `<option value="${z}" ${data && data.zone === z ? 'selected' : ''}>${getZoneLabel(z)}</option>`).join('');
     tr.innerHTML = `
-      <td class="sticky-col agent-name-cell">${a.name}</td>
+      <td class="sticky-col agent-name-cell"><input type="text" class="agent-name-edit" data-agent-name="${a.id}" value="${a.name}" title="Modifier le nom"></td>
       <td class="zone-cell"><select class="cell-select zone-select" data-agent="${a.id}" style="border-color: var(--line); font-weight:600;">${zoneOptions}</select></td>
       ${dayCellsHtml}
       <td class="total-cell">${totalHours}h</td>
       <td><button class="icon-btn" data-toggle-period="${a.id}" title="Inverser Matin/Nuit toute la semaine">🔄</button></td>
     `;
     tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('.agent-name-edit').forEach(input => {
+    input.addEventListener('change', () => {
+      const newName = input.value.trim();
+      if(!newName){ input.value = AGENTS.find(a => a.id === input.dataset.agentName).name; return; }
+      db.collection('agents').doc(input.dataset.agentName).update({ name: newName }).catch(err => console.error(err));
+    });
+    input.addEventListener('keydown', e => { if(e.key === 'Enter') input.blur(); });
   });
 
   tbody.querySelectorAll('.zone-select').forEach(sel => {
