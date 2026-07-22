@@ -1976,8 +1976,16 @@ function renderPlanningTable(){
     });
     input.addEventListener('change', () => {
       const newName = input.value.trim();
-      if(!newName){ input.value = AGENTS.find(a => a.id === input.dataset.agentName).name; return; }
-      db.collection('agents').doc(input.dataset.agentName).update({ name: newName }).catch(err => console.error(err));
+      const agentId = input.dataset.agentName;
+      const original = AGENTS.find(a => a.id === agentId).name;
+      if(!newName){ input.value = original; return; }
+      const collision = AGENTS.find(a => a.id !== agentId && a.name.trim().toLowerCase() === newName.toLowerCase());
+      if(collision){
+        alert(`"${newName}" est déjà le nom d'un autre agent. Choisis un nom différent (ou modifie l'autre agent séparément).`);
+        input.value = original;
+        return;
+      }
+      db.collection('agents').doc(agentId).update({ name: newName }).catch(err => console.error(err));
     });
     input.addEventListener('blur', () => {
       if(!input.value.trim()) input.value = input.dataset.original || '';
