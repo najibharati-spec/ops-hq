@@ -402,13 +402,9 @@ tr:last-child td{ border-bottom:none; }
   transition: filter .1s;
 }
 .shift-pill:hover{ filter: brightness(0.95); }
-.shift-pill.s-off{ background: #55606E; color: #fff; }
-.shift-pill.s-jour{ background: #3FA66B; color: #fff; }
-.shift-pill.s-nuit{ background: #3B6FA0; color: #fff; }
-.shift-pill.s-abs{ background: #E1503D; color: #fff; }
-.shift-pill.s-malade{ background: #B0526D; color: #fff; }
-.shift-pill.s-custom{ background: #4A8C8C; color: #fff; }
-.shift-pill.s-conge{ background: var(--mustard); color: #fff; }
+.shift-pill.s-jour{ background: var(--mustard-deep); color: #fff; }
+.shift-pill.s-nuit{ background: var(--sky-deep); color: #fff; }
+.shift-pill.s-quiet{ background: #E7EAF0; color: #55606E; }
 .cell-select{
   width: 100%; padding: 6px 4px; border-radius: 7px; border: 1.5px solid var(--sky); font-size: 11px;
   background: #fff; font-weight: 700;
@@ -994,14 +990,14 @@ const DAY_KEYS = ["lun","mar","mer","jeu","ven","sam","dim"];
 const DAY_LABELS = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
 // Catalogue des créneaux horaires possibles
 const SHIFT_CATALOG = {
-  OFF:    { label: "OFF",         hours: 0, cls: "s-off"    },
+  OFF:    { label: "OFF",         hours: 0, cls: "s-quiet"  },
   M7:     { label: "10:00-17:00", hours: 7, cls: "s-jour"   },
   M8:     { label: "10:00-18:00", hours: 8, cls: "s-jour"   },
   N7:     { label: "18:00-01:00", hours: 7, cls: "s-nuit"   },
   N8:     { label: "18:00-02:00", hours: 8, cls: "s-nuit"   },
-  ABS:    { label: "Absent",      hours: 0, cls: "s-abs"    },
-  MALADE: { label: "Malade",      hours: 0, cls: "s-malade" },
-  CONGE:  { label: "Congé",       hours: 0, cls: "s-conge"  },
+  ABS:    { label: "Absent",      hours: 0, cls: "s-quiet"  },
+  MALADE: { label: "Malade",      hours: 0, cls: "s-quiet"  },
+  CONGE:  { label: "Congé",       hours: 0, cls: "s-quiet"  },
 };
 
 // Login profiles shown on the lock screen (admin + leads)
@@ -1901,14 +1897,16 @@ function getShiftInfo(code){
     if(parts.length === 2 && parts[0].length === 4 && parts[1].length === 4){
       const startLabel = parts[0].slice(0, 2) + ':' + parts[0].slice(2);
       const endLabel = parts[1].slice(0, 2) + ':' + parts[1].slice(2);
-      const startM = parseInt(parts[0].slice(0, 2)) * 60 + parseInt(parts[0].slice(2));
+      const startHour = parseInt(parts[0].slice(0, 2));
+      const startM = startHour * 60 + parseInt(parts[0].slice(2));
       let endM = parseInt(parts[1].slice(0, 2)) * 60 + parseInt(parts[1].slice(2));
       let hours = (endM - startM) / 60;
       if(hours <= 0) hours += 24;
-      return { label: `${startLabel}-${endLabel}`, hours: Math.round(hours * 10) / 10, cls: 's-custom' };
+      const cls = (startHour >= 5 && startHour < 15) ? 's-jour' : 's-nuit';
+      return { label: `${startLabel}-${endLabel}`, hours: Math.round(hours * 10) / 10, cls };
     }
   }
-  return { label: code || 'OFF', hours: 0, cls: 's-off' };
+  return { label: code || 'OFF', hours: 0, cls: 's-quiet' };
 }
 function encodeCustomShift(startStr, endStr){
   return `C-${startStr.replace(':', '')}-${endStr.replace(':', '')}`;
@@ -1948,7 +1946,6 @@ function renderPlanningTable(){
     const data = currentPlanningData.agents && currentPlanningData.agents[a.id];
     const tr = document.createElement('tr');
     const zoneColor = data && ZONE_COLORS[data.zone];
-    if(zoneColor) tr.style.background = hexToRgba(zoneColor, 0.16);
     let totalHours = 0;
     let dayCellsHtml = '';
     DAY_KEYS.forEach(day => {
@@ -1959,7 +1956,7 @@ function renderPlanningTable(){
     });
     const zoneOptions = ZONES.map(z => `<option value="${z}" ${data && data.zone === z ? 'selected' : ''}>${getZoneLabel(z)}</option>`).join('');
     tr.innerHTML = `
-      <td class="sticky-col agent-name-cell"><input type="text" class="agent-name-edit" list="agentNamesList" data-agent-name="${a.id}" value="${a.name}" title="Modifier le nom"></td>
+      <td class="sticky-col agent-name-cell" style="${zoneColor ? `border-left:3px solid ${zoneColor};` : ''}"><input type="text" class="agent-name-edit" list="agentNamesList" data-agent-name="${a.id}" value="${a.name}" title="Modifier le nom"></td>
       <td class="zone-cell"><select class="cell-select zone-select" data-agent="${a.id}" style="border-color: var(--line); font-weight:600;">${zoneOptions}</select></td>
       ${dayCellsHtml}
       <td class="total-cell">${totalHours}h</td>
