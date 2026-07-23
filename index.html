@@ -850,8 +850,11 @@ tr:last-child td{ border-bottom:none; }
       <option value="off_travaille">Jour OFF travaillé (+1 jour)</option>
     </select>
 
-    <label class="form-label">Date</label>
+    <label class="form-label">Date (début)</label>
     <input type="date" id="absenceDateInput" class="login-input">
+
+    <label class="form-label">Date de fin (optionnel — pour déclarer plusieurs jours d'un coup)</label>
+    <input type="date" id="absenceDateEndInput" class="login-input">
 
     <label class="form-label">Note (optionnel)</label>
     <input type="text" id="absenceNoteInput" class="login-input" placeholder="Ex: certificat médical...">
@@ -2399,6 +2402,7 @@ function openAbsenceModal(absenceId = null){
   editingAbsenceId = absenceId;
   populateAbsenceAgentSelect();
   const title = document.getElementById('absenceModalTitle');
+  const endDateInput = document.getElementById('absenceDateEndInput');
   document.getElementById('absenceModalError').textContent = '';
 
   if(absenceId){
@@ -2408,11 +2412,15 @@ function openAbsenceModal(absenceId = null){
     document.getElementById('absenceTypeInput').value = rec.type;
     document.getElementById('absenceDateInput').value = rec.date;
     document.getElementById('absenceNoteInput').value = rec.note || '';
+    endDateInput.value = '';
+    endDateInput.disabled = true; // pas de plage en mode "modifier" (une seule entrée à la fois)
   } else {
     title.textContent = 'Déclarer une absence / un jour';
     document.getElementById('absenceTypeInput').value = 'maladie';
     document.getElementById('absenceDateInput').value = new Date().toISOString().slice(0, 10);
     document.getElementById('absenceNoteInput').value = '';
+    endDateInput.value = '';
+    endDateInput.disabled = false;
   }
   document.getElementById('absenceModalOverlay').classList.remove('hidden');
 }
@@ -2425,6 +2433,7 @@ document.getElementById('saveAbsenceBtn').addEventListener('click', () => {
   const agentId = document.getElementById('absenceAgentInput').value;
   const type = document.getElementById('absenceTypeInput').value;
   const date = document.getElementById('absenceDateInput').value;
+  const dateEnd = document.getElementById('absenceDateEndInput').value;
   const note = document.getElementById('absenceNoteInput').value.trim();
   const errEl = document.getElementById('absenceModalError');
 
@@ -2432,6 +2441,27 @@ document.getElementById('saveAbsenceBtn').addEventListener('click', () => {
   if(!date){ errEl.textContent = 'Choisis une date.'; return; }
 
   const agent = AGENTS.find(a => a.id === agentId);
+
+  // Plage de dates (sans édition existante) : on crée une entrée par jour.
+  if(!editingAbsenceId && dateEnd && dateEnd > date){
+    const dayCount = Math.round((new Date(dateEnd) - new Date(date)) / 86400000) + 1;
+    if(dayCount > 62){ errEl.textContent = 'La plage est trop longue (max ~2 mois).'; return; }
+    const batch = db.batch();
+    let d = new Date(date);
+    for(let i = 0; i < dayCount; i++){
+      const dStr = d.toISOString().slice(0, 10);
+      const cycle = getCycleFor(d);
+      const ref = db.collection('absences').doc();
+      batch.set(ref, { agentId, agentName: agent ? agent.name : '', type, date: dStr, note: note || null, cycleKey: cycle.key });
+      d.setDate(d.getDate() + 1);
+    }
+    batch.commit().then(() => {
+      document.getElementById('absenceModalOverlay').classList.add('hidden');
+      renderAbsencesView();
+    }).catch(err => { errEl.textContent = 'Erreur lors de l\'enregistrement.'; console.error(err); });
+    return;
+  }
+
   const cycle = getCycleFor(new Date(date));
   const payload = { agentId, agentName: agent ? agent.name : '', type, date, note: note || null, cycleKey: cycle.key };
 
