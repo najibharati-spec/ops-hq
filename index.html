@@ -2495,12 +2495,27 @@ function buildAbsenceExportRows(records, baseDays){
   return rows;
 }
 
+function buildAbsenceDetailRows(records){
+  const rows = [['Agent', 'Date', 'Type', 'Note']];
+  const sorted = [...records].sort((a, b) => {
+    const nameCmp = (a.agentName || '').localeCompare(b.agentName || '');
+    if(nameCmp !== 0) return nameCmp;
+    return (a.date || '').localeCompare(b.date || '');
+  });
+  sorted.forEach(r => {
+    const info = ABSENCE_TYPES[r.type] || { label: r.type };
+    rows.push([r.agentName, r.date, info.label, r.note || '']);
+  });
+  return rows;
+}
+
 document.getElementById('exportAbsencesBtn').addEventListener('click', () => {
   const cycle = getCycleFor(currentCycleRef);
-  const rows = buildAbsenceExportRows(currentCycleRecords, CYCLE_BASE_DAYS);
-  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const summaryRows = buildAbsenceExportRows(currentCycleRecords, CYCLE_BASE_DAYS);
+  const detailRows = buildAbsenceDetailRows(currentCycleRecords);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Absences');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Résumé');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detailRows), 'Détail');
   XLSX.writeFile(wb, `absences-${cycle.key}.xlsx`);
 });
 
@@ -2532,10 +2547,11 @@ document.getElementById('confirmRangeExportBtn').addEventListener('click', () =>
       const records = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       // Nombre de jours calendaires dans la plage choisie, utilisé comme "jours de base".
       const dayCount = Math.round((new Date(to) - new Date(from)) / 86400000) + 1;
-      const rows = buildAbsenceExportRows(records, dayCount);
-      const ws = XLSX.utils.aoa_to_sheet(rows);
+      const summaryRows = buildAbsenceExportRows(records, dayCount);
+      const detailRows = buildAbsenceDetailRows(records);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Absences');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Résumé');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detailRows), 'Détail');
       XLSX.writeFile(wb, `absences-${from}_${to}.xlsx`);
       document.getElementById('rangeExportOverlay').classList.add('hidden');
     })
