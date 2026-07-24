@@ -12,6 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
 <style>
 :root{
@@ -821,15 +822,19 @@ tr:last-child td{ border-bottom:none; }
       </section>
       <section class="view hidden" id="view-performance">
         <div class="view-header">
-          <p class="view-subtitle">Suivi des audits et de la récidive par rider/coursier.</p>
-          <button class="btn-primary" id="addAuditBtn">+ Ajouter un audit</button>
+          <p class="view-subtitle">Suivi des audits et de la récidive par agent.</p>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-ghost" id="importCsvBtn" style="border:1px solid var(--line);">📥 Importer CSV</button>
+            <input type="file" id="csvFileInput" accept=".csv" class="hidden">
+            <button class="btn-primary" id="addAuditBtn">+ Ajouter un audit</button>
+          </div>
         </div>
 
         <div class="perf-pills" id="perfPills"></div>
 
         <div class="card" style="margin-top:18px;">
           <table>
-            <thead><tr><th>Rider</th><th>Ville</th><th>Total audits</th><th>Violations</th><th>1er signalement</th><th>Dernier audit</th><th></th></tr></thead>
+            <thead><tr><th>Agent</th><th>Zone</th><th>Total audits</th><th>Violations</th><th>1er signalement</th><th>Dernier audit</th><th></th></tr></thead>
             <tbody id="performanceTableBody"></tbody>
           </table>
           <div class="placeholder-view hidden" id="performanceEmptyState">
@@ -866,15 +871,8 @@ tr:last-child td{ border-bottom:none; }
 <div class="modal-overlay hidden" id="auditModalOverlay">
   <div class="modal-card">
     <h3 id="auditModalTitle">Ajouter un audit</h3>
-    <label class="form-label">Nom du rider</label>
-    <input type="text" id="auditRiderNameInput" class="login-input" list="riderNamesList" placeholder="Ex: Rida Baba">
-    <datalist id="riderNamesList"></datalist>
-
-    <label class="form-label">ID rider (optionnel)</label>
-    <input type="text" id="auditRiderIdInput" class="login-input" placeholder="Ex: 3896089">
-
-    <label class="form-label">Ville</label>
-    <input type="text" id="auditCityInput" class="login-input" placeholder="Ex: Rabat">
+    <label class="form-label">Agent</label>
+    <select id="auditAgentInput" class="login-input"></select>
 
     <label class="form-label">Date</label>
     <input type="date" id="auditDateInput" class="login-input">
@@ -2645,20 +2643,21 @@ document.getElementById('confirmRangeExportBtn').addEventListener('click', () =>
     .catch(err => { console.error(err); errEl.textContent = 'Erreur lors de la génération.'; });
 });
 
-/* ================= PERFORMANCE (audits & récidive riders) ================= */
+/* ================= PERFORMANCE (audits & récidive — sur les agents existants) ================= */
 let allAudits = [];
 let editingAuditId = null;
 let performanceFilter = 'all';
 
-// Regroupe les audits par rider (clé = ID rider si fourni, sinon nom+ville) et calcule le statut.
-function computeRiderStats(){
+// Regroupe les audits par agentId et calcule le statut de récidive.
+function computeAgentStats(){
   const groups = {};
   allAudits.forEach(a => {
-    const key = (a.riderId && a.riderId.trim()) ? `id:${a.riderId.trim()}` : `nc:${(a.riderName || '').toLowerCase()}|${(a.city || '').toLowerCase()}`;
-    if(!groups[key]) groups[key] = { riderName: a.riderName, riderId: a.riderId, city: a.city, audits: [] };
-    groups[key].audits.push(a);
+    if(!a.agentId) return;
+    if(!groups[a.agentId]) groups[a.agentId] = { agentId: a.agentId, audits: [] };
+    groups[a.agentId].audits.push(a);
   });
   return Object.values(groups).map(g => {
+    const agent = AGENTS.find(x => x.id === g.agentId);
     const sorted = [...g.audits].sort((x, y) => (x.date || '').localeCompare(y.date || ''));
     const total = sorted.length;
     const violations = sorted.filter(a => a.violation).length;
@@ -2669,7 +2668,15 @@ function computeRiderStats(){
     else if(violations === total) status = 'chronic';
     else if(!lastAudit.violation) status = 'improved';
     else status = 'relapsed';
-    return { ...g, audits: sorted, total, violations, firstFlaggedDate: firstFlagged ? firstFlagged.date : '—', lastAuditDate: lastAudit ? lastAudit.date : '—', status };
+    return {
+      agentId: g.agentId,
+      agentName: agent ? agent.name : '(agent supprimé)',
+      zone: agent ? resolveAgentZone(agent, getISOWeekIndex(new Date())) : '—',
+      audits: sorted, total, violations,
+      firstFlaggedDate: firstFlagged ? firstFlagged.date : '—',
+      lastAuditDate: lastAudit ? lastAudit.date : '—',
+      status,
+    };
   });
 }
 
@@ -2682,12 +2689,12 @@ function renderPerformanceView(){
 }
 
 function renderPerformancePills(){
-  const riders = computeRiderStats();
-  const counts = { all: riders.length, chronic: 0, relapsed: 0, improved: 0, clean: 0 };
-  riders.forEach(r => counts[r.status]++);
+  const agentsStats = computeAgentStats();
+  const counts = { all: agentsStats.length, chronic: 0, relapsed: 0, improved: 0, clean: 0 };
+  agentsStats.forEach(r => counts[r.status]++);
   const pills = document.getElementById('perfPills');
   pills.innerHTML = `
-    <button class="perf-pill pill-all ${performanceFilter === 'all' ? 'active' : ''}" data-filter="all">${counts.all} Total Riders</button>
+    <button class="perf-pill pill-all ${performanceFilter === 'all' ? 'active' : ''}" data-filter="all">${counts.all} Agents audités</button>
     <button class="perf-pill pill-chronic ${performanceFilter === 'chronic' ? 'active' : ''}" data-filter="chronic">🔴 ${counts.chronic} Chronic</button>
     <button class="perf-pill pill-relapsed ${performanceFilter === 'relapsed' ? 'active' : ''}" data-filter="relapsed">🟠 ${counts.relapsed} Relapsed</button>
     <button class="perf-pill pill-improved ${performanceFilter === 'improved' ? 'active' : ''}" data-filter="improved">🟢 ${counts.improved} Improved</button>
@@ -2705,16 +2712,16 @@ function renderPerformancePills(){
 const STATUS_LABELS = { chronic: 'Chronic', relapsed: 'Relapsed', improved: 'Improved', clean: 'Clean' };
 
 function renderPerformanceTable(){
-  let riders = computeRiderStats();
-  if(performanceFilter !== 'all') riders = riders.filter(r => r.status === performanceFilter);
-  riders.sort((a, b) => b.violations - a.violations);
+  let agentsStats = computeAgentStats();
+  if(performanceFilter !== 'all') agentsStats = agentsStats.filter(r => r.status === performanceFilter);
+  agentsStats.sort((a, b) => b.violations - a.violations);
 
   const tbody = document.getElementById('performanceTableBody');
   const table = tbody.closest('table');
   const emptyState = document.getElementById('performanceEmptyState');
   tbody.innerHTML = '';
 
-  if(riders.length === 0){
+  if(agentsStats.length === 0){
     table.classList.add('hidden');
     emptyState.classList.remove('hidden');
     return;
@@ -2722,12 +2729,12 @@ function renderPerformanceTable(){
   table.classList.remove('hidden');
   emptyState.classList.add('hidden');
 
-  riders.forEach((r, idx) => {
-    const rowId = `rider-row-${idx}`;
+  agentsStats.forEach((r, idx) => {
+    const rowId = `perf-row-${idx}`;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><b>${r.riderName}</b>${r.riderId ? `<br><span style="color:var(--ink-soft); font-size:11px;">${r.riderId}</span>` : ''}</td>
-      <td>${r.city || '—'}</td>
+      <td><b>${r.agentName}</b></td>
+      <td>${getZoneLabel(r.zone)}</td>
       <td>${r.total}</td>
       <td>${r.violations}</td>
       <td>${r.firstFlaggedDate}</td>
@@ -2759,33 +2766,28 @@ function renderPerformanceTable(){
   tbody.querySelectorAll('[data-delete-audit]').forEach(btn => btn.addEventListener('click', () => deleteAudit(btn.dataset.deleteAudit)));
 }
 
-function populateRiderNamesDatalist(){
-  const list = document.getElementById('riderNamesList');
-  const names = [...new Set(allAudits.map(a => a.riderName).filter(Boolean))];
-  list.innerHTML = names.map(n => `<option value="${n}">`).join('');
+function populateAuditAgentSelect(){
+  const sel = document.getElementById('auditAgentInput');
+  const sortedAgents = [...AGENTS].sort((a, b) => a.name.localeCompare(b.name));
+  sel.innerHTML = sortedAgents.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
 }
 
 function openAuditModal(auditId = null){
   editingAuditId = auditId;
-  populateRiderNamesDatalist();
+  populateAuditAgentSelect();
   const title = document.getElementById('auditModalTitle');
   document.getElementById('auditModalError').textContent = '';
 
   if(auditId){
     const a = allAudits.find(x => x.id === auditId);
     title.textContent = 'Modifier l\'audit';
-    document.getElementById('auditRiderNameInput').value = a.riderName || '';
-    document.getElementById('auditRiderIdInput').value = a.riderId || '';
-    document.getElementById('auditCityInput').value = a.city || '';
+    document.getElementById('auditAgentInput').value = a.agentId || '';
     document.getElementById('auditDateInput').value = a.date || '';
     document.getElementById('auditCategoryInput').value = a.category || 'Comportement';
     document.getElementById('auditViolationInput').value = a.violation ? 'violation' : 'clean';
     document.getElementById('auditNoteInput').value = a.note || '';
   } else {
     title.textContent = 'Ajouter un audit';
-    document.getElementById('auditRiderNameInput').value = '';
-    document.getElementById('auditRiderIdInput').value = '';
-    document.getElementById('auditCityInput').value = '';
     document.getElementById('auditDateInput').value = new Date().toISOString().slice(0, 10);
     document.getElementById('auditCategoryInput').value = 'Comportement';
     document.getElementById('auditViolationInput').value = 'clean';
@@ -2799,19 +2801,18 @@ document.getElementById('cancelAuditBtn').addEventListener('click', () => docume
 document.getElementById('auditModalOverlay').addEventListener('click', e => { if(e.target.id === 'auditModalOverlay') document.getElementById('auditModalOverlay').classList.add('hidden'); });
 
 document.getElementById('saveAuditBtn').addEventListener('click', () => {
-  const riderName = document.getElementById('auditRiderNameInput').value.trim();
-  const riderId = document.getElementById('auditRiderIdInput').value.trim();
-  const city = document.getElementById('auditCityInput').value.trim();
+  const agentId = document.getElementById('auditAgentInput').value;
   const date = document.getElementById('auditDateInput').value;
   const category = document.getElementById('auditCategoryInput').value;
   const violation = document.getElementById('auditViolationInput').value === 'violation';
   const note = document.getElementById('auditNoteInput').value.trim();
   const errEl = document.getElementById('auditModalError');
 
-  if(!riderName){ errEl.textContent = 'Entre le nom du rider.'; return; }
+  if(!agentId){ errEl.textContent = 'Choisis un agent.'; return; }
   if(!date){ errEl.textContent = 'Choisis une date.'; return; }
 
-  const payload = { riderName, riderId: riderId || null, city: city || null, date, category, violation, note: note || null };
+  const agent = AGENTS.find(a => a.id === agentId);
+  const payload = { agentId, agentName: agent ? agent.name : '', date, category, violation, note: note || null };
   const promise = editingAuditId
     ? db.collection('audits').doc(editingAuditId).update(payload)
     : db.collection('audits').add(payload);
@@ -2825,6 +2826,88 @@ document.getElementById('saveAuditBtn').addEventListener('click', () => {
 function deleteAudit(id){
   if(!confirm('Supprimer cet audit ?')) return;
   db.collection('audits').doc(id).delete().then(() => renderPerformanceView()).catch(err => console.error(err));
+}
+
+/* ================= IMPORT CSV (audits en masse) ================= */
+document.getElementById('importCsvBtn').addEventListener('click', () => {
+  document.getElementById('csvFileInput').click();
+});
+
+document.getElementById('csvFileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: (results) => processCsvImport(results.data),
+    error: (err) => alert('Erreur de lecture du CSV : ' + err.message),
+  });
+  e.target.value = ''; // reset pour pouvoir réimporter le même fichier si besoin
+});
+
+function normalizeAgentSearch(str){
+  return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
+}
+
+function findColumnValue(row, candidates){
+  const keys = Object.keys(row);
+  for(const candidate of candidates){
+    const found = keys.find(k => k.toLowerCase().trim() === candidate);
+    if(found && row[found]) return row[found].trim();
+  }
+  // recherche partielle si aucune correspondance exacte
+  for(const candidate of candidates){
+    const found = keys.find(k => k.toLowerCase().includes(candidate));
+    if(found && row[found]) return row[found].trim();
+  }
+  return '';
+}
+
+function processCsvImport(rows){
+  if(!rows || rows.length === 0){ alert('Le fichier CSV est vide.'); return; }
+
+  const batch = db.batch();
+  let imported = 0;
+  const skipped = [];
+
+  rows.forEach((row, idx) => {
+    const nameRaw = findColumnValue(row, ['agent', 'rider', 'nom', 'name']);
+    const dateRaw = findColumnValue(row, ['date']);
+    const category = findColumnValue(row, ['categorie', 'category', 'type']) || 'Autre';
+    const resultRaw = findColumnValue(row, ['violation', 'resultat', 'result', 'statut', 'status']);
+    const note = findColumnValue(row, ['note', 'commentaire', 'comment']);
+
+    if(!nameRaw || !dateRaw){ skipped.push(`Ligne ${idx + 2} : nom ou date manquant`); return; }
+
+    const norm = normalizeAgentSearch(nameRaw);
+    const agent = AGENTS.find(a => normalizeAgentSearch(a.name).includes(norm) || norm.includes(normalizeAgentSearch(a.name)));
+    if(!agent){ skipped.push(`Ligne ${idx + 2} : agent "${nameRaw}" introuvable`); return; }
+
+    // Interprète le résultat comme violation si le texte contient violation/non/false/❌ etc.
+    const resultLower = resultRaw.toLowerCase();
+    const violation = /violat|non.?conforme|false|non\b|❌|invalid/.test(resultLower);
+
+    // Normalise la date en YYYY-MM-DD si possible.
+    let dateStr = dateRaw;
+    const parsed = new Date(dateRaw);
+    if(!isNaN(parsed.getTime())) dateStr = parsed.toISOString().slice(0, 10);
+
+    const ref = db.collection('audits').doc();
+    batch.set(ref, { agentId: agent.id, agentName: agent.name, date: dateStr, category, violation, note: note || null });
+    imported++;
+  });
+
+  if(imported === 0){
+    alert(`Aucune ligne importée.\n\n${skipped.slice(0, 15).join('\n')}${skipped.length > 15 ? `\n... et ${skipped.length - 15} autre(s)` : ''}`);
+    return;
+  }
+
+  batch.commit().then(() => {
+    let msg = `${imported} audit(s) importé(s) avec succès.`;
+    if(skipped.length > 0) msg += `\n\n${skipped.length} ligne(s) ignorée(s) :\n${skipped.slice(0, 10).join('\n')}${skipped.length > 10 ? '\n...' : ''}`;
+    alert(msg);
+    renderPerformanceView();
+  }).catch(err => { console.error(err); alert('Erreur pendant l\'import.'); });
 }
 
 renderProfiles();
