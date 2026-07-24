@@ -383,8 +383,13 @@ tr:last-child td{ border-bottom:none; }
 
 .planning-card{ overflow-x: auto; }
 .planning-table{ width: 100%; border-collapse: collapse; min-width: 920px; }
-.planning-table th, .planning-table td{ padding: 8px 10px; font-size: 12.5px; border-bottom: 1px solid var(--line); text-align:center; white-space: nowrap; }
-.planning-table th{ text-transform:uppercase; font-size: 10.5px; letter-spacing:.03em; color: var(--ink-soft); }
+.planning-table th, .planning-table td{ padding: 10px 10px; font-size: 12.5px; border-bottom: 1px solid var(--line); text-align:center; white-space: nowrap; }
+.planning-table thead th{
+  text-transform:uppercase; font-size: 10px; letter-spacing:.05em; color: var(--ink-soft); font-weight: 800;
+  background: var(--sand); border-bottom: 2px solid var(--sand-deep); padding-top: 12px; padding-bottom: 12px;
+}
+.planning-table tbody tr:nth-child(even){ background: rgba(0,0,0,0.014); }
+.planning-table tbody tr:hover{ background: rgba(44,84,128,0.035); }
 .planning-table td.agent-name-cell{ text-align:left; font-weight: 700; }
 .planning-table td.zone-cell{ text-align:left; font-size: 11.5px; color: var(--ink-soft); }
 .agent-name-edit{
@@ -394,18 +399,22 @@ tr:last-child td{ border-bottom:none; }
 .agent-name-edit:hover{ background: var(--sand); }
 .agent-name-edit:focus{ outline: none; background: #fff; box-shadow: 0 0 0 1.5px var(--sky); }
 .sticky-col{ position: sticky; left: 0; background: var(--paper); text-align:left !important; z-index: 2; }
-.planning-table td.total-cell{ font-family: var(--font-mono); font-weight: 700; color: var(--sky-ink); }
+.planning-table tbody tr:nth-child(even) .sticky-col{ background: #FAFBFD; }
+.planning-table td.total-cell{
+  font-family: var(--font-mono); font-weight: 800; color: var(--sky-ink); font-size: 13px;
+}
 
 .shift-pill{
   display:inline-flex; align-items:center; justify-content:center; gap:2px;
-  width: 100%; min-width: 76px; padding: 6px 4px; border-radius: 7px;
+  width: 100%; min-width: 78px; padding: 7px 4px; border-radius: 8px;
   font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid transparent;
-  transition: filter .1s;
+  transition: filter .12s, transform .12s;
+  letter-spacing: .01em;
 }
-.shift-pill:hover{ filter: brightness(0.95); }
+.shift-pill:hover{ filter: brightness(1.08); transform: translateY(-1px); }
 .shift-pill.s-jour{ background: var(--mustard-deep); color: #fff; }
 .shift-pill.s-nuit{ background: var(--sky-deep); color: #fff; }
-.shift-pill.s-quiet{ background: #E7EAF0; color: #55606E; }
+.shift-pill.s-quiet{ background: #E7EAF0; color: #55606E; box-shadow: inset 0 0 0 1px #D5DAE3; }
 .cell-select{
   width: 100%; padding: 6px 4px; border-radius: 7px; border: 1.5px solid var(--sky); font-size: 11px;
   background: #fff; font-weight: 700;
@@ -417,27 +426,6 @@ tr:last-child td{ border-bottom:none; }
 }
 .alerts-banner b{ display:block; margin-bottom: 4px; font-size: 12.5px; }
 .alerts-banner ul{ margin: 4px 0 0 18px; }
-
-/* ============ PERFORMANCE ============ */
-.perf-pills{ display:flex; gap: 8px; flex-wrap: wrap; }
-.perf-pill{
-  padding: 9px 16px; border-radius: 20px; font-size: 12.5px; font-weight: 700;
-  background: var(--paper); border: 1.5px solid var(--line); color: var(--ink);
-  cursor: pointer; transition: all .12s;
-}
-.perf-pill.active{ border-color: transparent; color: #fff; }
-.perf-pill.pill-all.active{ background: var(--sky-ink); }
-.perf-pill.pill-chronic.active{ background: #C4593A; }
-.perf-pill.pill-relapsed.active{ background: var(--mustard); }
-.perf-pill.pill-improved.active{ background: #3FA66B; }
-.perf-pill.pill-clean.active{ background: #3B6FA0; }
-.rider-status-badge{ display:inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10.5px; font-weight: 700; }
-.rider-status-badge.chronic{ background: rgba(196,89,58,0.14); color: #C4593A; }
-.rider-status-badge.relapsed{ background: rgba(245,166,35,0.18); color: var(--mustard-deep); }
-.rider-status-badge.improved{ background: rgba(63,166,107,0.14); color: #3FA66B; }
-.rider-status-badge.clean{ background: rgba(59,111,160,0.14); color: #3B6FA0; }
-.audit-history-row{ background: var(--sand); }
-.audit-history-row td{ padding: 10px 16px; }
 
 @media print{
   .sidebar, .topbar, .planning-header, .planning-tabs, .alerts-banner{ display:none !important; }
@@ -578,7 +566,6 @@ tr:last-child td{ border-bottom:none; }
       <div class="nav-group">
         <div class="nav-label">Ressources</div>
         <button class="nav-item" data-view="agents"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2 21c0-4 3-6.5 7-6.5S16 17 16 21"/><circle cx="18" cy="9" r="2.5"/><path d="M22 21c0-3-1.8-5-4.5-5.3"/></svg><span>Agents</span></button>
-        <button class="nav-item" data-view="performance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 9l-5 5-3-3-4 4"/></svg><span>Performance</span></button>
         <button class="nav-item" data-view="paie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="3"/><path d="M6 6V5a2 2 0 012-2h8a2 2 0 012 2v1"/></svg><span>Paie</span></button>
         <button class="nav-item" data-view="rapports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg><span>Rapports</span></button>
       </div>
@@ -820,30 +807,6 @@ tr:last-child td{ border-bottom:none; }
           </div>
         </div>
       </section>
-      <section class="view hidden" id="view-performance">
-        <div class="view-header">
-          <p class="view-subtitle">Suivi des audits et de la récidive par agent.</p>
-          <div style="display:flex; gap:8px;">
-            <button class="btn-ghost" id="importCsvBtn" style="border:1px solid var(--line);">📥 Importer CSV</button>
-            <input type="file" id="csvFileInput" accept=".csv" class="hidden">
-            <button class="btn-primary" id="addAuditBtn">+ Ajouter un audit</button>
-          </div>
-        </div>
-
-        <div class="perf-pills" id="perfPills"></div>
-
-        <div class="card" style="margin-top:18px;">
-          <table>
-            <thead><tr><th>Agent</th><th>Zone</th><th>Total audits</th><th>Violations</th><th>1er signalement</th><th>Dernier audit</th><th></th></tr></thead>
-            <tbody id="performanceTableBody"></tbody>
-          </table>
-          <div class="placeholder-view hidden" id="performanceEmptyState">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M18 9l-5 5-3-3-4 4"/></svg>
-            <h3>Aucun audit enregistré</h3>
-            <p>Clique sur "+ Ajouter un audit" pour commencer le suivi.</p>
-          </div>
-        </div>
-      </section>
       <section class="view hidden" id="view-rapports"></section>
       <section class="view hidden" id="view-paie"></section>
       <section class="view hidden" id="view-parametres"></section>
@@ -863,41 +826,6 @@ tr:last-child td{ border-bottom:none; }
     <div class="modal-actions">
       <button class="btn-ghost" id="cancelRangeExportBtn">Annuler</button>
       <button class="login-submit" id="confirmRangeExportBtn" style="width:auto; padding:12px 22px;">Exporter</button>
-    </div>
-  </div>
-</div>
-
-<!-- AUDIT MODAL -->
-<div class="modal-overlay hidden" id="auditModalOverlay">
-  <div class="modal-card">
-    <h3 id="auditModalTitle">Ajouter un audit</h3>
-    <label class="form-label">Agent</label>
-    <select id="auditAgentInput" class="login-input"></select>
-
-    <label class="form-label">Date</label>
-    <input type="date" id="auditDateInput" class="login-input">
-
-    <label class="form-label">Catégorie</label>
-    <select id="auditCategoryInput" class="login-input">
-      <option value="Comportement">Comportement</option>
-      <option value="Fraude">Fraude</option>
-      <option value="Autre">Autre</option>
-    </select>
-
-    <label class="form-label">Résultat</label>
-    <select id="auditViolationInput" class="login-input">
-      <option value="clean">Conforme (pas de violation)</option>
-      <option value="violation">Violation</option>
-    </select>
-
-    <label class="form-label">Note (optionnel)</label>
-    <input type="text" id="auditNoteInput" class="login-input" placeholder="Détails...">
-
-    <div class="modal-error" id="auditModalError"></div>
-
-    <div class="modal-actions">
-      <button class="btn-ghost" id="cancelAuditBtn">Annuler</button>
-      <button class="login-submit" id="saveAuditBtn" style="width:auto; padding:12px 22px;">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -1355,9 +1283,6 @@ document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
     }
     if(view === 'absences'){
       renderAbsencesView();
-    }
-    if(view === 'performance'){
-      renderPerformanceView();
     }
   });
 });
@@ -2642,273 +2567,6 @@ document.getElementById('confirmRangeExportBtn').addEventListener('click', () =>
     })
     .catch(err => { console.error(err); errEl.textContent = 'Erreur lors de la génération.'; });
 });
-
-/* ================= PERFORMANCE (audits & récidive — sur les agents existants) ================= */
-let allAudits = [];
-let editingAuditId = null;
-let performanceFilter = 'all';
-
-// Regroupe les audits par agentId et calcule le statut de récidive.
-function computeAgentStats(){
-  const groups = {};
-  allAudits.forEach(a => {
-    if(!a.agentId) return;
-    if(!groups[a.agentId]) groups[a.agentId] = { agentId: a.agentId, audits: [] };
-    groups[a.agentId].audits.push(a);
-  });
-  return Object.values(groups).map(g => {
-    const agent = AGENTS.find(x => x.id === g.agentId);
-    const sorted = [...g.audits].sort((x, y) => (x.date || '').localeCompare(y.date || ''));
-    const total = sorted.length;
-    const violations = sorted.filter(a => a.violation).length;
-    const firstFlagged = sorted.find(a => a.violation);
-    const lastAudit = sorted[sorted.length - 1];
-    let status;
-    if(violations === 0) status = 'clean';
-    else if(violations === total) status = 'chronic';
-    else if(!lastAudit.violation) status = 'improved';
-    else status = 'relapsed';
-    return {
-      agentId: g.agentId,
-      agentName: agent ? agent.name : '(agent supprimé)',
-      zone: agent ? resolveAgentZone(agent, getISOWeekIndex(new Date())) : '—',
-      audits: sorted, total, violations,
-      firstFlaggedDate: firstFlagged ? firstFlagged.date : '—',
-      lastAuditDate: lastAudit ? lastAudit.date : '—',
-      status,
-    };
-  });
-}
-
-function renderPerformanceView(){
-  db.collection('audits').get().then(snap => {
-    allAudits = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderPerformancePills();
-    renderPerformanceTable();
-  }).catch(err => console.error(err));
-}
-
-function renderPerformancePills(){
-  const agentsStats = computeAgentStats();
-  const counts = { all: agentsStats.length, chronic: 0, relapsed: 0, improved: 0, clean: 0 };
-  agentsStats.forEach(r => counts[r.status]++);
-  const pills = document.getElementById('perfPills');
-  pills.innerHTML = `
-    <button class="perf-pill pill-all ${performanceFilter === 'all' ? 'active' : ''}" data-filter="all">${counts.all} Agents audités</button>
-    <button class="perf-pill pill-chronic ${performanceFilter === 'chronic' ? 'active' : ''}" data-filter="chronic">🔴 ${counts.chronic} Chronic</button>
-    <button class="perf-pill pill-relapsed ${performanceFilter === 'relapsed' ? 'active' : ''}" data-filter="relapsed">🟠 ${counts.relapsed} Relapsed</button>
-    <button class="perf-pill pill-improved ${performanceFilter === 'improved' ? 'active' : ''}" data-filter="improved">🟢 ${counts.improved} Improved</button>
-    <button class="perf-pill pill-clean ${performanceFilter === 'clean' ? 'active' : ''}" data-filter="clean">🔵 ${counts.clean} Clean</button>
-  `;
-  pills.querySelectorAll('.perf-pill').forEach(btn => {
-    btn.addEventListener('click', () => {
-      performanceFilter = btn.dataset.filter;
-      renderPerformancePills();
-      renderPerformanceTable();
-    });
-  });
-}
-
-const STATUS_LABELS = { chronic: 'Chronic', relapsed: 'Relapsed', improved: 'Improved', clean: 'Clean' };
-
-function renderPerformanceTable(){
-  let agentsStats = computeAgentStats();
-  if(performanceFilter !== 'all') agentsStats = agentsStats.filter(r => r.status === performanceFilter);
-  agentsStats.sort((a, b) => b.violations - a.violations);
-
-  const tbody = document.getElementById('performanceTableBody');
-  const table = tbody.closest('table');
-  const emptyState = document.getElementById('performanceEmptyState');
-  tbody.innerHTML = '';
-
-  if(agentsStats.length === 0){
-    table.classList.add('hidden');
-    emptyState.classList.remove('hidden');
-    return;
-  }
-  table.classList.remove('hidden');
-  emptyState.classList.add('hidden');
-
-  agentsStats.forEach((r, idx) => {
-    const rowId = `perf-row-${idx}`;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><b>${r.agentName}</b></td>
-      <td>${getZoneLabel(r.zone)}</td>
-      <td>${r.total}</td>
-      <td>${r.violations}</td>
-      <td>${r.firstFlaggedDate}</td>
-      <td>${r.lastAuditDate}</td>
-      <td><span class="rider-status-badge ${r.status}">${STATUS_LABELS[r.status]}</span> <button class="icon-btn" data-expand="${rowId}">▾</button></td>
-    `;
-    tbody.appendChild(tr);
-
-    const historyTr = document.createElement('tr');
-    historyTr.className = 'audit-history-row hidden';
-    historyTr.id = rowId;
-    const historyRows = r.audits.map(a => `
-      <div class="portal-history-item">
-        <span>${a.date} — ${a.category || 'Audit'} ${a.violation ? '❌ Violation' : '✅ Conforme'}${a.note ? ' — ' + a.note : ''}</span>
-        <span class="row-actions">
-          <button class="icon-btn" data-edit-audit="${a.id}" title="Modifier">✏️</button>
-          <button class="icon-btn danger" data-delete-audit="${a.id}" title="Supprimer">🗑️</button>
-        </span>
-      </div>
-    `).join('');
-    historyTr.innerHTML = `<td colspan="7">${historyRows}</td>`;
-    tbody.appendChild(historyTr);
-  });
-
-  tbody.querySelectorAll('[data-expand]').forEach(btn => {
-    btn.addEventListener('click', () => document.getElementById(btn.dataset.expand).classList.toggle('hidden'));
-  });
-  tbody.querySelectorAll('[data-edit-audit]').forEach(btn => btn.addEventListener('click', () => openAuditModal(btn.dataset.editAudit)));
-  tbody.querySelectorAll('[data-delete-audit]').forEach(btn => btn.addEventListener('click', () => deleteAudit(btn.dataset.deleteAudit)));
-}
-
-function populateAuditAgentSelect(){
-  const sel = document.getElementById('auditAgentInput');
-  const sortedAgents = [...AGENTS].sort((a, b) => a.name.localeCompare(b.name));
-  sel.innerHTML = sortedAgents.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
-}
-
-function openAuditModal(auditId = null){
-  editingAuditId = auditId;
-  populateAuditAgentSelect();
-  const title = document.getElementById('auditModalTitle');
-  document.getElementById('auditModalError').textContent = '';
-
-  if(auditId){
-    const a = allAudits.find(x => x.id === auditId);
-    title.textContent = 'Modifier l\'audit';
-    document.getElementById('auditAgentInput').value = a.agentId || '';
-    document.getElementById('auditDateInput').value = a.date || '';
-    document.getElementById('auditCategoryInput').value = a.category || 'Comportement';
-    document.getElementById('auditViolationInput').value = a.violation ? 'violation' : 'clean';
-    document.getElementById('auditNoteInput').value = a.note || '';
-  } else {
-    title.textContent = 'Ajouter un audit';
-    document.getElementById('auditDateInput').value = new Date().toISOString().slice(0, 10);
-    document.getElementById('auditCategoryInput').value = 'Comportement';
-    document.getElementById('auditViolationInput').value = 'clean';
-    document.getElementById('auditNoteInput').value = '';
-  }
-  document.getElementById('auditModalOverlay').classList.remove('hidden');
-}
-
-document.getElementById('addAuditBtn').addEventListener('click', () => openAuditModal(null));
-document.getElementById('cancelAuditBtn').addEventListener('click', () => document.getElementById('auditModalOverlay').classList.add('hidden'));
-document.getElementById('auditModalOverlay').addEventListener('click', e => { if(e.target.id === 'auditModalOverlay') document.getElementById('auditModalOverlay').classList.add('hidden'); });
-
-document.getElementById('saveAuditBtn').addEventListener('click', () => {
-  const agentId = document.getElementById('auditAgentInput').value;
-  const date = document.getElementById('auditDateInput').value;
-  const category = document.getElementById('auditCategoryInput').value;
-  const violation = document.getElementById('auditViolationInput').value === 'violation';
-  const note = document.getElementById('auditNoteInput').value.trim();
-  const errEl = document.getElementById('auditModalError');
-
-  if(!agentId){ errEl.textContent = 'Choisis un agent.'; return; }
-  if(!date){ errEl.textContent = 'Choisis une date.'; return; }
-
-  const agent = AGENTS.find(a => a.id === agentId);
-  const payload = { agentId, agentName: agent ? agent.name : '', date, category, violation, note: note || null };
-  const promise = editingAuditId
-    ? db.collection('audits').doc(editingAuditId).update(payload)
-    : db.collection('audits').add(payload);
-
-  promise.then(() => {
-    document.getElementById('auditModalOverlay').classList.add('hidden');
-    renderPerformanceView();
-  }).catch(err => { errEl.textContent = 'Erreur lors de l\'enregistrement.'; console.error(err); });
-});
-
-function deleteAudit(id){
-  if(!confirm('Supprimer cet audit ?')) return;
-  db.collection('audits').doc(id).delete().then(() => renderPerformanceView()).catch(err => console.error(err));
-}
-
-/* ================= IMPORT CSV (audits en masse) ================= */
-document.getElementById('importCsvBtn').addEventListener('click', () => {
-  document.getElementById('csvFileInput').click();
-});
-
-document.getElementById('csvFileInput').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if(!file) return;
-  Papa.parse(file, {
-    header: true,
-    skipEmptyLines: true,
-    complete: (results) => processCsvImport(results.data),
-    error: (err) => alert('Erreur de lecture du CSV : ' + err.message),
-  });
-  e.target.value = ''; // reset pour pouvoir réimporter le même fichier si besoin
-});
-
-function normalizeAgentSearch(str){
-  return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
-}
-
-function findColumnValue(row, candidates){
-  const keys = Object.keys(row);
-  for(const candidate of candidates){
-    const found = keys.find(k => k.toLowerCase().trim() === candidate);
-    if(found && row[found]) return row[found].trim();
-  }
-  // recherche partielle si aucune correspondance exacte
-  for(const candidate of candidates){
-    const found = keys.find(k => k.toLowerCase().includes(candidate));
-    if(found && row[found]) return row[found].trim();
-  }
-  return '';
-}
-
-function processCsvImport(rows){
-  if(!rows || rows.length === 0){ alert('Le fichier CSV est vide.'); return; }
-
-  const batch = db.batch();
-  let imported = 0;
-  const skipped = [];
-
-  rows.forEach((row, idx) => {
-    const nameRaw = findColumnValue(row, ['agent', 'rider', 'nom', 'name']);
-    const dateRaw = findColumnValue(row, ['date']);
-    const category = findColumnValue(row, ['categorie', 'category', 'type']) || 'Autre';
-    const resultRaw = findColumnValue(row, ['violation', 'resultat', 'result', 'statut', 'status']);
-    const note = findColumnValue(row, ['note', 'commentaire', 'comment']);
-
-    if(!nameRaw || !dateRaw){ skipped.push(`Ligne ${idx + 2} : nom ou date manquant`); return; }
-
-    const norm = normalizeAgentSearch(nameRaw);
-    const agent = AGENTS.find(a => normalizeAgentSearch(a.name).includes(norm) || norm.includes(normalizeAgentSearch(a.name)));
-    if(!agent){ skipped.push(`Ligne ${idx + 2} : agent "${nameRaw}" introuvable`); return; }
-
-    // Interprète le résultat comme violation si le texte contient violation/non/false/❌ etc.
-    const resultLower = resultRaw.toLowerCase();
-    const violation = /violat|non.?conforme|false|non\b|❌|invalid/.test(resultLower);
-
-    // Normalise la date en YYYY-MM-DD si possible.
-    let dateStr = dateRaw;
-    const parsed = new Date(dateRaw);
-    if(!isNaN(parsed.getTime())) dateStr = parsed.toISOString().slice(0, 10);
-
-    const ref = db.collection('audits').doc();
-    batch.set(ref, { agentId: agent.id, agentName: agent.name, date: dateStr, category, violation, note: note || null });
-    imported++;
-  });
-
-  if(imported === 0){
-    alert(`Aucune ligne importée.\n\n${skipped.slice(0, 15).join('\n')}${skipped.length > 15 ? `\n... et ${skipped.length - 15} autre(s)` : ''}`);
-    return;
-  }
-
-  batch.commit().then(() => {
-    let msg = `${imported} audit(s) importé(s) avec succès.`;
-    if(skipped.length > 0) msg += `\n\n${skipped.length} ligne(s) ignorée(s) :\n${skipped.slice(0, 10).join('\n')}${skipped.length > 10 ? '\n...' : ''}`;
-    alert(msg);
-    renderPerformanceView();
-  }).catch(err => { console.error(err); alert('Erreur pendant l\'import.'); });
-}
 
 renderProfiles();
 </script>
