@@ -417,6 +417,27 @@ tr:last-child td{ border-bottom:none; }
 .alerts-banner b{ display:block; margin-bottom: 4px; font-size: 12.5px; }
 .alerts-banner ul{ margin: 4px 0 0 18px; }
 
+/* ============ PERFORMANCE ============ */
+.perf-pills{ display:flex; gap: 8px; flex-wrap: wrap; }
+.perf-pill{
+  padding: 9px 16px; border-radius: 20px; font-size: 12.5px; font-weight: 700;
+  background: var(--paper); border: 1.5px solid var(--line); color: var(--ink);
+  cursor: pointer; transition: all .12s;
+}
+.perf-pill.active{ border-color: transparent; color: #fff; }
+.perf-pill.pill-all.active{ background: var(--sky-ink); }
+.perf-pill.pill-chronic.active{ background: #C4593A; }
+.perf-pill.pill-relapsed.active{ background: var(--mustard); }
+.perf-pill.pill-improved.active{ background: #3FA66B; }
+.perf-pill.pill-clean.active{ background: #3B6FA0; }
+.rider-status-badge{ display:inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10.5px; font-weight: 700; }
+.rider-status-badge.chronic{ background: rgba(196,89,58,0.14); color: #C4593A; }
+.rider-status-badge.relapsed{ background: rgba(245,166,35,0.18); color: var(--mustard-deep); }
+.rider-status-badge.improved{ background: rgba(63,166,107,0.14); color: #3FA66B; }
+.rider-status-badge.clean{ background: rgba(59,111,160,0.14); color: #3B6FA0; }
+.audit-history-row{ background: var(--sand); }
+.audit-history-row td{ padding: 10px 16px; }
+
 @media print{
   .sidebar, .topbar, .planning-header, .planning-tabs, .alerts-banner{ display:none !important; }
   body{ background: #fff; }
@@ -556,6 +577,7 @@ tr:last-child td{ border-bottom:none; }
       <div class="nav-group">
         <div class="nav-label">Ressources</div>
         <button class="nav-item" data-view="agents"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2 21c0-4 3-6.5 7-6.5S16 17 16 21"/><circle cx="18" cy="9" r="2.5"/><path d="M22 21c0-3-1.8-5-4.5-5.3"/></svg><span>Agents</span></button>
+        <button class="nav-item" data-view="performance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 9l-5 5-3-3-4 4"/></svg><span>Performance</span></button>
         <button class="nav-item" data-view="paie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="3"/><path d="M6 6V5a2 2 0 012-2h8a2 2 0 012 2v1"/></svg><span>Paie</span></button>
         <button class="nav-item" data-view="rapports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg><span>Rapports</span></button>
       </div>
@@ -797,8 +819,28 @@ tr:last-child td{ border-bottom:none; }
           </div>
         </div>
       </section>
-      <section class="view hidden" id="view-paie"></section>
+      <section class="view hidden" id="view-performance">
+        <div class="view-header">
+          <p class="view-subtitle">Suivi des audits et de la récidive par rider/coursier.</p>
+          <button class="btn-primary" id="addAuditBtn">+ Ajouter un audit</button>
+        </div>
+
+        <div class="perf-pills" id="perfPills"></div>
+
+        <div class="card" style="margin-top:18px;">
+          <table>
+            <thead><tr><th>Rider</th><th>Ville</th><th>Total audits</th><th>Violations</th><th>1er signalement</th><th>Dernier audit</th><th></th></tr></thead>
+            <tbody id="performanceTableBody"></tbody>
+          </table>
+          <div class="placeholder-view hidden" id="performanceEmptyState">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M18 9l-5 5-3-3-4 4"/></svg>
+            <h3>Aucun audit enregistré</h3>
+            <p>Clique sur "+ Ajouter un audit" pour commencer le suivi.</p>
+          </div>
+        </div>
+      </section>
       <section class="view hidden" id="view-rapports"></section>
+      <section class="view hidden" id="view-paie"></section>
       <section class="view hidden" id="view-parametres"></section>
     </main>
   </div>
@@ -816,6 +858,48 @@ tr:last-child td{ border-bottom:none; }
     <div class="modal-actions">
       <button class="btn-ghost" id="cancelRangeExportBtn">Annuler</button>
       <button class="login-submit" id="confirmRangeExportBtn" style="width:auto; padding:12px 22px;">Exporter</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUDIT MODAL -->
+<div class="modal-overlay hidden" id="auditModalOverlay">
+  <div class="modal-card">
+    <h3 id="auditModalTitle">Ajouter un audit</h3>
+    <label class="form-label">Nom du rider</label>
+    <input type="text" id="auditRiderNameInput" class="login-input" list="riderNamesList" placeholder="Ex: Rida Baba">
+    <datalist id="riderNamesList"></datalist>
+
+    <label class="form-label">ID rider (optionnel)</label>
+    <input type="text" id="auditRiderIdInput" class="login-input" placeholder="Ex: 3896089">
+
+    <label class="form-label">Ville</label>
+    <input type="text" id="auditCityInput" class="login-input" placeholder="Ex: Rabat">
+
+    <label class="form-label">Date</label>
+    <input type="date" id="auditDateInput" class="login-input">
+
+    <label class="form-label">Catégorie</label>
+    <select id="auditCategoryInput" class="login-input">
+      <option value="Comportement">Comportement</option>
+      <option value="Fraude">Fraude</option>
+      <option value="Autre">Autre</option>
+    </select>
+
+    <label class="form-label">Résultat</label>
+    <select id="auditViolationInput" class="login-input">
+      <option value="clean">Conforme (pas de violation)</option>
+      <option value="violation">Violation</option>
+    </select>
+
+    <label class="form-label">Note (optionnel)</label>
+    <input type="text" id="auditNoteInput" class="login-input" placeholder="Détails...">
+
+    <div class="modal-error" id="auditModalError"></div>
+
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelAuditBtn">Annuler</button>
+      <button class="login-submit" id="saveAuditBtn" style="width:auto; padding:12px 22px;">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -1273,6 +1357,9 @@ document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
     }
     if(view === 'absences'){
       renderAbsencesView();
+    }
+    if(view === 'performance'){
+      renderPerformanceView();
     }
   });
 });
@@ -2557,6 +2644,188 @@ document.getElementById('confirmRangeExportBtn').addEventListener('click', () =>
     })
     .catch(err => { console.error(err); errEl.textContent = 'Erreur lors de la génération.'; });
 });
+
+/* ================= PERFORMANCE (audits & récidive riders) ================= */
+let allAudits = [];
+let editingAuditId = null;
+let performanceFilter = 'all';
+
+// Regroupe les audits par rider (clé = ID rider si fourni, sinon nom+ville) et calcule le statut.
+function computeRiderStats(){
+  const groups = {};
+  allAudits.forEach(a => {
+    const key = (a.riderId && a.riderId.trim()) ? `id:${a.riderId.trim()}` : `nc:${(a.riderName || '').toLowerCase()}|${(a.city || '').toLowerCase()}`;
+    if(!groups[key]) groups[key] = { riderName: a.riderName, riderId: a.riderId, city: a.city, audits: [] };
+    groups[key].audits.push(a);
+  });
+  return Object.values(groups).map(g => {
+    const sorted = [...g.audits].sort((x, y) => (x.date || '').localeCompare(y.date || ''));
+    const total = sorted.length;
+    const violations = sorted.filter(a => a.violation).length;
+    const firstFlagged = sorted.find(a => a.violation);
+    const lastAudit = sorted[sorted.length - 1];
+    let status;
+    if(violations === 0) status = 'clean';
+    else if(violations === total) status = 'chronic';
+    else if(!lastAudit.violation) status = 'improved';
+    else status = 'relapsed';
+    return { ...g, audits: sorted, total, violations, firstFlaggedDate: firstFlagged ? firstFlagged.date : '—', lastAuditDate: lastAudit ? lastAudit.date : '—', status };
+  });
+}
+
+function renderPerformanceView(){
+  db.collection('audits').get().then(snap => {
+    allAudits = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderPerformancePills();
+    renderPerformanceTable();
+  }).catch(err => console.error(err));
+}
+
+function renderPerformancePills(){
+  const riders = computeRiderStats();
+  const counts = { all: riders.length, chronic: 0, relapsed: 0, improved: 0, clean: 0 };
+  riders.forEach(r => counts[r.status]++);
+  const pills = document.getElementById('perfPills');
+  pills.innerHTML = `
+    <button class="perf-pill pill-all ${performanceFilter === 'all' ? 'active' : ''}" data-filter="all">${counts.all} Total Riders</button>
+    <button class="perf-pill pill-chronic ${performanceFilter === 'chronic' ? 'active' : ''}" data-filter="chronic">🔴 ${counts.chronic} Chronic</button>
+    <button class="perf-pill pill-relapsed ${performanceFilter === 'relapsed' ? 'active' : ''}" data-filter="relapsed">🟠 ${counts.relapsed} Relapsed</button>
+    <button class="perf-pill pill-improved ${performanceFilter === 'improved' ? 'active' : ''}" data-filter="improved">🟢 ${counts.improved} Improved</button>
+    <button class="perf-pill pill-clean ${performanceFilter === 'clean' ? 'active' : ''}" data-filter="clean">🔵 ${counts.clean} Clean</button>
+  `;
+  pills.querySelectorAll('.perf-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      performanceFilter = btn.dataset.filter;
+      renderPerformancePills();
+      renderPerformanceTable();
+    });
+  });
+}
+
+const STATUS_LABELS = { chronic: 'Chronic', relapsed: 'Relapsed', improved: 'Improved', clean: 'Clean' };
+
+function renderPerformanceTable(){
+  let riders = computeRiderStats();
+  if(performanceFilter !== 'all') riders = riders.filter(r => r.status === performanceFilter);
+  riders.sort((a, b) => b.violations - a.violations);
+
+  const tbody = document.getElementById('performanceTableBody');
+  const table = tbody.closest('table');
+  const emptyState = document.getElementById('performanceEmptyState');
+  tbody.innerHTML = '';
+
+  if(riders.length === 0){
+    table.classList.add('hidden');
+    emptyState.classList.remove('hidden');
+    return;
+  }
+  table.classList.remove('hidden');
+  emptyState.classList.add('hidden');
+
+  riders.forEach((r, idx) => {
+    const rowId = `rider-row-${idx}`;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${r.riderName}</b>${r.riderId ? `<br><span style="color:var(--ink-soft); font-size:11px;">${r.riderId}</span>` : ''}</td>
+      <td>${r.city || '—'}</td>
+      <td>${r.total}</td>
+      <td>${r.violations}</td>
+      <td>${r.firstFlaggedDate}</td>
+      <td>${r.lastAuditDate}</td>
+      <td><span class="rider-status-badge ${r.status}">${STATUS_LABELS[r.status]}</span> <button class="icon-btn" data-expand="${rowId}">▾</button></td>
+    `;
+    tbody.appendChild(tr);
+
+    const historyTr = document.createElement('tr');
+    historyTr.className = 'audit-history-row hidden';
+    historyTr.id = rowId;
+    const historyRows = r.audits.map(a => `
+      <div class="portal-history-item">
+        <span>${a.date} — ${a.category || 'Audit'} ${a.violation ? '❌ Violation' : '✅ Conforme'}${a.note ? ' — ' + a.note : ''}</span>
+        <span class="row-actions">
+          <button class="icon-btn" data-edit-audit="${a.id}" title="Modifier">✏️</button>
+          <button class="icon-btn danger" data-delete-audit="${a.id}" title="Supprimer">🗑️</button>
+        </span>
+      </div>
+    `).join('');
+    historyTr.innerHTML = `<td colspan="7">${historyRows}</td>`;
+    tbody.appendChild(historyTr);
+  });
+
+  tbody.querySelectorAll('[data-expand]').forEach(btn => {
+    btn.addEventListener('click', () => document.getElementById(btn.dataset.expand).classList.toggle('hidden'));
+  });
+  tbody.querySelectorAll('[data-edit-audit]').forEach(btn => btn.addEventListener('click', () => openAuditModal(btn.dataset.editAudit)));
+  tbody.querySelectorAll('[data-delete-audit]').forEach(btn => btn.addEventListener('click', () => deleteAudit(btn.dataset.deleteAudit)));
+}
+
+function populateRiderNamesDatalist(){
+  const list = document.getElementById('riderNamesList');
+  const names = [...new Set(allAudits.map(a => a.riderName).filter(Boolean))];
+  list.innerHTML = names.map(n => `<option value="${n}">`).join('');
+}
+
+function openAuditModal(auditId = null){
+  editingAuditId = auditId;
+  populateRiderNamesDatalist();
+  const title = document.getElementById('auditModalTitle');
+  document.getElementById('auditModalError').textContent = '';
+
+  if(auditId){
+    const a = allAudits.find(x => x.id === auditId);
+    title.textContent = 'Modifier l\'audit';
+    document.getElementById('auditRiderNameInput').value = a.riderName || '';
+    document.getElementById('auditRiderIdInput').value = a.riderId || '';
+    document.getElementById('auditCityInput').value = a.city || '';
+    document.getElementById('auditDateInput').value = a.date || '';
+    document.getElementById('auditCategoryInput').value = a.category || 'Comportement';
+    document.getElementById('auditViolationInput').value = a.violation ? 'violation' : 'clean';
+    document.getElementById('auditNoteInput').value = a.note || '';
+  } else {
+    title.textContent = 'Ajouter un audit';
+    document.getElementById('auditRiderNameInput').value = '';
+    document.getElementById('auditRiderIdInput').value = '';
+    document.getElementById('auditCityInput').value = '';
+    document.getElementById('auditDateInput').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('auditCategoryInput').value = 'Comportement';
+    document.getElementById('auditViolationInput').value = 'clean';
+    document.getElementById('auditNoteInput').value = '';
+  }
+  document.getElementById('auditModalOverlay').classList.remove('hidden');
+}
+
+document.getElementById('addAuditBtn').addEventListener('click', () => openAuditModal(null));
+document.getElementById('cancelAuditBtn').addEventListener('click', () => document.getElementById('auditModalOverlay').classList.add('hidden'));
+document.getElementById('auditModalOverlay').addEventListener('click', e => { if(e.target.id === 'auditModalOverlay') document.getElementById('auditModalOverlay').classList.add('hidden'); });
+
+document.getElementById('saveAuditBtn').addEventListener('click', () => {
+  const riderName = document.getElementById('auditRiderNameInput').value.trim();
+  const riderId = document.getElementById('auditRiderIdInput').value.trim();
+  const city = document.getElementById('auditCityInput').value.trim();
+  const date = document.getElementById('auditDateInput').value;
+  const category = document.getElementById('auditCategoryInput').value;
+  const violation = document.getElementById('auditViolationInput').value === 'violation';
+  const note = document.getElementById('auditNoteInput').value.trim();
+  const errEl = document.getElementById('auditModalError');
+
+  if(!riderName){ errEl.textContent = 'Entre le nom du rider.'; return; }
+  if(!date){ errEl.textContent = 'Choisis une date.'; return; }
+
+  const payload = { riderName, riderId: riderId || null, city: city || null, date, category, violation, note: note || null };
+  const promise = editingAuditId
+    ? db.collection('audits').doc(editingAuditId).update(payload)
+    : db.collection('audits').add(payload);
+
+  promise.then(() => {
+    document.getElementById('auditModalOverlay').classList.add('hidden');
+    renderPerformanceView();
+  }).catch(err => { errEl.textContent = 'Erreur lors de l\'enregistrement.'; console.error(err); });
+});
+
+function deleteAudit(id){
+  if(!confirm('Supprimer cet audit ?')) return;
+  db.collection('audits').doc(id).delete().then(() => renderPerformanceView()).catch(err => console.error(err));
+}
 
 renderProfiles();
 </script>
