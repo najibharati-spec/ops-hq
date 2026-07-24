@@ -412,9 +412,9 @@ tr:last-child td{ border-bottom:none; }
   letter-spacing: .01em;
 }
 .shift-pill:hover{ filter: brightness(1.08); transform: translateY(-1px); }
-.shift-pill.s-jour{ background: var(--mustard-deep); color: #fff; }
-.shift-pill.s-nuit{ background: var(--sky-deep); color: #fff; }
-.shift-pill.s-quiet{ background: #E7EAF0; color: #55606E; box-shadow: inset 0 0 0 1px #D5DAE3; }
+.shift-pill.s-jour{ background: #2E9E83; color: #fff; }
+.shift-pill.s-nuit{ background: #5B4B8A; color: #fff; }
+.shift-pill.s-quiet{ background: #EFEAE3; color: #6B6558; box-shadow: inset 0 0 0 1px #DED6C6; }
 .cell-select{
   width: 100%; padding: 6px 4px; border-radius: 7px; border: 1.5px solid var(--sky); font-size: 11px;
   background: #fff; font-weight: 700;
@@ -1959,21 +1959,22 @@ function renderPlanningTable(){
     const data = currentPlanningData.agents && currentPlanningData.agents[a.id];
     const tr = document.createElement('tr');
     const zoneColor = data && ZONE_COLORS[data.zone];
+    const zoneBorder = zoneColor ? `border-bottom:2px solid ${zoneColor};` : '';
     let totalHours = 0;
     let dayCellsHtml = '';
     DAY_KEYS.forEach(day => {
       const code = data && data.cells ? (data.cells[day] || 'OFF') : 'OFF';
       const info = getShiftInfo(code);
       totalHours += info.hours;
-      dayCellsHtml += `<td><button class="shift-pill ${info.cls}" data-agent="${a.id}" data-day="${day}" data-code="${code}">${info.label}</button></td>`;
+      dayCellsHtml += `<td style="${zoneBorder}"><button class="shift-pill ${info.cls}" data-agent="${a.id}" data-day="${day}" data-code="${code}">${info.label}</button></td>`;
     });
     const zoneOptions = ZONES.map(z => `<option value="${z}" ${data && data.zone === z ? 'selected' : ''}>${getZoneLabel(z)}</option>`).join('');
     tr.innerHTML = `
-      <td class="sticky-col agent-name-cell" style="${zoneColor ? `border-left:3px solid ${zoneColor};` : ''}"><input type="text" class="agent-name-edit" list="agentNamesList" data-agent-name="${a.id}" value="${a.name}" title="Modifier le nom"></td>
-      <td class="zone-cell"><select class="cell-select zone-select" data-agent="${a.id}" style="border-color: var(--line); font-weight:600;">${zoneOptions}</select></td>
+      <td class="sticky-col agent-name-cell" style="${zoneColor ? `border-left:3px solid ${zoneColor}; ${zoneBorder}` : ''}"><input type="text" class="agent-name-edit" list="agentNamesList" data-agent-name="${a.id}" value="${a.name}" title="Modifier le nom"></td>
+      <td class="zone-cell" style="${zoneBorder}"><select class="cell-select zone-select" data-agent="${a.id}" style="border-color: var(--line); font-weight:600;">${zoneOptions}</select></td>
       ${dayCellsHtml}
-      <td class="total-cell">${totalHours}h</td>
-      <td><button class="icon-btn" data-toggle-period="${a.id}" title="Inverser Matin/Nuit toute la semaine">🔄</button></td>
+      <td class="total-cell" style="${zoneBorder}">${totalHours}h</td>
+      <td style="${zoneBorder}"><button class="icon-btn" data-toggle-period="${a.id}" title="Inverser Matin/Nuit toute la semaine">🔄</button></td>
     `;
     tbody.appendChild(tr);
   });
